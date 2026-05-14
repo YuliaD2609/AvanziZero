@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "948647832460",
+    "project_id": "farfromhome-ef888",
+    "storage_bucket": "farfromhome-ef888.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:948647832460:android:a4b3409fbf68007ceb44a9",
+        "android_client_info": {
+          "package_name": "com.example.far_from_home"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtehBSSbcv3rI93cKcrafMNpB78ZXQ3yE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
