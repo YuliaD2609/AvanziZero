@@ -274,12 +274,26 @@ class AppState extends ChangeNotifier {
     try {
       final item = allItems.firstWhere((i) => i.id == itemId);
       item.quantity += delta;
-      if (item.quantity < 0) item.quantity = 0;
-
-      _firebaseService?.updateItemQuantity(itemId, item.quantity);
+      
+      if (item.quantity <= 0) {
+        allItems.remove(item);
+        _firebaseService?.deleteItem(itemId);
+      } else {
+        _firebaseService?.updateItemQuantity(itemId, item.quantity);
+      }
       notifyListeners();
     } catch (e) {
       print("Prodotto non trovato localmente: $e");
+    }
+  }
+
+  void deleteItem(String itemId) {
+    try {
+      allItems.removeWhere((i) => i.id == itemId);
+      _firebaseService?.deleteItem(itemId);
+      notifyListeners();
+    } catch (e) {
+      print("Errore eliminazione locale: $e");
     }
   }
 
