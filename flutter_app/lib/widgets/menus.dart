@@ -60,11 +60,11 @@ class HorizontalHeaderMenu extends StatelessWidget {
               ),
             ),
 
-            // Pulsante Carrello/Coinquilini a destra
+            // Pulsante Supermercati Vicini a destra
             IconButton(
-              icon: const Icon(Icons.shopping_cart_rounded, color: Colors.white, size: 28),
+              icon: const Icon(Icons.storefront_rounded, color: Colors.white, size: 28),
               onPressed: onCartPressed,
-              tooltip: 'Spese e Coinquilini',
+              tooltip: 'Supermercati nelle vicinanze',
             ),
           ],
         ),

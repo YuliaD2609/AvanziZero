@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/firebase_service.dart';
 
 class ItemModel {
   final String id;
@@ -22,7 +25,6 @@ class ItemModel {
   });
 
   // Livello di urgenza "Zero Spreco"
-  // Calcolato simbolicamente o basato sulla stringa per la demo
   int get urgencyLevel {
     if (expireDate.contains('Oggi') || expireDate.contains('Domani')) return 2; // Rosso
     if (expireDate.contains('giorni')) return 1; // Giallo
@@ -54,7 +56,127 @@ class SupermarketModel {
 
 class AppState extends ChangeNotifier {
   // ===========================================================================
-  // CATEGORIE (Lasciata intatta la divisione in categorie come richiesto)
+  // GESTIONE CLOUD & SINCRO REAL-TIME (FIREBASE)
+  // ===========================================================================
+  String? groupId;
+  List<String> savedGroups = []; // Cronologia locale dei codici gruppo visitati
+  FirebaseService? _firebaseService;
+  StreamSubscription<List<ItemModel>>? _itemsSubscription;
+  StreamSubscription<List<RoommateExpense>>? _expensesSubscription;
+
+  bool isLoading = false;
+
+  /// Carica la cronologia dei gruppi visitati dalla memoria persistente
+  Future<void> loadSavedGroups() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      savedGroups = prefs.getStringList('savedGroups') ?? [];
+      notifyListeners();
+    } catch (e) {
+      print("Errore nel caricamento della cronologia gruppi: $e");
+    }
+  }
+
+  /// Imposta il codice del gruppo (Casa), avvia la sincronizzazione e lo salva nella cronologia.
+  Future<void> setGroupId(String newGroupId) async {
+    if (newGroupId.trim().isEmpty) return;
+    
+    final code = newGroupId.trim().toUpperCase();
+    groupId = code;
+    isLoading = true;
+    notifyListeners();
+
+    // Aggiunge alla cronologia se non presente e salva localmente
+    if (!savedGroups.contains(code)) {
+      savedGroups.insert(0, code);
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setStringList('savedGroups', savedGroups);
+      } catch (e) {
+        print("Errore salvataggio cronologia: $e");
+      }
+    }
+
+    _firebaseService = FirebaseService(groupId: groupId!);
+
+    // Copia i dati demo iniziali su Firestore se il gruppo è appena stato creato
+    await _firebaseService!.seedInitialDataIfNeeded(_initialDemoItems, _initialDemoExpenses);
+
+    // Cancella eventuali sottoscrizioni precedenti
+    await _itemsSubscription?.cancel();
+    await _expensesSubscription?.cancel();
+
+    // Sottoscrizione allo stream degli articoli
+    _itemsSubscription = _firebaseService!.getItemsStream().listen(
+      (itemsFromCloud) {
+        if (itemsFromCloud.isNotEmpty) {
+          allItems = itemsFromCloud;
+        }
+        isLoading = false;
+        notifyListeners();
+      },
+      onError: (error) {
+        print("Errore stream articoli: $error");
+        isLoading = false;
+        notifyListeners();
+      },
+    );
+
+    // Sottoscrizione allo stream delle spese condivise
+    _expensesSubscription = _firebaseService!.getExpensesStream().listen(
+      (expensesFromCloud) {
+        if (expensesFromCloud.isNotEmpty) {
+          expenses = expensesFromCloud;
+        }
+        notifyListeners();
+      },
+      onError: (error) => print("Errore stream spese: $error"),
+    );
+  }
+
+  /// Rimuove un gruppo specifico dalla cronologia locale
+  Future<void> removeSavedGroup(String code) async {
+    savedGroups.remove(code);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('savedGroups', savedGroups);
+    } catch (e) {
+      print("Errore rimozione gruppo da SharedPreferences: $e");
+    }
+    
+    // Se elimino il gruppo in cui mi trovo attualmente, esco dal gruppo
+    if (groupId == code) {
+      await leaveGroup();
+    } else {
+      notifyListeners();
+    }
+  }
+
+  /// Esce dal gruppo corrente, scollega gli stream e ripristina la UI in modalità base.
+  Future<void> leaveGroup() async {
+    groupId = null;
+    await _itemsSubscription?.cancel();
+    await _expensesSubscription?.cancel();
+    _itemsSubscription = null;
+    _expensesSubscription = null;
+    _firebaseService = null;
+
+    // Ripristina le liste di default per permettere l'ingresso pulito in un altro gruppo
+    allItems = List.from(_initialDemoItems);
+    expenses = List.from(_initialDemoExpenses);
+
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _itemsSubscription?.cancel();
+    _expensesSubscription?.cancel();
+    super.dispose();
+  }
+
+  // ===========================================================================
+  // CATEGORIE
   // ===========================================================================
   List<String> pantryCategories = [
     "Tutti",
@@ -87,38 +209,34 @@ class AppState extends ChangeNotifier {
   String selectedSuitcaseCategory = "Tutti";
 
   // ===========================================================================
-  // LISTA PRODOTTI INIZIALI
+  // LISTE DI BACKUP / DEMO INIZIALI
   // ===========================================================================
-  List<ItemModel> allItems = [
-    // Prodotti Dispensa
+  final List<ItemModel> _initialDemoItems = [
     ItemModel(id: '1', name: 'Latte Parzialmente Scremato', expireDate: 'In scadenza: Oggi', quantity: 1, category: 'Latticini', isPantry: true),
     ItemModel(id: '2', name: 'Insalata Mista Busta', expireDate: 'Scadenza: Domani', quantity: 2, category: 'Frutta & Verdura', isPantry: true),
     ItemModel(id: '3', name: 'Pasta Spaghetti 1kg', expireDate: 'Scadenza: 12/10/2026', quantity: 4, category: 'Secco & Pasta', isPantry: true),
     ItemModel(id: '4', name: 'Passata di Pomodoro', expireDate: 'Scadenza: 25/08/2026', quantity: 3, category: 'Secco & Pasta', isPantry: true),
     ItemModel(id: '5', name: 'Petti di Pollo', expireDate: 'Scadenza: tra 3 giorni', quantity: 1, category: 'Carne & Pesce', isPantry: true),
-    
-    // Prodotti Lista della Spesa (Predictive / Mancanti)
     ItemModel(id: '6', name: 'Olio Extravergine', expireDate: '-', quantity: 1, category: 'Secco & Pasta', isShopping: true),
     ItemModel(id: '7', name: 'Detersivo Piatti', expireDate: '-', quantity: 2, category: 'Igiene Casa', isShopping: true),
     ItemModel(id: '8', name: 'Mele Golden', expireDate: '-', quantity: 6, category: 'Frutta & Verdura', isShopping: true),
-
-    // Prodotti Valigia
     ItemModel(id: '9', name: 'Magliette di ricambio', expireDate: '-', quantity: 5, category: 'Vestiti', isSuitcase: true),
     ItemModel(id: '10', name: 'Caricabatterie PC e Telefono', expireDate: '-', quantity: 2, category: 'Cavi & Tech', isSuitcase: true),
     ItemModel(id: '11', name: 'Appunti ed Esami passati', expireDate: '-', quantity: 3, category: 'Libri & Studio', isSuitcase: true),
   ];
 
-  // ===========================================================================
-  // SPESE CONDIVISE COINQUILINI (House Sync)
-  // ===========================================================================
-  List<RoommateExpense> expenses = [
+  final List<RoommateExpense> _initialDemoExpenses = [
     RoommateExpense(id: 'e1', description: 'Spesa settimanale Esselunga', amount: 64.50, paidBy: 'Tu'),
     RoommateExpense(id: 'e2', description: 'Detersivi e Spugne', amount: 12.80, paidBy: 'Marco (Coinquilino)'),
     RoommateExpense(id: 'e3', description: 'Ricarica Acqua e Bevande', amount: 15.00, paidBy: 'Giulia (Coinquilina)'),
   ];
 
+  // Liste attive (inizializzate con i dati demo per fallback)
+  late List<ItemModel> allItems = List.from(_initialDemoItems);
+  late List<RoommateExpense> expenses = List.from(_initialDemoExpenses);
+
   // ===========================================================================
-  // SUPERMERCATI NELLE VICINANZE (Ottimizzazione dei tempi)
+  // SUPERMERCATI NELLE VICINANZE
   // ===========================================================================
   List<SupermarketModel> nearbySupermarkets = [
     SupermarketModel(name: 'Conad City (Convenzionato Studenti)', distance: '120m', address: 'Via dell\'Università, 14'),
@@ -127,10 +245,9 @@ class AppState extends ChangeNotifier {
   ];
 
   // ===========================================================================
-  // LOGICA E AZIONI
+  // LOGICA E AZIONI SINCRO
   // ===========================================================================
   
-  // Cambia categoria attiva
   void selectCategory(String category, String section) {
     if (section == 'pantry') selectedPantryCategory = category;
     if (section == 'shopping') selectedShoppingCategory = category;
@@ -138,7 +255,6 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Aggiunta dinamica di una nuova categoria dal menu verticale (+)
   void addCustomCategory(String newCategory, String section) {
     if (newCategory.trim().isEmpty) return;
     if (section == 'pantry' && !pantryCategories.contains(newCategory)) {
@@ -154,48 +270,48 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Modifica quantità (+ / -) come da layout nativo
   void updateQuantity(String itemId, int delta) {
-    final item = allItems.firstWhere((i) => i.id == itemId);
-    item.quantity += delta;
-    if (item.quantity < 0) item.quantity = 0;
-    notifyListeners();
+    try {
+      final item = allItems.firstWhere((i) => i.id == itemId);
+      item.quantity += delta;
+      if (item.quantity < 0) item.quantity = 0;
+
+      _firebaseService?.updateItemQuantity(itemId, item.quantity);
+      notifyListeners();
+    } catch (e) {
+      print("Prodotto non trovato localmente: $e");
+    }
   }
 
-  // Aggiungi un nuovo elemento manualmente
   void addItem(ItemModel newItem) {
     allItems.add(newItem);
+    _firebaseService?.saveItem(newItem);
     notifyListeners();
   }
 
-  // Spostamento di un prodotto da Lista della Spesa a Dispensa (Spesa Fatta)
   void markShoppingDone() {
     for (var item in allItems.where((i) => i.isShopping).toList()) {
-      // Aggiorna lo stato: diventa un prodotto in dispensa
       item.isShopping = false;
       item.isPantry = true;
       item.expireDate = "Scadenza: Fresco (30 gg)";
     }
+    _firebaseService?.markShoppingDone();
     notifyListeners();
   }
 
-  // Aggiungi una spesa condivisa
   void addExpense(String description, double amount, String paidBy) {
-    expenses.add(RoommateExpense(
+    final newExp = RoommateExpense(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       description: description,
       amount: amount,
       paidBy: paidBy,
-    ));
+    );
+    expenses.add(newExp);
+    _firebaseService?.addExpense(newExp);
     notifyListeners();
   }
 
-  // Calcolo riassunto bilancio coinquilini
-  double get totalExpenses {
-    return expenses.fold(0, (sum, e) => sum + e.amount);
-  }
+  double get totalExpenses => expenses.fold(0, (sum, e) => sum + e.amount);
 
-  double get myPaidExpenses {
-    return expenses.where((e) => e.paidBy == 'Tu').fold(0, (sum, e) => sum + e.amount);
-  }
+  double get myPaidExpenses => expenses.where((e) => e.paidBy == 'Tu').fold(0, (sum, e) => sum + e.amount);
 }

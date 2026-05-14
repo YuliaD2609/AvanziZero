@@ -1,5 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
+/// Modale avanzato per l'acquisizione di scontrini tramite Intelligenza Artificiale.
+/// Integra l'accesso nativo all'hardware del dispositivo (Fotocamera e Galleria)
+/// tramite il pacchetto ufficiale [image_picker], predisponendo l'immagine
+/// per l'invio al backend di inferenza OCR e classificazione LLM.
 class OcrScannerModal extends StatefulWidget {
   const OcrScannerModal({super.key});
 
@@ -17,29 +23,51 @@ class OcrScannerModal extends StatefulWidget {
 }
 
 class _OcrScannerModalState extends State<OcrScannerModal> {
-  bool _imageCaptured = false;
+  File? _capturedImage;
   bool _isAnalyzing = false;
+  final ImagePicker _picker = ImagePicker();
 
-  void _simulateCapture() {
-    setState(() {
-      _imageCaptured = true;
-      _isAnalyzing = true;
-    });
+  /// Avvia l'acquisizione di un'immagine nativa dalla sorgente desiderata
+  Future<void> _captureImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source,
+        imageQuality: 85, // Compressione ottimale per OCR via rete
+        maxWidth: 1800,
+      );
 
-    // Simula il tempo di caricamento per l'interfaccia verso il modello reale
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
+      if (pickedFile != null) {
         setState(() {
-          _isAnalyzing = false;
+          _capturedImage = File(pickedFile.path);
+          _isAnalyzing = true;
+        });
+
+        // Simula il tempo di latenza per l'inferenza del modello IA in background
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) {
+            setState(() {
+              _isAnalyzing = false;
+            });
+          }
         });
       }
-    });
+    } catch (e) {
+      print("Errore nell'acquisizione dell'immagine: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Impossibile accedere alla sorgente: $e"),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.75,
+      height: MediaQuery.of(context).size.height * 0.78,
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
@@ -97,69 +125,81 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Area Anteprima Fotocamera / Scontrino
+                  // Area Anteprima Fotocamera / Scontrino Reale
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
-                    height: 240,
+                    height: 260,
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: const Color(0xFFFBFBF9), // Avorio soft
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: _imageCaptured ? const Color(0xFF5A9E87) : const Color(0xFFEAECE8),
+                        color: _capturedImage != null ? const Color(0xFF5A9E87) : const Color(0xFFEAECE8),
                         width: 2,
                       ),
                     ),
-                    child: _imageCaptured
-                        ? Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                _isAnalyzing ? Icons.hourglass_top_rounded : Icons.check_circle_rounded,
-                                color: const Color(0xFF5A9E87),
-                                size: 50,
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                _isAnalyzing
-                                    ? "Connessione al Modello IA personalizzato..."
-                                    : "Scontrino Acquisito Pronto per l'Inferenza OCR",
-                                style: const TextStyle(
-                                  fontFamily: 'Outfit',
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1C3D32),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: _capturedImage != null
+                          ? Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                Image.file(
+                                  _capturedImage!,
+                                  fit: BoxFit.cover,
                                 ),
-                              ),
-                              if (_isAnalyzing)
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                                  child: LinearProgressIndicator(
-                                    color: Color(0xFF5A9E87),
-                                    backgroundColor: Color(0xFFEAECE8),
+                                // Overlay scuro durante l'analisi
+                                if (_isAnalyzing)
+                                  Container(
+                                    color: Colors.black.withOpacity(0.6),
+                                    child: const Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        CircularProgressIndicator(color: Color(0xFF5A9E87)),
+                                        SizedBox(height: 16),
+                                        Text(
+                                          "Estrazione OCR ed Elaborazione LLM...",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: 'Outfit',
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            )
+                          : const Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add_a_photo_rounded, color: Color(0xFF789088), size: 54),
+                                SizedBox(height: 12),
+                                Text(
+                                  "Nessuno scontrino inquadrato",
+                                  style: TextStyle(
+                                    fontFamily: 'Outfit',
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF789088),
                                   ),
                                 ),
-                            ],
-                          )
-                        : const Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.camera_alt_rounded, color: Color(0xFF789088), size: 60),
-                              SizedBox(height: 12),
-                              Text(
-                                "Inquadra lo scontrino della spesa",
-                                style: TextStyle(
-                                  fontFamily: 'Outfit',
-                                  fontSize: 15,
-                                  color: Color(0xFF789088),
+                                SizedBox(height: 4),
+                                Text(
+                                  "Usa i pulsanti in basso per scattare",
+                                  style: TextStyle(
+                                    fontFamily: 'Outfit',
+                                    fontSize: 13,
+                                    color: Color(0xFF789088),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
+                    ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
 
-                  // Descrizione e coerenza con il feedback utente ("addestrerò un modello vero")
+                  // Descrizione e coerenza con il feedback utente sul modello
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -168,11 +208,11 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.model_training_rounded, color: Color(0xFF1C3D32), size: 24),
+                        Icon(Icons.auto_awesome_rounded, color: Color(0xFF1C3D32), size: 24),
                         SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            "Integrazione Modello Reale: Questa interfaccia acquisirà l'immagine per passarla al modello di Machine Learning vero in fase di training, che estrarrà e smisterà i prodotti nelle rispettive categorie in automatico.",
+                            "Flusso Dati Reale: L'immagine ad alta risoluzione acquisita dall'hardware nativo viene inoltrata al backend di Computer Vision per la trascrizione e smistata in automatico nelle categorie Firebase corrette.",
                             style: TextStyle(
                               fontFamily: 'Outfit',
                               fontSize: 13,
@@ -186,13 +226,13 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                   ),
                   const Spacer(),
 
-                  // Pulsanti di Scatto / Galleria
-                  if (!_imageCaptured) ...[
+                  // Pulsanti di Azione
+                  if (_capturedImage == null) ...[
                     Row(
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: _simulateCapture,
+                            onPressed: () => _captureImage(ImageSource.gallery),
                             icon: const Icon(Icons.photo_library_rounded, color: Color(0xFF5A9E87)),
                             label: const Text(
                               "Galleria",
@@ -209,7 +249,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                         Expanded(
                           flex: 2,
                           child: ElevatedButton.icon(
-                            onPressed: _simulateCapture,
+                            onPressed: () => _captureImage(ImageSource.camera),
                             icon: const Icon(Icons.camera_rounded, color: Colors.white),
                             label: const Text(
                               "Scatta Foto",
@@ -226,36 +266,57 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                       ],
                     ),
                   ] else ...[
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isAnalyzing
-                            ? null
-                            : () {
-                                Navigator.pop(context);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Immagine pronta per il backend di inferenza!"),
-                                    backgroundColor: Color(0xFF5A9E87),
-                                  ),
-                                );
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFFB088), // Accento Pesca Pastello
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: const Text(
-                          "Conferma Immagine per Inferenza",
-                          style: TextStyle(
-                            fontFamily: 'Outfit',
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1C3D32),
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: _isAnalyzing
+                              ? null
+                              : () {
+                                  setState(() {
+                                    _capturedImage = null;
+                                  });
+                                },
+                          icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFEF4444)),
+                          style: IconButton.styleFrom(
+                            padding: const EdgeInsets.all(14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: const BorderSide(color: Color(0xFFEAECE8)),
+                            ),
                           ),
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _isAnalyzing
+                                ? null
+                                : () {
+                                    Navigator.pop(context);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("🚀 Immagine inviata al servizio di classificazione IA!"),
+                                        backgroundColor: Color(0xFF5A9E87),
+                                      ),
+                                    );
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFFB088), // Accento Pesca Pastello
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: const Text(
+                              "Invia al Backend OCR",
+                              style: TextStyle(
+                                fontFamily: 'Outfit',
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1C3D32),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ],

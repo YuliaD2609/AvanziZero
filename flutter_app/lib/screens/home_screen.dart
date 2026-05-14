@@ -64,9 +64,65 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
 
+              // Banner premium del Gruppo Casa Attivo con opzione di Uscita
+              if (state.groupId != null)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD1FAE5), // Menta Chiaro
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFF5A9E87).withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.maps_home_work_rounded, color: Color(0xFF5A9E87), size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Gruppo: ${state.groupId}",
+                            style: const TextStyle(
+                              fontFamily: 'Outfit',
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1C3D32),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      TextButton.icon(
+                        onPressed: () {
+                          // Uscita istantanea dal gruppo corrente
+                          state.leaveGroup();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Sei uscito dal gruppo appartamento.")),
+                          );
+                        },
+                        icon: const Icon(Icons.logout_rounded, size: 16, color: Color(0xFFEF4444)),
+                        label: const Text(
+                          "Esci",
+                          style: TextStyle(
+                            fontFamily: 'Outfit',
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFEF4444),
+                            fontSize: 13,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
               // Logo / Titolo (Sostituisce l'ImageView logo_text in modo premium)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Column(
                   children: [
                     const Text(
@@ -94,7 +150,7 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // ===============================================================
               // PULSANTI PRINCIPALI (Lasciati esattamente con le scritte originali)
@@ -106,7 +162,7 @@ class HomeScreen extends StatelessWidget {
                 iconData: Icons.receipt_long_rounded,
                 onTap: () => onNavigate(2),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // 2. Dispensa
               _buildMainNavigationButton(
@@ -115,8 +171,6 @@ class HomeScreen extends StatelessWidget {
                 onTap: () => onNavigate(1),
               ),
               const SizedBox(height: 20),
-
-              const SizedBox(height: 8),
 
               // ===============================================================
               // SEZIONE WARNING: PRODOTTI IN SCADENZA (warningLayout)
@@ -137,9 +191,9 @@ class HomeScreen extends StatelessWidget {
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFEE2E2), // Sfondo rosso chiaro
-                        borderRadius: const BorderRadius.only(topLeft: Radius.circular(18), topRight: Radius.circular(18)),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFEE2E2), // Sfondo rosso chiaro
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(18), topRight: Radius.circular(18)),
                       ),
                       child: const Text(
                         "Prodotti in scadenza",
@@ -192,7 +246,7 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // ===============================================================
-              // INTEGRAZIONI BUSINESS MODEL CANVAS (Ottimizzazione tempi e Coinquilini)
+              // INTEGRAZIONI BUSINESS MODEL CANVAS (Spese Condivise Coinquilini)
               // ===============================================================
               
               // Pulsante visualizzazione spese coinquilini (House Sync)
@@ -235,42 +289,25 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // Ricerca automatica supermercati nelle vicinanze
-              InkWell(
-                onTap: () => _showNearbySupermarketsModal(context),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFEAECE8)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(color: const Color(0xFFFFE4D6), borderRadius: BorderRadius.circular(12)),
-                        child: const Icon(Icons.storefront_rounded, color: Color(0xFFFFB088)),
+              // Nota informativa di orientamento (i supermercati sono spostati nel carrello in alto a destra)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFBFBF9),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFEAECE8)),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.info_outline_rounded, color: Color(0xFF789088), size: 18),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        "I supermercati nelle vicinanze sono consultabili in qualsiasi momento dall'icona negozio in alto a destra.",
+                        style: TextStyle(fontSize: 12, color: Color(0xFF789088), height: 1.3),
                       ),
-                      const SizedBox(width: 14),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Supermercati nelle vicinanze",
-                              style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF1C3D32)),
-                            ),
-                            Text(
-                              "Ricerca automatica convenzioni e offerte",
-                              style: TextStyle(fontSize: 12, color: Color(0xFF789088)),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Color(0xFF789088)),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
 
@@ -283,7 +320,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Costruisce i tre bottoni principali replicando il design con i bordi e l'icona a sinistra
+  // Costruisce i bottoni principali replicando il design con i bordi e l'icona a sinistra
   Widget _buildMainNavigationButton({
     required String title,
     required IconData iconData,
@@ -305,7 +342,6 @@ class HomeScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           children: [
-            // Icona rappresentativa a sinistra
             Container(
               width: 44,
               height: 44,
@@ -317,7 +353,6 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(width: 16),
 
-            // Scritta originale (TextView title)
             Expanded(
               child: Text(
                 title,
@@ -399,68 +434,6 @@ class HomeScreen extends StatelessWidget {
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5A9E87)),
                 child: const Text("Chiudi e Salda", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Finestra di ricerca automatica supermercati nelle vicinanze
-  void _showNearbySupermarketsModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Row(
-              children: [
-                Icon(Icons.location_on_rounded, color: Color(0xFFFFB088)),
-                SizedBox(width: 8),
-                Text(
-                  "Supermercati nelle vicinanze",
-                  style: TextStyle(fontFamily: 'Outfit', fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1C3D32)),
-                ),
-              ],
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                "Integrazione automatica mappe per ottimizzare i tempi dello studente fuorisede:",
-                style: TextStyle(fontSize: 13, color: Color(0xFF789088)),
-              ),
-            ),
-            const SizedBox(height: 8),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: state.nearbySupermarkets.length,
-              itemBuilder: (context, index) {
-                final s = state.nearbySupermarkets[index];
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.store_rounded, color: Color(0xFF5A9E87)),
-                  title: Text(s.name, style: const TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 14)),
-                  subtitle: Text(s.address, style: const TextStyle(fontSize: 12)),
-                  trailing: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: const Color(0xFFFBFBF9), borderRadius: BorderRadius.circular(6)),
-                    child: Text(s.distance, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF5A9E87), fontSize: 12)),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFFB088)),
-                child: const Text("Avvia Navigazione Mappe", style: TextStyle(color: Color(0xFF1C3D32), fontWeight: FontWeight.bold)),
               ),
             ),
           ],
