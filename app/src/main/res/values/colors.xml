@@ -1,14 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#402E32</color>
-    <color name="white">#FDF9F1</color>
-    <color name="brown">#B17227</color>
-    <color name="darkerBrown">#6F430A</color>
-    <color name="lightBrown">#FBD39D</color>
-    <color name="orange">#E47621</color>
-    <color name="dark_orange">#CE6615</color>
-    <color name="red">#E94015</color>
-    <color name="accentBrown">#F8C27F</color>
-    <color name="buttonBrown">#F6C686</color>
-    <color name="accent2">#E7AA65</color>
+    <!-- ======================================================= -->
+    <!-- NUOVA PALETTE: Pastel Sage & Soft Mint (Style Guide)     -->
+    <!-- ======================================================= -->
+    <color name="sage_primary">#5A9E87</color>
+    <color name="sage_primary_gradient_end">#76B59D</color>
+    <color name="sage_primary_dark">#3B6E5D</color>
+    
+    <color name="peach_accent">#FFB088</color>
+    <color name="peach_accent_dark">#E59570</color>
+    
+    <color name="ivory_background">#FBFBF9</color>
+    <color name="pure_white">#FFFFFF</color>
+    <color name="border_light">#EAECE8</color>
+    
+    <color name="forest_text_main">#1C3D32</color>
+    <color name="sage_text_muted">#789088</color>
+    
+    <color name="mint_badge_bg">#D1FAE5</color>
+    <color name="warning_yellow">#F59E0B</color>
+    <color name="critical_red">#EF4444</color>
+
+    <!-- ======================================================= -->
+    <!-- MAPPATURA COLORI ESISTENTI (Garantisce la compilazione) -->
+    <!-- ======================================================= -->
+    <color name="black">#1C3D32</color>          <!-- Sostituisce il nero/grigio scuro con Verde Foresta -->
+    <color name="white">#FFFFFF</color>          <!-- Sfondo pulito per schede e modali -->
+    <color name="brown">#5A9E87</color>          <!-- Mappato sul Verde Salvia Intenso (Primary) -->
+    <color name="darkerBrown">#3B6E5D</color>    <!-- Mappato sul Salvia Scuro -->
+    <color name="lightBrown">#FBFBF9</color>     <!-- Mappato sull'Avorio Soft di sfondo -->
+    <color name="orange">#FFB088</color>         <!-- Mappato sull'Accento Pesca Pastello -->
+    <color name="dark_orange">#E59570</color>    <!-- Mappato sul Pesca Scuro -->
+    <color name="red">#EF4444</color>            <!-- Rosso Urgenza/Scadenze -->
+    <color name="accentBrown">#76B59D</color>    <!-- Mappato sul Salvia Chiaro per elementi secondari -->
+    <color name="buttonBrown">#5A9E87</color>    <!-- Mappato sul Salvia Intenso per pulsanti coerenti -->
+    <color name="accent2">#D1FAE5</color>        <!-- Mappato sul Menta Chiaro per badge di stato -->
 </resources>
