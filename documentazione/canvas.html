@@ -22,86 +22,102 @@
             --card-shadow: 0 4px 20px rgba(28, 61, 50, 0.05);
         }
 
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg);
             color: var(--text-main);
-            margin: 0;
-            padding: 20px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            box-sizing: border-box;
         }
 
         h1 {
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 2px;
-            margin-bottom: 30px;
+            margin: 0 0 10px 0;
             color: var(--primary);
             text-shadow: 0 4px 12px rgba(90, 158, 135, 0.2);
+            text-align: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
         }
 
         .canvas-container {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             grid-template-rows: repeat(2, 1fr) auto;
-            gap: 15px;
-            max-width: 1400px;
+            gap: 10px;
+            max-width: 1600px;
             width: 100%;
+            margin: 0 auto;
+            flex: 1;
+            min-height: 0;
+            /* Important for flex child to be able to shrink */
         }
 
         .block {
             background: var(--card-bg);
             border: 1px solid #EAECE8;
-            border-radius: 12px;
+            border-radius: 10px;
             padding: 0;
             display: flex;
             flex-direction: column;
             box-shadow: var(--card-shadow);
             transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            overflow: hidden;
         }
 
         .block:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(90, 158, 135, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(90, 158, 135, 0.15);
             border-color: var(--primary);
         }
 
         .header {
             background: var(--primary-gradient);
             color: #FFFFFF;
-            padding: 12px 16px;
+            padding: 8px 12px;
             font-weight: 800;
-            font-size: 0.85rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            border-radius: 11px 11px 0 0;
+            border-radius: 9px 9px 0 0;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            flex-shrink: 0;
         }
 
         .content {
-            padding: 15px;
-            font-size: 0.9rem;
-            line-height: 1.5;
+            padding: 10px;
+            font-size: 0.72rem;
+            line-height: 1.3;
             overflow-y: auto;
+            flex: 1;
         }
 
         ul {
-            padding-left: 18px;
+            padding-left: 15px;
             margin: 0;
         }
 
         li {
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
 
         .ai-tag {
             background: var(--accent);
             color: #1C3D32;
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            border-radius: 4px;
+            font-size: 0.6rem;
+            padding: 1px 4px;
+            border-radius: 3px;
             font-weight: bold;
             margin-left: 5px;
         }
@@ -121,15 +137,15 @@
 
         .ka-kr {
             display: grid;
-            grid-template-rows: 1fr 1fr;
-            gap: 15px;
+            grid-template-rows: 1.6fr 0.8fr;
+            gap: 10px;
             grid-row: span 2;
         }
 
         .cr-ch {
             display: grid;
             grid-template-rows: 1fr 1fr;
-            gap: 15px;
+            gap: 10px;
             grid-row: span 2;
         }
 
@@ -137,13 +153,20 @@
             grid-column: span 5;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 15px;
+            gap: 12px;
+            margin-top: 0;
         }
 
         @media (max-width: 1000px) {
+            body {
+                overflow-y: auto;
+                height: auto;
+            }
+
             .canvas-container {
                 grid-template-columns: 1fr;
+                grid-template-rows: auto;
+                height: auto;
             }
 
             .kp,
@@ -158,6 +181,10 @@
 
             .footer-blocks {
                 grid-template-columns: 1fr;
+            }
+
+            .content {
+                overflow-y: visible;
             }
         }
     </style>
