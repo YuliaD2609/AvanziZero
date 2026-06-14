@@ -5,7 +5,7 @@ import '../main.dart'; // Per accedere a MainNavigator
 
 /// Schermata iniziale ordinata ed elegante per la configurazione del gruppo casa.
 /// Permette di avviare un nuovo ambiente di co-living generando un codice univoco,
-/// oppure di collegarsi istantaneamente alla dispensa e spese di coinquilini esistenti
+/// oppure di collegarsi istantaneamente alla dispensa di coinquilini esistenti
 /// inserendo il codice di condivisione, con gestione della cronologia gruppi visitati.
 class GroupSetupScreen extends StatefulWidget {
   final AppState state;
@@ -115,38 +115,103 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
     return AnimatedBuilder(
       animation: widget.state,
       builder: (context, child) {
+        final userName = widget.state.currentUserData?.name ?? "";
+
         return Scaffold(
           backgroundColor: const Color(0xFFFBFBF9), // Avorio Soft
           body: SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Logo / Icona premium
-                    Container(
-                      width: 80,
-                      height: 80,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF5A9E87), Color(0xFF76B59D)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF5A9E87).withOpacity(0.25),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(Icons.maps_home_work_rounded, color: Colors.white, size: 40),
+            child: Stack(
+              children: [
+                // Sfondi decorativi per renderla più estetica
+                Positioned(
+                  top: -80,
+                  right: -80,
+                  child: Container(
+                    width: 250,
+                    height: 250,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFFD1FAE5).withOpacity(0.5),
                     ),
+                  ),
+                ),
+                Positioned(
+                  bottom: -100,
+                  left: -50,
+                  child: Container(
+                    width: 300,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFFFFB088).withOpacity(0.2),
+                    ),
+                  ),
+                ),
+                Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Intestazione con Benvenuto e Logout
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            if (userName.isNotEmpty)
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "Bentornato,",
+                                    style: TextStyle(fontFamily: 'Outfit', fontSize: 16, color: Color(0xFF789088)),
+                                  ),
+                                  Text(
+                                    userName,
+                                    style: const TextStyle(
+                                      fontFamily: 'Outfit',
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1C3D32)
+                                    ),
+                                  ),
+                                ],
+                              )
+                            else
+                              const SizedBox.shrink(),
+                            IconButton(
+                              onPressed: () async {
+                                await widget.state.authService.signOut();
+                              },
+                              icon: const Icon(Icons.logout_rounded, color: Color(0xFFEF4444), size: 28),
+                              tooltip: "Logout",
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 40),
+
+                        // Logo / Icona premium
+                        Container(
+                          width: 80,
+                          height: 80,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF5A9E87), Color(0xFF76B59D)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF5A9E87).withOpacity(0.25),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(Icons.maps_home_work_rounded, color: Colors.white, size: 40),
+                        ),
                     const SizedBox(height: 24),
 
                     // Intestazione di Benvenuto
@@ -163,7 +228,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      "Lontano da casa, ma organizzato.\nCrea o unisciti a un gruppo per condividere dispensa e spese.",
+                      "Crea o unisciti a un gruppo per iniziare a organizzare la tua dispensa!",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontFamily: 'Outfit',
@@ -191,18 +256,20 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                         title: "Crea un Nuovo Gruppo",
                         subtitle: "Genera un codice condivisibile con i tuoi coinquilini.",
                         icon: Icons.add_home_rounded,
-                        child: ElevatedButton(
-                          onPressed: _createNewGroup,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF5A9E87), // Verde Salvia Intenso
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                          child: const Text(
-                            "Genera Codice e Inizia",
-                            style: TextStyle(fontFamily: 'Outfit', fontSize: 16, fontWeight: FontWeight.bold),
+                        child: Center(
+                          child: ElevatedButton(
+                            onPressed: _createNewGroup,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF5A9E87), // Verde Salvia Intenso
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: const Text(
+                              "Genera Codice e Inizia",
+                              style: TextStyle(fontFamily: 'Outfit', fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ),
                       ),
@@ -344,12 +411,13 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                 ),
               ),
             ),
-          ),
-        );
+          ],
+        ),
+      ),
+    );
       },
     );
   }
-
   /// Costruisce una scheda elegante e modulare conforme al Design System
   Widget _buildCard({
     required String title,

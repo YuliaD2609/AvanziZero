@@ -43,7 +43,9 @@ class HomeScreen extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF789088)),
                     onPressed: () {
-                      _showHouseSyncModal(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Nessuna notifica.")),
+                      );
                     },
                   ),
                 ],
@@ -123,7 +125,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "Gestione Casa, Spese e Dispensa Fuorisede",
+                      "Gestione Casa e Dispensa Fuorisede",
                       style: TextStyle(
                         fontFamily: 'Outfit',
                         fontSize: 13,
@@ -216,7 +218,7 @@ class HomeScreen extends StatelessWidget {
                                         style: const TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.w600, color: Color(0xFF1C3D32)),
                                       ),
                                       Text(
-                                        item.expireDate.replaceAll("In scadenza: ", "").replaceAll("Scadenza: ", ""),
+                                        _formatExpireDate(item.expireDate),
                                         style: const TextStyle(fontFamily: 'Outfit', color: Color(0xFFEF4444), fontWeight: FontWeight.bold, fontSize: 12),
                                       ),
                                     ],
@@ -229,50 +231,6 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // ===============================================================
-              // INTEGRAZIONI BUSINESS MODEL CANVAS (Spese Condivise Coinquilini)
-              // ===============================================================
-              
-              // Pulsante visualizzazione spese coinquilini (House Sync)
-              InkWell(
-                onTap: () => _showHouseSyncModal(context),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFEAECE8)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(color: const Color(0xFFD1FAE5), borderRadius: BorderRadius.circular(12)),
-                        child: const Icon(Icons.group_rounded, color: Color(0xFF5A9E87)),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              "Spese Condivise Coinquilini",
-                              style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF1C3D32)),
-                            ),
-                            Text(
-                              "Bilancio attuale: €${state.totalExpenses.toStringAsFixed(2)}",
-                              style: const TextStyle(fontSize: 12, color: Color(0xFF789088)),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Color(0xFF789088)),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
 
               // Nota informativa di orientamento (i supermercati sono spostati nel carrello in alto a destra)
               Container(
@@ -357,73 +315,18 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Finestra di riepilogo House Sync (Sincronizzazione spese coinquilini)
-  void _showHouseSyncModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              "Sincronizzazione Spese Coinquilini",
-              style: TextStyle(fontFamily: 'Outfit', fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1C3D32)),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: const Color(0xFFFBFBF9), borderRadius: BorderRadius.circular(12)),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Column(
-                    children: [
-                      const Text("Totale Spese", style: TextStyle(color: Color(0xFF789088), fontSize: 12)),
-                      const SizedBox(height: 4),
-                      Text("€${state.totalExpenses.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF1C3D32))),
-                    ],
-                  ),
-                  Container(width: 1, height: 30, color: const Color(0xFFEAECE8)),
-                  Column(
-                    children: [
-                      const Text("Pagate da te", style: TextStyle(color: Color(0xFF789088), fontSize: 12)),
-                      const SizedBox(height: 4),
-                      Text("€${state.myPaidExpenses.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF5A9E87))),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: state.expenses.length,
-                itemBuilder: (context, index) {
-                  final e = state.expenses[index];
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const CircleAvatar(backgroundColor: Color(0xFFD1FAE5), child: Icon(Icons.receipt, color: Color(0xFF5A9E87), size: 16)),
-                    title: Text(e.description, style: const TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 14)),
-                    subtitle: Text("Pagato da: ${e.paidBy}", style: const TextStyle(fontSize: 12)),
-                    trailing: Text("€${e.amount.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  );
-                },
-              ),
-            ),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5A9E87)),
-                child: const Text("Chiudi e Salda", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  // Formatta la data di scadenza calcolando la data effettiva se indicata come "tra X giorni"
+  String _formatExpireDate(String text) {
+    if (text.contains('Oggi')) return 'Oggi';
+    if (text.contains('Domani')) return 'Domani';
+    
+    final match = RegExp(r'tra (\d+) giorni').firstMatch(text);
+    if (match != null) {
+      final days = int.parse(match.group(1)!);
+      final date = DateTime.now().add(Duration(days: days));
+      return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
+    }
+    
+    return text.replaceAll("In scadenza: ", "").replaceAll("Scadenza: ", "");
   }
 }

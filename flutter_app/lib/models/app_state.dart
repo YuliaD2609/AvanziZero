@@ -35,20 +35,6 @@ class ItemModel {
   }
 }
 
-class RoommateExpense {
-  final String id;
-  final String description;
-  final double amount;
-  final String paidBy;
-
-  RoommateExpense({
-    required this.id,
-    required this.description,
-    required this.amount,
-    required this.paidBy,
-  });
-}
-
 class SupermarketModel {
   final String name;
   final String distance;
@@ -80,9 +66,9 @@ class AppState extends ChangeNotifier {
       notifyListeners();
     });
   }
+
   FirebaseService? _firebaseService;
   StreamSubscription<List<ItemModel>>? _itemsSubscription;
-  StreamSubscription<List<RoommateExpense>>? _expensesSubscription;
 
   bool isLoading = false;
 
@@ -120,18 +106,15 @@ class AppState extends ChangeNotifier {
     _firebaseService = FirebaseService(groupId: groupId!);
 
     // Copia i dati demo iniziali su Firestore se il gruppo è appena stato creato
-    await _firebaseService!.seedInitialDataIfNeeded(_initialDemoItems, _initialDemoExpenses);
+    await _firebaseService!.seedInitialDataIfNeeded(_initialDemoItems);
 
     // Cancella eventuali sottoscrizioni precedenti
     await _itemsSubscription?.cancel();
-    await _expensesSubscription?.cancel();
 
     // Sottoscrizione allo stream degli articoli
     _itemsSubscription = _firebaseService!.getItemsStream().listen(
       (itemsFromCloud) {
-        if (itemsFromCloud.isNotEmpty) {
-          allItems = itemsFromCloud;
-        }
+        allItems = itemsFromCloud;
         isLoading = false;
         notifyListeners();
       },
@@ -140,17 +123,6 @@ class AppState extends ChangeNotifier {
         isLoading = false;
         notifyListeners();
       },
-    );
-
-    // Sottoscrizione allo stream delle spese condivise
-    _expensesSubscription = _firebaseService!.getExpensesStream().listen(
-      (expensesFromCloud) {
-        if (expensesFromCloud.isNotEmpty) {
-          expenses = expensesFromCloud;
-        }
-        notifyListeners();
-      },
-      onError: (error) => print("Errore stream spese: $error"),
     );
   }
 
@@ -176,14 +148,11 @@ class AppState extends ChangeNotifier {
   Future<void> leaveGroup() async {
     groupId = null;
     await _itemsSubscription?.cancel();
-    await _expensesSubscription?.cancel();
     _itemsSubscription = null;
-    _expensesSubscription = null;
-    _firebaseService = null;
 
     // Ripristina le liste di default per permettere l'ingresso pulito in un altro gruppo
-    allItems = List.from(_initialDemoItems);
-    expenses = List.from(_initialDemoExpenses);
+    allItems.clear();
+    allItems.addAll(_initialDemoItems);
 
     notifyListeners();
   }
@@ -191,7 +160,6 @@ class AppState extends ChangeNotifier {
   @override
   void dispose() {
     _itemsSubscription?.cancel();
-    _expensesSubscription?.cancel();
     super.dispose();
   }
 
@@ -231,29 +199,10 @@ class AppState extends ChangeNotifier {
   // ===========================================================================
   // LISTE DI BACKUP / DEMO INIZIALI
   // ===========================================================================
-  final List<ItemModel> _initialDemoItems = [
-    ItemModel(id: '1', name: 'Latte Parzialmente Scremato', expireDate: 'In scadenza: Oggi', quantity: 1, category: 'Latticini', isPantry: true),
-    ItemModel(id: '2', name: 'Insalata Mista Busta', expireDate: 'Scadenza: Domani', quantity: 2, category: 'Frutta & Verdura', isPantry: true),
-    ItemModel(id: '3', name: 'Pasta Spaghetti 1kg', expireDate: 'Scadenza: 12/10/2026', quantity: 4, category: 'Secco & Pasta', isPantry: true),
-    ItemModel(id: '4', name: 'Passata di Pomodoro', expireDate: 'Scadenza: 25/08/2026', quantity: 3, category: 'Secco & Pasta', isPantry: true),
-    ItemModel(id: '5', name: 'Petti di Pollo', expireDate: 'Scadenza: tra 3 giorni', quantity: 1, category: 'Carne & Pesce', isPantry: true),
-    ItemModel(id: '6', name: 'Olio Extravergine', expireDate: '-', quantity: 1, category: 'Secco & Pasta', isShopping: true),
-    ItemModel(id: '7', name: 'Detersivo Piatti', expireDate: '-', quantity: 2, category: 'Igiene Casa', isShopping: true),
-    ItemModel(id: '8', name: 'Mele Golden', expireDate: '-', quantity: 6, category: 'Frutta & Verdura', isShopping: true),
-    ItemModel(id: '9', name: 'Magliette di ricambio', expireDate: '-', quantity: 5, category: 'Vestiti', isSuitcase: true),
-    ItemModel(id: '10', name: 'Caricabatterie PC e Telefono', expireDate: '-', quantity: 2, category: 'Cavi & Tech', isSuitcase: true),
-    ItemModel(id: '11', name: 'Appunti ed Esami passati', expireDate: '-', quantity: 3, category: 'Libri & Studio', isSuitcase: true),
-  ];
-
-  final List<RoommateExpense> _initialDemoExpenses = [
-    RoommateExpense(id: 'e1', description: 'Spesa settimanale Esselunga', amount: 64.50, paidBy: 'Tu'),
-    RoommateExpense(id: 'e2', description: 'Detersivi e Spugne', amount: 12.80, paidBy: 'Marco (Coinquilino)'),
-    RoommateExpense(id: 'e3', description: 'Ricarica Acqua e Bevande', amount: 15.00, paidBy: 'Giulia (Coinquilina)'),
-  ];
+  final List<ItemModel> _initialDemoItems = [];
 
   // Liste attive (inizializzate con i dati demo per fallback)
   late List<ItemModel> allItems = List.from(_initialDemoItems);
-  late List<RoommateExpense> expenses = List.from(_initialDemoExpenses);
 
   // ===========================================================================
   // SUPERMERCATI NELLE VICINANZE
@@ -346,20 +295,4 @@ class AppState extends ChangeNotifier {
     _firebaseService?.markShoppingDone();
     notifyListeners();
   }
-
-  void addExpense(String description, double amount, String paidBy) {
-    final newExp = RoommateExpense(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      description: description,
-      amount: amount,
-      paidBy: paidBy,
-    );
-    expenses.add(newExp);
-    _firebaseService?.addExpense(newExp);
-    notifyListeners();
-  }
-
-  double get totalExpenses => expenses.fold(0, (sum, e) => sum + e.amount);
-
-  double get myPaidExpenses => expenses.where((e) => e.paidBy == 'Tu').fold(0, (sum, e) => sum + e.amount);
 }

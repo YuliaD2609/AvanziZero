@@ -142,6 +142,8 @@ class _AuthScreenState extends State<AuthScreen> {
                     onPressed: () {
                       setState(() {
                         _isLogin = !_isLogin;
+                        // Resetta i campi e i messaggi di errore del form
+                        _formKey.currentState?.reset();
                       });
                     },
                     child: Text(
