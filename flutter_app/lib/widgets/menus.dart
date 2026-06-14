@@ -133,13 +133,7 @@ class VerticalCategoryMenu extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Icona simbolica per la categoria
-                        Icon(
-                          _getCategoryIcon(category),
-                          color: isSelected ? Colors.white : const Color(0xFF5A9E87),
-                          size: 22,
-                        ),
-                        const SizedBox(height: 4),
+                        // Solo testo per la categoria come richiesto
                         Text(
                           category,
                           textAlign: TextAlign.center,

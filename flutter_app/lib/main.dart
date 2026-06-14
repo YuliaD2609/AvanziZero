@@ -1,19 +1,24 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'firebase_options.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'models/app_state.dart';
+import 'services/supermarkets_service.dart';
 import 'screens/group_setup_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/pantry_screen.dart';
 import 'screens/shopping_screen.dart';
+import 'screens/auth_screen.dart';
 
 void main() async {
   // Garantisce che il binding nativo di Flutter sia pronto prima dell'inizializzazione cloud
   WidgetsFlutterBinding.ensureInitialized();
   
   try {
-    // Inizializza Firebase nativamente (richiede google-services.json / GoogleService-Info.plist)
-    await Firebase.initializeApp();
+    // Inizializza Firebase nativamente usando le options generate da FlutterFire CLI
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     print("🔥 Firebase inizializzato con successo!");
   } catch (e) {
     print("⚠️ Avviso: Firebase non configurato nativamente ($e). Avvio in fallback locale per test UI.");
@@ -76,10 +81,12 @@ class _FarFromHomeAppState extends State<FarFromHomeApp> {
             ),
           ),
           
-          // Routing dinamico basato sull'esistenza del Codice Gruppo (Casa)
-          home: _appState.groupId == null
-              ? GroupSetupScreen(state: _appState)
-              : MainNavigator(state: _appState),
+          // Routing dinamico basato sull'autenticazione e sul Codice Gruppo
+          home: _appState.currentUserAuth == null
+              ? const AuthScreen()
+              : _appState.groupId == null
+                  ? GroupSetupScreen(state: _appState)
+                  : MainNavigator(state: _appState),
         );
       },
     );
@@ -170,7 +177,9 @@ class _MainNavigatorState extends State<MainNavigator> {
 
   // Finestra di ricerca automatica supermercati con scorrimento e integrazione Maps nativa
   void _showNearbySupermarketsModal(BuildContext context) {
-    int selectedIndex = 0; // Seleziona il primo supermercato di default
+    int selectedIndex = 0;
+    bool isLoading = true;
+    bool hasStartedFetching = false;
 
     showModalBottomSheet(
       context: context,
@@ -178,6 +187,20 @@ class _MainNavigatorState extends State<MainNavigator> {
       isScrollControlled: true, // Impedisce overflow su schermi ridotti
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) {
+          if (!hasStartedFetching) {
+            hasStartedFetching = true;
+            SupermarketsService.fetchNearby(context).then((results) {
+              if (context.mounted) {
+                setModalState(() {
+                  if (results != null && results.isNotEmpty) {
+                    widget.state.nearbySupermarkets = results;
+                  }
+                  isLoading = false;
+                });
+              }
+            });
+          }
+
           return Container(
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.85, // Lascia un margine superiore visibile
@@ -228,10 +251,23 @@ class _MainNavigatorState extends State<MainNavigator> {
 
                 // Lista scrollabile dei supermercati
                 Expanded(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: widget.state.nearbySupermarkets.length,
-                    itemBuilder: (context, index) {
+                  child: isLoading
+                      ? const Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircularProgressIndicator(color: Color(0xFF5A9E87)),
+                              SizedBox(height: 16),
+                              Text("Ricerca supermercati nel raggio di 10km...", style: TextStyle(color: Color(0xFF789088))),
+                            ],
+                          ),
+                        )
+                      : widget.state.nearbySupermarkets.isEmpty
+                          ? const Center(child: Text("Nessun supermercato trovato nei paraggi.", style: TextStyle(color: Color(0xFF789088))))
+                          : ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: widget.state.nearbySupermarkets.length,
+                              itemBuilder: (context, index) {
                       final s = widget.state.nearbySupermarkets[index];
                       final isSelected = selectedIndex == index;
 

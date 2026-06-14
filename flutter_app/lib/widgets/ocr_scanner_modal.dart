@@ -1,23 +1,26 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../models/app_state.dart';
+import '../services/ai_scanner_service.dart';
 
 /// Modale avanzato per l'acquisizione di scontrini tramite Intelligenza Artificiale.
 /// Integra l'accesso nativo all'hardware del dispositivo (Fotocamera e Galleria)
 /// tramite il pacchetto ufficiale [image_picker], predisponendo l'immagine
 /// per l'invio al backend di inferenza OCR e classificazione LLM.
 class OcrScannerModal extends StatefulWidget {
-  const OcrScannerModal({super.key});
+  final AppState state;
+  const OcrScannerModal({super.key, required this.state});
 
   @override
   State<OcrScannerModal> createState() => _OcrScannerModalState();
 
-  static void show(BuildContext context) {
+  static void show(BuildContext context, AppState state) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const OcrScannerModal(),
+      builder: (context) => OcrScannerModal(state: state),
     );
   }
 }
@@ -39,16 +42,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
       if (pickedFile != null) {
         setState(() {
           _capturedImage = File(pickedFile.path);
-          _isAnalyzing = true;
-        });
-
-        // Simula il tempo di latenza per l'inferenza del modello IA in background
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) {
-            setState(() {
-              _isAnalyzing = false;
-            });
-          }
+          // Rimosso finto caricamento qui. Lo spostiamo sul pulsante di invio.
         });
       }
     } catch (e) {
@@ -290,14 +284,30 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                           child: ElevatedButton(
                             onPressed: _isAnalyzing
                                 ? null
-                                : () {
-                                    Navigator.pop(context);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("🚀 Immagine inviata al servizio di classificazione IA!"),
-                                        backgroundColor: Color(0xFF5A9E87),
-                                      ),
-                                    );
+                                : () async {
+                                    setState(() {
+                                      _isAnalyzing = true;
+                                    });
+                                    try {
+                                      final items = await AIScannerService.scanReceipt(XFile(_capturedImage!.path));
+                                      if (context.mounted) {
+                                        // Passiamo la lista di prodotti indietro al chiamante
+                                        Navigator.pop(context, items);
+                                      }
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        setState(() {
+                                          _isAnalyzing = false;
+                                        });
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text("Errore: $e"),
+                                            backgroundColor: const Color(0xFFEF4444),
+                                            duration: const Duration(seconds: 5),
+                                          ),
+                                        );
+                                      }
+                                    }
                                   },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFFFFB088), // Accento Pesca Pastello

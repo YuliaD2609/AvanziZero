@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/firebase_service.dart';
+import '../services/auth_service.dart';
+import 'user_model.dart';
 
 class ItemModel {
   final String id;
@@ -58,8 +61,25 @@ class AppState extends ChangeNotifier {
   // ===========================================================================
   // GESTIONE CLOUD & SINCRO REAL-TIME (FIREBASE)
   // ===========================================================================
+  final AuthService authService = AuthService();
+  UserModel? currentUserData;
+  User? currentUserAuth;
+
   String? groupId;
   List<String> savedGroups = []; // Cronologia locale dei codici gruppo visitati
+
+  AppState() {
+    authService.authStateChanges.listen((User? user) async {
+      currentUserAuth = user;
+      if (user != null) {
+        currentUserData = await authService.getUserData(user.uid);
+      } else {
+        currentUserData = null;
+        await leaveGroup();
+      }
+      notifyListeners();
+    });
+  }
   FirebaseService? _firebaseService;
   StreamSubscription<List<ItemModel>>? _itemsSubscription;
   StreamSubscription<List<RoommateExpense>>? _expensesSubscription;
@@ -298,9 +318,23 @@ class AppState extends ChangeNotifier {
   }
 
   void addItem(ItemModel newItem) {
-    allItems.add(newItem);
-    _firebaseService?.saveItem(newItem);
-    notifyListeners();
+    try {
+      // Cerca un prodotto identico (nome uguale case-insensitive) nella stessa sezione
+      final existingItem = allItems.firstWhere(
+        (i) => i.name.trim().toLowerCase() == newItem.name.trim().toLowerCase() &&
+               i.isPantry == newItem.isPantry &&
+               i.isShopping == newItem.isShopping &&
+               i.isSuitcase == newItem.isSuitcase,
+      );
+      
+      // Se esiste, aggiorna solo la quantità
+      updateQuantity(existingItem.id, newItem.quantity);
+    } catch (e) {
+      // Nessun duplicato trovato, aggiungi come nuovo elemento
+      allItems.add(newItem);
+      _firebaseService?.saveItem(newItem);
+      notifyListeners();
+    }
   }
 
   void markShoppingDone() {

@@ -20,22 +20,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFFBFBF9), // Avorio soft
       
-      // Pulsante FAB IA Scanner in primo piano come da Style Guide
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => OcrScannerModal.show(context),
-        backgroundColor: const Color(0xFFFFB088), // Accento Pesca Pastello
-        elevation: 4,
-        icon: const Icon(Icons.document_scanner_rounded, color: Color(0xFF1C3D32)),
-        label: const Text(
-          "IA Scanner",
-          style: TextStyle(
-            fontFamily: 'Outfit',
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1C3D32),
-          ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      // Rimosso FAB come richiesto, l'IA scanner è stato spostato in Dispensa
 
       body: SafeArea(
         child: SingleChildScrollView(

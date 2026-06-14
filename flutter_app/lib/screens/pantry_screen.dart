@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/app_state.dart';
 import '../widgets/menus.dart';
+import '../widgets/ocr_scanner_modal.dart';
 
 class PantryScreen extends StatefulWidget {
   final AppState state;
@@ -119,28 +120,41 @@ class _PantryScreenState extends State<PantryScreen> {
                               ),
                       ),
 
-                      // Pulsante Aggiungi un Elemento (addItemButton)
+                      // Pulsanti Aggiungi Elemento e IA Scanner
                       Align(
                         alignment: Alignment.bottomRight,
                         child: Padding(
                           padding: const EdgeInsets.all(12),
-                          child: ElevatedButton(
-                            onPressed: () => _showAddItemDialog(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFFB088), // Accento Pesca Pastello
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            ),
-                            child: const Text(
-                              "Aggiungi un elemento",
-                              style: TextStyle(
-                                fontFamily: 'Outfit',
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1C3D32),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              FloatingActionButton(
+                                heroTag: 'scanner_fab',
+                                onPressed: () => _openScannerAndReview(context),
+                                backgroundColor: const Color(0xFFD1FAE5),
+                                elevation: 2,
+                                child: const Icon(Icons.document_scanner_rounded, color: Color(0xFF5A9E87)),
                               ),
-                            ),
+                              const SizedBox(width: 12),
+                              ElevatedButton(
+                                onPressed: () => _showAddItemDialog(context),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFFFB088), // Accento Pesca Pastello
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                  elevation: 2,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                ),
+                                child: const Text(
+                                  "Aggiungi un elemento",
+                                  style: TextStyle(
+                                    fontFamily: 'Outfit',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF1C3D32),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -378,6 +392,218 @@ class _PantryScreenState extends State<PantryScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _openScannerAndReview(BuildContext context) async {
+    // Apriamo la modale di scansione IA che ritornerà la lista dei prodotti
+    final List<ItemModel>? scannedItems = await showModalBottomSheet<List<ItemModel>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => OcrScannerModal(state: widget.state),
+    );
+
+    if (scannedItems != null && scannedItems.isNotEmpty && context.mounted) {
+      // Mostriamo il popup per la modifica prima dell'inserimento
+      _showScannedItemsReviewDialog(context, scannedItems);
+    }
+  }
+
+  void _showScannedItemsReviewDialog(BuildContext context, List<ItemModel> items) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFFFBFBF9),
+              surfaceTintColor: Colors.transparent,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              title: const Row(
+                children: [
+                  Icon(Icons.auto_awesome_rounded, color: Color(0xFF5A9E87)),
+                  SizedBox(width: 10),
+                  Text("Rivedi Prodotti", style: TextStyle(fontFamily: 'Outfit', color: Color(0xFF1C3D32), fontSize: 18, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: items.length,
+                        itemBuilder: (context, index) {
+                          final item = items[index];
+                          // Uso ObjectKey per forzare il refresh corretto quando elimino un elemento!
+                          return Card(
+                            key: ObjectKey(item),
+                            color: Colors.white,
+                            margin: const EdgeInsets.only(bottom: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              side: const BorderSide(color: Color(0xFFEAECE8), width: 1),
+                            ),
+                            elevation: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                children: [
+                                  // Riga 1: Nome prodotto e Pulsante Cestino
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: TextFormField(
+                                          initialValue: item.name,
+                                          style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1C3D32)),
+                                          decoration: InputDecoration(
+                                            labelText: "Nome Prodotto",
+                                            filled: true,
+                                            fillColor: const Color(0xFFFBFBF9),
+                                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          ),
+                                          onChanged: (val) => item.name = val,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFEF4444)),
+                                        onPressed: () {
+                                          setDialogState(() {
+                                            items.removeAt(index);
+                                          });
+                                        },
+                                      )
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  
+                                  // Riga 2: Quantità, Scadenza
+                                  Row(
+                                    children: [
+                                      // Quantità
+                                      SizedBox(
+                                        width: 60,
+                                        child: TextFormField(
+                                          initialValue: item.quantity.toString(),
+                                          keyboardType: TextInputType.number,
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(fontWeight: FontWeight.bold),
+                                          decoration: InputDecoration(
+                                            labelText: "Qt.",
+                                            filled: true,
+                                            fillColor: const Color(0xFFFBFBF9),
+                                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                            contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                                          ),
+                                          onChanged: (val) => item.quantity = int.tryParse(val) ?? 1,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      
+                                      // Scadenza
+                                      Expanded(
+                                        child: TextFormField(
+                                          initialValue: item.expireDate,
+                                          style: const TextStyle(fontSize: 13),
+                                          decoration: InputDecoration(
+                                            labelText: "Scadenza",
+                                            filled: true,
+                                            fillColor: const Color(0xFFFBFBF9),
+                                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          ),
+                                          onChanged: (val) => item.expireDate = val,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  
+                                  // Riga 3: Categoria
+                                  DropdownButtonFormField<String>(
+                                    value: widget.state.pantryCategories.contains(item.category) ? item.category : 'Altro',
+                                    isExpanded: true,
+                                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF5A9E87)),
+                                    items: widget.state.pantryCategories.where((c) => c != "Tutti").map((c) {
+                                      return DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis));
+                                    }).toList()
+                                      ..add(const DropdownMenuItem(value: 'Altro', child: Text('Altro'))),
+                                    onChanged: (val) => item.category = val ?? 'Altro',
+                                    decoration: InputDecoration(
+                                      labelText: "Categoria",
+                                      filled: true,
+                                      fillColor: const Color(0xFFD1FAE5).withOpacity(0.3),
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Bottone "+" per aggiungere riga vuota
+                    TextButton.icon(
+                      onPressed: () {
+                        setDialogState(() {
+                          items.add(ItemModel(
+                            id: DateTime.now().millisecondsSinceEpoch.toString() + items.length.toString(),
+                            name: "",
+                            expireDate: "Scadenza: da verificare",
+                            quantity: 1,
+                            category: "Altro",
+                            isPantry: true,
+                          ));
+                        });
+                      },
+                      icon: const Icon(Icons.add_circle_outline_rounded, color: Color(0xFF5A9E87)),
+                      label: const Text("Aggiungi prodotto manualmente", style: TextStyle(color: Color(0xFF5A9E87), fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Annulla", style: TextStyle(color: Color(0xFF789088))),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    for (var i in items) {
+                      if (i.name.trim().isNotEmpty) {
+                        widget.state.addItem(i);
+                      }
+                    }
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("✨ Salvati ${items.where((i) => i.name.trim().isNotEmpty).length} prodotti in dispensa!"),
+                        backgroundColor: const Color(0xFF5A9E87),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF5A9E87),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text("Conferma Tutti", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
