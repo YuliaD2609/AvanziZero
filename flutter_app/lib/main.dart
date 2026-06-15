@@ -57,7 +57,7 @@ class _FarFromHomeAppState extends State<FarFromHomeApp> {
       animation: _appState,
       builder: (context, child) {
         return MaterialApp(
-          title: 'FarFromHome',
+          title: 'AvanziZero',
           debugShowCheckedModeBanner: false,
           
           // Tema globale basato sui token Pastel Sage & Soft Mint

@@ -191,34 +191,17 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                         const SizedBox(height: 40),
 
                         // Logo / Icona premium
-                        Container(
+                        Image.asset(
+                          'assets/images/logo.png',
                           width: 100,
                           height: 100,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF5A9E87).withOpacity(0.25),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: ClipOval(
-                            child: Image.asset(
-                              'assets/images/logo.png',
-                              width: 100,
-                              height: 100,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
+                          fit: BoxFit.contain,
                         ),
                     const SizedBox(height: 24),
 
                     // Intestazione di Benvenuto
                     const Text(
-                      "FarFromHome",
+                      "AvanziZero",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontFamily: 'Outfit',

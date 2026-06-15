@@ -56,24 +56,21 @@ class _AuthScreenState extends State<AuthScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.asset(
-                      'assets/images/logo.png',
-                      height: 100,
-                      width: 100,
-                      fit: BoxFit.cover,
-                    ),
+                  Image.asset(
+                    'assets/images/logo.png',
+                    height: 100,
+                    width: 100,
+                    fit: BoxFit.contain,
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    "FarFromHome",
+                  const Text(
+                    "AvanziZero",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontFamily: 'Outfit',
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1C3D32),
+                      color: Color(0xFF1C3D32),
                     ),
                   ),
                   const SizedBox(height: 8),

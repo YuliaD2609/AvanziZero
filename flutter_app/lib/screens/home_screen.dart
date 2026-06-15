@@ -112,18 +112,15 @@ class HomeScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Column(
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        height: 80,
-                        width: 80,
-                        fit: BoxFit.cover,
-                      ),
+                    Image.asset(
+                      'assets/images/logo.png',
+                      height: 80,
+                      width: 80,
+                      fit: BoxFit.contain,
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      "FarFromHome",
+                      "AvanziZero",
                       style: TextStyle(
                         fontFamily: 'Outfit',
                         fontSize: 36,
