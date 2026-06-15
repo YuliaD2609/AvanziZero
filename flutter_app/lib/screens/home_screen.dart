@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/app_state.dart';
 import '../widgets/ocr_scanner_modal.dart';
+import 'admin_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final AppState state;
@@ -33,10 +34,14 @@ class HomeScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFF789088)),
+                    icon: const Icon(Icons.person_outline_rounded, color: Color(0xFF789088)),
+                    tooltip: "Area Admin",
                     onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Nessun elemento nel cestino.")),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AdminScreen(state: state),
+                        ),
                       );
                     },
                   ),
@@ -113,7 +118,7 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     Transform.scale(
-                      scale: 1.5,
+                      scale: 1.1,
                       child: Image.asset(
                         'assets/images/logo.png',
                         height: 80,

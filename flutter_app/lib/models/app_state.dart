@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firebase_service.dart';
 import '../services/auth_service.dart';
 import 'user_model.dart';
@@ -144,8 +145,14 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  /// Esce dal gruppo corrente, scollega gli stream e ripristina la UI in modalità base.
   Future<void> leaveGroup() async {
+    // Aspetta che tutte le scritture pendenti su Firestore vengano completate
+    try {
+      await FirebaseFirestore.instance.waitForPendingWrites().timeout(const Duration(seconds: 3));
+    } catch (e) {
+      print("Errore o timeout nel salvataggio dei dati pendenti su Firebase: $e");
+    }
+
     groupId = null;
     await _itemsSubscription?.cancel();
     _itemsSubscription = null;
@@ -239,34 +246,35 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateQuantity(String itemId, int delta) {
+  Future<void> updateQuantity(String itemId, int delta) async {
     try {
       final item = allItems.firstWhere((i) => i.id == itemId);
       item.quantity += delta;
       
       if (item.quantity <= 0) {
         allItems.remove(item);
-        _firebaseService?.deleteItem(itemId);
+        notifyListeners();
+        await _firebaseService?.deleteItem(itemId);
       } else {
-        _firebaseService?.updateItemQuantity(itemId, item.quantity);
+        notifyListeners();
+        await _firebaseService?.updateItemQuantity(itemId, item.quantity);
       }
-      notifyListeners();
     } catch (e) {
       print("Prodotto non trovato localmente: $e");
     }
   }
 
-  void deleteItem(String itemId) {
+  Future<void> deleteItem(String itemId) async {
     try {
       allItems.removeWhere((i) => i.id == itemId);
-      _firebaseService?.deleteItem(itemId);
       notifyListeners();
+      await _firebaseService?.deleteItem(itemId);
     } catch (e) {
       print("Errore eliminazione locale: $e");
     }
   }
 
-  void addItem(ItemModel newItem) {
+  Future<void> addItem(ItemModel newItem) async {
     try {
       // Cerca un prodotto identico (nome uguale case-insensitive) nella stessa sezione
       final existingItem = allItems.firstWhere(
@@ -277,22 +285,42 @@ class AppState extends ChangeNotifier {
       );
       
       // Se esiste, aggiorna solo la quantità
-      updateQuantity(existingItem.id, newItem.quantity);
+      await updateQuantity(existingItem.id, newItem.quantity);
     } catch (e) {
       // Nessun duplicato trovato, aggiungi come nuovo elemento
       allItems.add(newItem);
-      _firebaseService?.saveItem(newItem);
       notifyListeners();
+      await _firebaseService?.saveItem(newItem);
     }
   }
 
-  void markShoppingDone() {
+  Future<void> markShoppingDone() async {
     for (var item in allItems.where((i) => i.isShopping).toList()) {
       item.isShopping = false;
       item.isPantry = true;
       item.expireDate = "Scadenza: Fresco (30 gg)";
     }
-    _firebaseService?.markShoppingDone();
     notifyListeners();
+    await _firebaseService?.markShoppingDone();
+  }
+
+  Future<void> updateProfileName(String newName) async {
+    try {
+      final user = currentUserAuth;
+      if (user != null) {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+          'name': newName,
+        });
+        currentUserData = UserModel(
+          id: user.uid,
+          email: user.email ?? "",
+          name: newName,
+          groupIds: currentUserData?.groupIds ?? [],
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+      print("Errore aggiornamento nome utente: $e");
+    }
   }
 }
