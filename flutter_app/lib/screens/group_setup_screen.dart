@@ -192,16 +192,11 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
 
                         // Logo / Icona premium
                         Container(
-                          width: 80,
-                          height: 80,
+                          width: 100,
+                          height: 100,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF5A9E87), Color(0xFF76B59D)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
                             boxShadow: [
                               BoxShadow(
                                 color: const Color(0xFF5A9E87).withOpacity(0.25),
@@ -210,7 +205,14 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                               ),
                             ],
                           ),
-                          child: const Icon(Icons.maps_home_work_rounded, color: Colors.white, size: 40),
+                          child: ClipOval(
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
                     const SizedBox(height: 24),
 

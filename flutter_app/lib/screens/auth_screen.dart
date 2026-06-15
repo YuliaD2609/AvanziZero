@@ -56,7 +56,15 @@ class _AuthScreenState extends State<AuthScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(Icons.home_work_rounded, size: 80, color: Color(0xFF5A9E87)),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      height: 100,
+                      width: 100,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     "FarFromHome",
