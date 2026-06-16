@@ -28,8 +28,37 @@ class ItemModel {
 
   // Livello di urgenza "Zero Spreco"
   int get urgencyLevel {
-    if (expireDate.contains('Oggi') || expireDate.contains('Domani')) return 2; // Rosso
-    if (expireDate.contains('giorni')) return 1; // Giallo
+    String cleanText = expireDate.replaceAll("In scadenza: ", "").replaceAll("Scadenza: ", "").trim();
+    if (cleanText == "-" || cleanText.isEmpty) return 0;
+
+    // Se è nel formato gg/mm/aaaa
+    final dateParts = cleanText.split('/');
+    if (dateParts.length == 3) {
+      final day = int.tryParse(dateParts[0]);
+      final month = int.tryParse(dateParts[1]);
+      final year = int.tryParse(dateParts[2]);
+      if (day != null && month != null && year != null) {
+        final expDate = DateTime(year, month, day);
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final difference = expDate.difference(today).inDays;
+        
+        if (difference <= 1) return 2; // Oggi, Domani, o già scaduto (Rosso)
+        if (difference <= 7) return 1; // Tra 2 e 7 giorni (Giallo)
+        return 0; // Verde / Fresco
+      }
+    }
+
+    if (cleanText.toLowerCase().contains('oggi') || cleanText.toLowerCase().contains('domani')) return 2; // Rosso
+    if (cleanText.toLowerCase().contains('giorni')) {
+      final match = RegExp(r'tra (\d+) giorn[io]').firstMatch(cleanText);
+      if (match != null) {
+        final days = int.parse(match.group(1)!);
+        if (days <= 1) return 2;
+        if (days <= 7) return 1;
+      }
+      return 1; // Giallo
+    }
     return 0; // Verde / Fresco
   }
 }

@@ -146,9 +146,13 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                       Expanded(
                         child: filteredItems.isEmpty
                             ? const Center(
-                                child: Text(
-                                  "Lista della spesa vuota per questa categoria.",
-                                  style: TextStyle(color: Color(0xFF789088), fontSize: 14),
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 24),
+                                  child: Text(
+                                    "Lista della spesa vuota per questa categoria.",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(color: Color(0xFF789088), fontSize: 14),
+                                  ),
                                 ),
                               )
                             : ListView.builder(

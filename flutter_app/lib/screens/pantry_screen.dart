@@ -106,9 +106,13 @@ class _PantryScreenState extends State<PantryScreen> {
                       Expanded(
                         child: filteredItems.isEmpty
                             ? const Center(
-                                child: Text(
-                                  "Nessun prodotto presente in questa categoria.",
-                                  style: TextStyle(color: Color(0xFF789088), fontSize: 14),
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 24),
+                                  child: Text(
+                                    "Dispensa vuota per questa categoria.",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(color: Color(0xFF789088), fontSize: 14),
+                                  ),
                                 ),
                               )
                             : ListView.builder(
@@ -234,7 +238,7 @@ class _PantryScreenState extends State<PantryScreen> {
               // Scadenza testuale nativa (TextExpire + itemExpire)
               Expanded(
                 child: Text(
-                  item.expireDate,
+                  _formatExpireDate(item.expireDate),
                   style: TextStyle(
                     fontSize: 13,
                     color: item.urgencyLevel == 2 ? const Color(0xFFEF4444) : const Color(0xFF789088),
@@ -337,7 +341,7 @@ class _PantryScreenState extends State<PantryScreen> {
   // Finestra di dialogo per aggiungere manualmente un prodotto
   void _showAddItemDialog(BuildContext context) {
     final TextEditingController nameController = TextEditingController();
-    final TextEditingController expireController = TextEditingController(text: "Scadenza: tra 7 giorni");
+    DateTime? selectedDate;
     String selectedCat = widget.state.selectedPantryCategory == "Tutti"
         ? widget.state.pantryCategories[1]
         : widget.state.selectedPantryCategory;
@@ -356,9 +360,57 @@ class _PantryScreenState extends State<PantryScreen> {
                 decoration: const InputDecoration(labelText: "Nome Elemento"),
               ),
               const SizedBox(height: 8),
-              TextField(
-                controller: expireController,
-                decoration: const InputDecoration(labelText: "Data Scadenza testuale"),
+              TextFormField(
+                readOnly: true,
+                controller: TextEditingController(
+                  text: selectedDate == null
+                      ? ""
+                      : "${selectedDate!.day.toString().padLeft(2, '0')}/${selectedDate!.month.toString().padLeft(2, '0')}/${selectedDate!.year}",
+                ),
+                decoration: InputDecoration(
+                  labelText: "Data Scadenza (Opzionale)",
+                  hintText: "Scegli dal calendario",
+                  suffixIcon: selectedDate != null
+                      ? IconButton(
+                          icon: const Icon(Icons.clear_rounded, color: Color(0xFF789088)),
+                          onPressed: () {
+                            setDialogState(() {
+                              selectedDate = null;
+                            });
+                          },
+                        )
+                      : const Icon(Icons.calendar_today_rounded, color: Color(0xFF5A9E87)),
+                ),
+                onTap: () async {
+                  final DateTime? picked = await showDatePicker(
+                    context: context,
+                    initialDate: selectedDate ?? DateTime.now(),
+                    firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                    lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: const ColorScheme.light(
+                            primary: Color(0xFF5A9E87),
+                            onPrimary: Colors.white,
+                            onSurface: Color(0xFF1C3D32),
+                          ),
+                          textButtonTheme: TextButtonThemeData(
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFF5A9E87),
+                            ),
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+                  if (picked != null) {
+                    setDialogState(() {
+                      selectedDate = picked;
+                    });
+                  }
+                },
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
@@ -377,10 +429,13 @@ class _PantryScreenState extends State<PantryScreen> {
             ElevatedButton(
               onPressed: () {
                 if (nameController.text.isNotEmpty) {
+                  final expireStr = selectedDate == null
+                      ? "-"
+                      : "${selectedDate!.day.toString().padLeft(2, '0')}/${selectedDate!.month.toString().padLeft(2, '0')}/${selectedDate!.year}";
                   widget.state.addItem(ItemModel(
                     id: DateTime.now().millisecondsSinceEpoch.toString(),
                     name: nameController.text,
-                    expireDate: expireController.text,
+                    expireDate: expireStr,
                     quantity: 1,
                     category: selectedCat,
                     isPantry: true,
@@ -607,5 +662,45 @@ class _PantryScreenState extends State<PantryScreen> {
         );
       },
     );
+  }
+
+  String _formatExpireDate(String text) {
+    String cleanText = text.replaceAll("In scadenza: ", "").replaceAll("Scadenza: ", "").trim();
+    if (cleanText == "-" || cleanText.isEmpty) {
+      return "-";
+    }
+
+    // Controlla se è nel formato gg/mm/aaaa
+    final dateParts = cleanText.split('/');
+    if (dateParts.length == 3) {
+      final day = int.tryParse(dateParts[0]);
+      final month = int.tryParse(dateParts[1]);
+      final year = int.tryParse(dateParts[2]);
+      if (day != null && month != null && year != null) {
+        final expDate = DateTime(year, month, day);
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final difference = expDate.difference(today).inDays;
+        
+        if (difference == 0) return 'Oggi';
+        if (difference == 1) return 'Domani';
+        return cleanText;
+      }
+    }
+
+    if (cleanText.toLowerCase().contains('oggi')) return 'Oggi';
+    if (cleanText.toLowerCase().contains('domani')) return 'Domani';
+    
+    final match = RegExp(r'tra (\d+) giorn[io]').firstMatch(cleanText);
+    if (match != null) {
+      final days = int.parse(match.group(1)!);
+      if (days == 0) return 'Oggi';
+      if (days == 1) return 'Domani';
+      
+      final date = DateTime.now().add(Duration(days: days));
+      return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
+    }
+    
+    return cleanText;
   }
 }

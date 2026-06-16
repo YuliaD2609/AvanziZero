@@ -234,7 +234,12 @@ class HomeScreen extends StatelessWidget {
                                       ),
                                       Text(
                                         _formatExpireDate(item.expireDate),
-                                        style: const TextStyle(fontFamily: 'Outfit', color: Color(0xFFEF4444), fontWeight: FontWeight.bold, fontSize: 12),
+                                        style: TextStyle(
+                                          fontFamily: 'Outfit',
+                                          color: item.urgencyLevel == 2 ? const Color(0xFFEF4444) : const Color(0xFF789088),
+                                          fontWeight: item.urgencyLevel > 0 ? FontWeight.bold : FontWeight.normal,
+                                          fontSize: 12,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -332,16 +337,42 @@ class HomeScreen extends StatelessWidget {
 
   // Formatta la data di scadenza calcolando la data effettiva se indicata come "tra X giorni"
   String _formatExpireDate(String text) {
-    if (text.contains('Oggi')) return 'Oggi';
-    if (text.contains('Domani')) return 'Domani';
+    String cleanText = text.replaceAll("In scadenza: ", "").replaceAll("Scadenza: ", "").trim();
+    if (cleanText == "-" || cleanText.isEmpty) {
+      return "-";
+    }
+
+    // Controlla se è nel formato gg/mm/aaaa
+    final dateParts = cleanText.split('/');
+    if (dateParts.length == 3) {
+      final day = int.tryParse(dateParts[0]);
+      final month = int.tryParse(dateParts[1]);
+      final year = int.tryParse(dateParts[2]);
+      if (day != null && month != null && year != null) {
+        final expDate = DateTime(year, month, day);
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final difference = expDate.difference(today).inDays;
+        
+        if (difference == 0) return 'Oggi';
+        if (difference == 1) return 'Domani';
+        return cleanText;
+      }
+    }
+
+    if (cleanText.toLowerCase().contains('oggi')) return 'Oggi';
+    if (cleanText.toLowerCase().contains('domani')) return 'Domani';
     
-    final match = RegExp(r'tra (\d+) giorni').firstMatch(text);
+    final match = RegExp(r'tra (\d+) giorn[io]').firstMatch(cleanText);
     if (match != null) {
       final days = int.parse(match.group(1)!);
+      if (days == 0) return 'Oggi';
+      if (days == 1) return 'Domani';
+      
       final date = DateTime.now().add(Duration(days: days));
       return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
     }
     
-    return text.replaceAll("In scadenza: ", "").replaceAll("Scadenza: ", "");
+    return cleanText;
   }
 }
