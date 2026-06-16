@@ -43,6 +43,7 @@ class _PantryScreenState extends State<PantryScreen> {
             title: "Dispensa",
             onHomePressed: widget.onHomePressed,
             onCartPressed: widget.onCartPressed,
+            showHome: false,
           ),
 
           // Corpo Centrale: Menu Verticale Categorie a sinistra, Barra Ricerca e Prodotti a destra
@@ -72,14 +73,14 @@ class _PantryScreenState extends State<PantryScreen> {
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(22),
-                                  border: Border.all(color: const Color(0xFFEAECE8)),
+                                  border: Border.all(color: const Color(0xFFF2F3F0)),
                                 ),
                                 child: TextField(
                                   controller: _searchController,
                                   onChanged: (val) => setState(() => _searchQuery = val),
                                   decoration: const InputDecoration(
                                     hintText: "Cerca un prodotto",
-                                    hintStyle: TextStyle(color: Color(0xFFA9A69E), fontSize: 14),
+                                    hintStyle: TextStyle(color: Color(0xFFB8B6AF), fontSize: 14),
                                     border: InputBorder.none,
                                     contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                   ),
@@ -92,7 +93,7 @@ class _PantryScreenState extends State<PantryScreen> {
                               height: 44,
                               width: 44,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF5A9E87),
+                                color: const Color(0xFF6BB099),
                                 borderRadius: BorderRadius.circular(22),
                               ),
                               child: const Icon(Icons.search_rounded, color: Colors.white, size: 22),

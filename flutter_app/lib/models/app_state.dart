@@ -15,7 +15,6 @@ class ItemModel {
   String category;
   bool isPantry;
   bool isShopping;
-  bool isSuitcase;
 
   ItemModel({
     required this.id,
@@ -25,7 +24,6 @@ class ItemModel {
     required this.category,
     this.isPantry = false,
     this.isShopping = false,
-    this.isSuitcase = false,
   });
 
   // Livello di urgenza "Zero Spreco"
@@ -55,6 +53,42 @@ class AppState extends ChangeNotifier {
   String? groupId;
   List<String> savedGroups = []; // Cronologia locale dei codici gruppo visitati
 
+  bool _isPredictiveBannerClosed = false;
+  bool get isPredictiveBannerClosed => _isPredictiveBannerClosed;
+
+  Future<void> _checkPredictiveBannerStatus() async {
+    final userId = currentUserAuth?.uid;
+    final group = groupId;
+    if (userId == null || group == null) {
+      _isPredictiveBannerClosed = false;
+      notifyListeners();
+      return;
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _isPredictiveBannerClosed = prefs.getBool('predictive_banner_closed_${userId}_$group') ?? false;
+      notifyListeners();
+    } catch (e) {
+      print("Errore caricamento stato banner: $e");
+    }
+  }
+
+  Future<void> closePredictiveBannerPermanent() async {
+    final userId = currentUserAuth?.uid;
+    final group = groupId;
+    if (userId == null || group == null) return;
+    
+    _isPredictiveBannerClosed = true;
+    notifyListeners();
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('predictive_banner_closed_${userId}_$group', true);
+    } catch (e) {
+      print("Errore salvataggio stato banner chiuso: $e");
+    }
+  }
+
   AppState() {
     authService.authStateChanges.listen((User? user) async {
       currentUserAuth = user;
@@ -64,6 +98,7 @@ class AppState extends ChangeNotifier {
         currentUserData = null;
         await leaveGroup();
       }
+      await _checkPredictiveBannerStatus();
       notifyListeners();
     });
   }
@@ -92,6 +127,8 @@ class AppState extends ChangeNotifier {
     groupId = code;
     isLoading = true;
     notifyListeners();
+
+    await _checkPredictiveBannerStatus();
 
     // Aggiunge alla cronologia se non presente e salva localmente
     if (!savedGroups.contains(code)) {
@@ -156,6 +193,7 @@ class AppState extends ChangeNotifier {
     groupId = null;
     await _itemsSubscription?.cancel();
     _itemsSubscription = null;
+    _isPredictiveBannerClosed = false;
 
     // Ripristina le liste di default per permettere l'ingresso pulito in un altro gruppo
     allItems.clear();
@@ -191,17 +229,8 @@ class AppState extends ChangeNotifier {
     "Igiene Casa",
   ];
 
-  List<String> suitcaseCategories = [
-    "Tutti",
-    "Vestiti",
-    "Libri & Studio",
-    "Cavi & Tech",
-    "Beauty & Igiene",
-  ];
-
   String selectedPantryCategory = "Tutti";
   String selectedShoppingCategory = "Tutti";
-  String selectedSuitcaseCategory = "Tutti";
 
   // ===========================================================================
   // LISTE DI BACKUP / DEMO INIZIALI
@@ -227,7 +256,6 @@ class AppState extends ChangeNotifier {
   void selectCategory(String category, String section) {
     if (section == 'pantry') selectedPantryCategory = category;
     if (section == 'shopping') selectedShoppingCategory = category;
-    if (section == 'suitcase') selectedSuitcaseCategory = category;
     notifyListeners();
   }
 
@@ -239,9 +267,6 @@ class AppState extends ChangeNotifier {
     } else if (section == 'shopping' && !shoppingCategories.contains(newCategory)) {
       shoppingCategories.add(newCategory);
       selectedShoppingCategory = newCategory;
-    } else if (section == 'suitcase' && !suitcaseCategories.contains(newCategory)) {
-      suitcaseCategories.add(newCategory);
-      selectedSuitcaseCategory = newCategory;
     }
     notifyListeners();
   }
@@ -280,8 +305,7 @@ class AppState extends ChangeNotifier {
       final existingItem = allItems.firstWhere(
         (i) => i.name.trim().toLowerCase() == newItem.name.trim().toLowerCase() &&
                i.isPantry == newItem.isPantry &&
-               i.isShopping == newItem.isShopping &&
-               i.isSuitcase == newItem.isSuitcase,
+               i.isShopping == newItem.isShopping,
       );
       
       // Se esiste, aggiorna solo la quantità

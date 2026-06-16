@@ -4,19 +4,21 @@ class HorizontalHeaderMenu extends StatelessWidget {
   final String title;
   final VoidCallback onHomePressed;
   final VoidCallback onCartPressed;
+  final bool showHome;
 
   const HorizontalHeaderMenu({
     super.key,
     required this.title,
     required this.onHomePressed,
     required this.onCartPressed,
+    this.showHome = true,
   });
 
   @override
   Widget build(BuildContext context) {
     // Implementa il layout di horizontal_menu.xml con stile Pastel Sage
     return Container(
-      height: 75, // Altezza proporzionata per il mobile
+      height: 85, // Altezza proporzionata per il mobile (leggermente ingrandito)
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [Color(0xFF5A9E87), Color(0xFF76B59D)],
@@ -37,11 +39,13 @@ class HorizontalHeaderMenu extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             // Pulsante Home a sinistra come da layout nativo
-            IconButton(
-              icon: const Icon(Icons.home_rounded, color: Colors.white, size: 30),
-              onPressed: onHomePressed,
-              tooltip: 'Torna alla Home',
-            ),
+            showHome
+                ? IconButton(
+                    icon: const Icon(Icons.home_rounded, color: Colors.white, size: 30),
+                    onPressed: onHomePressed,
+                    tooltip: 'Torna alla Home',
+                  )
+                : const SizedBox(width: 48),
             
             // Titolo della sezione al centro
             Expanded(

@@ -214,7 +214,7 @@ class HomeScreen extends StatelessWidget {
                       child: expiringItems.isEmpty
                           ? const Center(
                               child: Text(
-                                "Nessun prodotto in scadenza! 🎉",
+                                "Nessun prodotto in scadenza!",
                                 style: TextStyle(fontFamily: 'Outfit', color: Color(0xFF5A9E87), fontWeight: FontWeight.bold),
                               ),
                             )

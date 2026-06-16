@@ -16,6 +16,6 @@ void main() {
     await tester.pumpWidget(const FarFromHomeApp());
 
     // Verify that the title is present.
-    expect(find.text('FarFromHome'), findsOneWidget);
+    expect(find.text('AvanziZero'), findsOneWidget);
   });
 }
