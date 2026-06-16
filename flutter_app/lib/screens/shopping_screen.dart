@@ -42,6 +42,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
             title: "Lista della spesa",
             onHomePressed: widget.onHomePressed,
             onCartPressed: widget.onCartPressed,
+            showHome: false,
           ),
 
           // Corpo della schermata: Categorie a sinistra, Ricerca/Lista a destra
@@ -58,156 +59,168 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
 
                 // Colonna destra: Barra di ricerca, Predictive badge, Lista Prodotti e Pulsanti
                 Expanded(
-                  child: Stack(
+                  child: Column(
                     children: [
-                      Column(
-                        children: [
-                          // Barra di Ricerca (search_bar)
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(22),
-                                      border: Border.all(color: const Color(0xFFEAECE8)),
-                                    ),
-                                    child: TextField(
-                                      controller: _searchController,
-                                      onChanged: (val) => setState(() => _searchQuery = val),
-                                      decoration: const InputDecoration(
-                                        hintText: "Cerca un prodotto",
-                                        hintStyle: TextStyle(color: Color(0xFFA9A69E), fontSize: 14),
-                                        border: InputBorder.none,
-                                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                      ),
-                                      style: const TextStyle(color: Color(0xFF1C3D32), fontSize: 14),
-                                    ),
-                                  ),
+                      // Barra di Ricerca (search_bar)
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(22),
+                                  border: Border.all(color: const Color(0xFFF2F3F0)),
                                 ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  height: 44,
-                                  width: 44,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF5A9E87),
-                                    borderRadius: BorderRadius.circular(22),
+                                child: TextField(
+                                  controller: _searchController,
+                                  onChanged: (val) => setState(() => _searchQuery = val),
+                                  decoration: const InputDecoration(
+                                    hintText: "Cerca un prodotto",
+                                    hintStyle: TextStyle(color: Color(0xFFB8B6AF), fontSize: 14),
+                                    border: InputBorder.none,
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                   ),
-                                  child: const Icon(Icons.search_rounded, color: Colors.white, size: 22),
+                                  style: const TextStyle(color: Color(0xFF1C3D32), fontSize: 14),
                                 ),
-                              ],
+                              ),
                             ),
-                          ),
-
-                          // Avviso / Badge Predictive Shopping (Business Model Canvas)
-                          Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 12),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFD1FAE5), // Menta Chiaro
-                              borderRadius: BorderRadius.circular(8),
+                            const SizedBox(width: 8),
+                            Container(
+                              height: 44,
+                              width: 44,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF6BB099),
+                                borderRadius: BorderRadius.circular(22),
+                              ),
+                              child: const Icon(Icons.search_rounded, color: Colors.white, size: 22),
                             ),
-                            child: const Row(
-                              children: [
-                                Icon(Icons.auto_awesome_rounded, color: Color(0xFF5A9E87), size: 18),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    "Predictive Shopping: suggerimenti automatici e previsione scorte",
-                                    style: TextStyle(
-                                      fontFamily: 'Outfit',
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1C3D32),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
+                          ],
+                        ),
+                      ),
 
-                          // Lista della Spesa (ShoppingItemList)
-                          Expanded(
-                            child: filteredItems.isEmpty
-                                ? const Center(
-                                    child: Text(
-                                      "Lista della spesa vuota per questa categoria.",
-                                      style: TextStyle(color: Color(0xFF789088), fontSize: 14),
-                                    ),
-                                  )
-                                : ListView.builder(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                                    itemCount: filteredItems.length,
-                                    itemBuilder: (context, index) {
-                                      final item = filteredItems[index];
-                                      return _buildShoppingItemCard(item);
-                                    },
-                                  ),
+                      // Avviso / Badge Predictive Shopping (Business Model Canvas)
+                      if (!widget.state.isPredictiveBannerClosed) ...[
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD1FAE5), // Menta Chiaro
+                            borderRadius: BorderRadius.circular(8),
                           ),
-
-                          // Pulsante Aggiungi un Elemento (addItemButton)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: () => _showAddItemDialog(context),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFFFB088), // Accento Pesca Pastello
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  elevation: 1,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                ),
-                                child: const Text(
-                                  "Aggiungi un elemento",
+                          child: Row(
+                            children: [
+                              const Icon(Icons.auto_awesome_rounded, color: Color(0xFF5A9E87), size: 18),
+                              const SizedBox(width: 8),
+                              const Expanded(
+                                child: Text(
+                                  "Predictive Shopping: suggerimenti automatici e previsione scorte",
                                   style: TextStyle(
                                     fontFamily: 'Outfit',
-                                    fontSize: 16,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF1C3D32),
                                   ),
                                 ),
                               ),
-                            ),
+                              const SizedBox(width: 8),
+                              InkWell(
+                                onTap: () {
+                                  widget.state.closePredictiveBannerPermanent();
+                                },
+                                child: const Icon(
+                                  Icons.close_rounded,
+                                  color: Color(0xFF5A9E87),
+                                  size: 18,
+                                ),
+                              ),
+                            ],
                           ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
 
-                          // Margine inferiore per fare spazio al pulsante sovrapposto "Spesa fatta"
-                          const SizedBox(height: 70),
-                        ],
+                      // Lista della Spesa (ShoppingItemList)
+                      Expanded(
+                        child: filteredItems.isEmpty
+                            ? const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 24),
+                                  child: Text(
+                                    "Lista della spesa vuota per questa categoria.",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(color: Color(0xFF789088), fontSize: 14),
+                                  ),
+                                ),
+                              )
+                            : ListView.builder(
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                itemCount: filteredItems.length,
+                                itemBuilder: (context, index) {
+                                  final item = filteredItems[index];
+                                  return _buildShoppingItemCard(item);
+                                },
+                              ),
                       ),
 
-                      // Pulsante sovrapposto in basso a destra "Spesa fatta" (shoppingDone)
-                      Positioned(
-                        right: 12,
-                        bottom: 12,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            widget.state.markShoppingDone();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Spesa Fatta! Prodotti trasferiti in Dispensa con successo."),
-                                backgroundColor: Color(0xFF5A9E87),
-                                duration: Duration(seconds: 3),
+                      // Pulsante Spesa fatta
+                      Padding(
+                        padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 4),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              widget.state.markShoppingDone();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Spesa Fatta! Prodotti trasferiti in Dispensa con successo."),
+                                  backgroundColor: Color(0xFF5A9E87),
+                                  duration: Duration(seconds: 3),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFD1FAE5), // Menta Chiaro
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              elevation: 1,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                            child: const Text(
+                              "Spesa fatta",
+                              style: TextStyle(
+                                fontFamily: 'Outfit',
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1C3D32), // Verde Foresta Scuro (scurito)
                               ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF5A9E87), // Verde Salvia Intenso
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                            elevation: 4,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                            ),
                           ),
-                          child: const Text(
-                            "Spesa fatta",
-                            style: TextStyle(
-                              fontFamily: 'Outfit',
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                        ),
+                      ),
+
+                      // Pulsante Aggiungi un Elemento (addItemButton)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 12, right: 12, top: 4, bottom: 12),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: ElevatedButton(
+                            onPressed: () => _showAddItemDialog(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFFB088), // Accento Pesca Pastello
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              elevation: 1,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                            child: const Text(
+                              "Aggiungi un elemento",
+                              style: TextStyle(
+                                fontFamily: 'Outfit',
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1C3D32),
+                              ),
                             ),
                           ),
                         ),

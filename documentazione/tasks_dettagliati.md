@@ -25,7 +25,7 @@ Contiene lo stato attuale dell'applicazione (compiti completati) e i prossimi pa
 ### 1. 🔥 Task Tuoi (Frontend Flutter + Firebase)
 
 #### A. Sviluppo UI e Layout (Completato)
-- [x] **UI Alta Fedeltà:** Interfaccia utente implementata per Home, Dispensa (Zero Spreco), Lista della Spesa, Valigia e Scansione Scontrino.
+- [x] **UI Alta Fedeltà:** Interfaccia utente implementata per Home, Dispensa (Zero Spreco), Lista della Spesa e Scansione Scontrino.
 - [x] **Style Guide & Coerenza:** Implementazione dei token cromatici (Pastel Sage & Soft Mint) e dei font (*Outfit*).
 - [x] **Prevenzione Bug Grafici:** Ottimizzazione del modale supermercati (scorrimento e prevenzione bottom overflow).
 
@@ -53,7 +53,7 @@ Contiene lo stato attuale dell'applicazione (compiti completati) e i prossimi pa
 #### E. GPS, Mappe, Notifiche e Paywall (Da Fare)
 - [ ] **Geolocalizzazione & Google Maps:** Lettura coordinate GPS correnti tramite `geolocator` e rendering dei pin nativi dei supermercati vicini usando `google_maps_flutter`.
 - [ ] **Client Firebase Cloud Messaging (FCM):** Configurazione dei permessi di notifica nativi e gestione dei deep link per atterrare sulla Dispensa in caso di alert cibo in scadenza.
-- [ ] **Monetizzazione & Paywall:** Disegno dell'interfaccia Paywall per gli utenti base e blocco delle funzionalità Premium (es. scansione illimitata o visualizzazione valigia) se il flag `isPremium` è falso su Firestore.
+- [ ] **Monetizzazione & Paywall:** Disegno dell'interfaccia Paywall per gli utenti base e blocco delle funzionalità Premium (es. scansione illimitata) se il flag `isPremium` è falso su Firestore.
 
 ---
 

@@ -15,7 +15,6 @@ class ItemModel {
   String category;
   bool isPantry;
   bool isShopping;
-  bool isSuitcase;
 
   ItemModel({
     required this.id,
@@ -25,13 +24,41 @@ class ItemModel {
     required this.category,
     this.isPantry = false,
     this.isShopping = false,
-    this.isSuitcase = false,
   });
 
   // Livello di urgenza "Zero Spreco"
   int get urgencyLevel {
-    if (expireDate.contains('Oggi') || expireDate.contains('Domani')) return 2; // Rosso
-    if (expireDate.contains('giorni')) return 1; // Giallo
+    String cleanText = expireDate.replaceAll("In scadenza: ", "").replaceAll("Scadenza: ", "").trim();
+    if (cleanText == "-" || cleanText.isEmpty) return 0;
+
+    // Se è nel formato gg/mm/aaaa
+    final dateParts = cleanText.split('/');
+    if (dateParts.length == 3) {
+      final day = int.tryParse(dateParts[0]);
+      final month = int.tryParse(dateParts[1]);
+      final year = int.tryParse(dateParts[2]);
+      if (day != null && month != null && year != null) {
+        final expDate = DateTime(year, month, day);
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final difference = expDate.difference(today).inDays;
+        
+        if (difference <= 1) return 2; // Oggi, Domani, o già scaduto (Rosso)
+        if (difference <= 7) return 1; // Tra 2 e 7 giorni (Giallo)
+        return 0; // Verde / Fresco
+      }
+    }
+
+    if (cleanText.toLowerCase().contains('oggi') || cleanText.toLowerCase().contains('domani')) return 2; // Rosso
+    if (cleanText.toLowerCase().contains('giorni')) {
+      final match = RegExp(r'tra (\d+) giorn[io]').firstMatch(cleanText);
+      if (match != null) {
+        final days = int.parse(match.group(1)!);
+        if (days <= 1) return 2;
+        if (days <= 7) return 1;
+      }
+      return 1; // Giallo
+    }
     return 0; // Verde / Fresco
   }
 }
@@ -54,6 +81,42 @@ class AppState extends ChangeNotifier {
 
   String? groupId;
   List<String> savedGroups = []; // Cronologia locale dei codici gruppo visitati
+
+  bool _isPredictiveBannerClosed = false;
+  bool get isPredictiveBannerClosed => _isPredictiveBannerClosed;
+
+  Future<void> _checkPredictiveBannerStatus() async {
+    final userId = currentUserAuth?.uid;
+    final group = groupId;
+    if (userId == null || group == null) {
+      _isPredictiveBannerClosed = false;
+      notifyListeners();
+      return;
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _isPredictiveBannerClosed = prefs.getBool('predictive_banner_closed_${userId}_$group') ?? false;
+      notifyListeners();
+    } catch (e) {
+      print("Errore caricamento stato banner: $e");
+    }
+  }
+
+  Future<void> closePredictiveBannerPermanent() async {
+    final userId = currentUserAuth?.uid;
+    final group = groupId;
+    if (userId == null || group == null) return;
+    
+    _isPredictiveBannerClosed = true;
+    notifyListeners();
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('predictive_banner_closed_${userId}_$group', true);
+    } catch (e) {
+      print("Errore salvataggio stato banner chiuso: $e");
+    }
+  }
 
   AppState() {
     authService.authStateChanges.listen((User? user) async {
@@ -80,6 +143,7 @@ class AppState extends ChangeNotifier {
         currentUserData = null;
         await leaveGroup();
       }
+      await _checkPredictiveBannerStatus();
       notifyListeners();
     });
   }
@@ -108,6 +172,8 @@ class AppState extends ChangeNotifier {
     groupId = code;
     isLoading = true;
     notifyListeners();
+
+    await _checkPredictiveBannerStatus();
 
     // Aggiunge alla cronologia se non presente e salva localmente
     try {
@@ -177,6 +243,7 @@ class AppState extends ChangeNotifier {
     } catch (_) {}
     await _itemsSubscription?.cancel();
     _itemsSubscription = null;
+    _isPredictiveBannerClosed = false;
 
     // Ripristina le liste di default per permettere l'ingresso pulito in un altro gruppo
     allItems.clear();
@@ -212,17 +279,8 @@ class AppState extends ChangeNotifier {
     "Igiene Casa",
   ];
 
-  List<String> suitcaseCategories = [
-    "Tutti",
-    "Vestiti",
-    "Libri & Studio",
-    "Cavi & Tech",
-    "Beauty & Igiene",
-  ];
-
   String selectedPantryCategory = "Tutti";
   String selectedShoppingCategory = "Tutti";
-  String selectedSuitcaseCategory = "Tutti";
 
   // ===========================================================================
   // LISTE DI BACKUP / DEMO INIZIALI
@@ -248,7 +306,6 @@ class AppState extends ChangeNotifier {
   void selectCategory(String category, String section) {
     if (section == 'pantry') selectedPantryCategory = category;
     if (section == 'shopping') selectedShoppingCategory = category;
-    if (section == 'suitcase') selectedSuitcaseCategory = category;
     notifyListeners();
   }
 
@@ -260,9 +317,6 @@ class AppState extends ChangeNotifier {
     } else if (section == 'shopping' && !shoppingCategories.contains(newCategory)) {
       shoppingCategories.add(newCategory);
       selectedShoppingCategory = newCategory;
-    } else if (section == 'suitcase' && !suitcaseCategories.contains(newCategory)) {
-      suitcaseCategories.add(newCategory);
-      selectedSuitcaseCategory = newCategory;
     }
     notifyListeners();
   }
@@ -301,8 +355,7 @@ class AppState extends ChangeNotifier {
       final existingItem = allItems.firstWhere(
         (i) => i.name.trim().toLowerCase() == newItem.name.trim().toLowerCase() &&
                i.isPantry == newItem.isPantry &&
-               i.isShopping == newItem.isShopping &&
-               i.isSuitcase == newItem.isSuitcase,
+               i.isShopping == newItem.isShopping,
       );
       
       // Se esiste, aggiorna solo la quantità

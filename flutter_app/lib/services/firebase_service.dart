@@ -18,7 +18,7 @@ class FirebaseService {
   // STREAM IN TEMPO REALE (REAL-TIME READS)
   // ===========================================================================
 
-  /// Ascolta in tempo reale tutti i prodotti (Dispensa, Spesa, Valigia) del gruppo.
+  /// Ascolta in tempo reale tutti i prodotti (Dispensa, Spesa) del gruppo.
   Stream<List<ItemModel>> getItemsStream() {
     return _itemsRef.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
@@ -31,7 +31,6 @@ class FirebaseService {
           category: data['category'] ?? 'Tutti',
           isPantry: data['isPantry'] ?? false,
           isShopping: data['isShopping'] ?? false,
-          isSuitcase: data['isSuitcase'] ?? false,
         );
       }).toList();
     });
@@ -53,7 +52,6 @@ class FirebaseService {
         'category': item.category,
         'isPantry': item.isPantry,
         'isShopping': item.isShopping,
-        'isSuitcase': item.isSuitcase,
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
@@ -132,7 +130,6 @@ class FirebaseService {
             'category': item.category,
             'isPantry': item.isPantry,
             'isShopping': item.isShopping,
-            'isSuitcase': item.isSuitcase,
           });
         }
       }
