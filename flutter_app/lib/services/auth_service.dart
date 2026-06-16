@@ -91,6 +91,26 @@ class AuthService {
     }
   }
 
+  // Invia richiesta di accesso
+  Future<void> sendJoinRequest(String uid, String groupId, String name, String email) async {
+    try {
+      // 1. Aggiungi il gruppo nei pendingGroupIds dell'utente
+      await _db.collection('users').doc(uid).update({
+        'pendingGroupIds': FieldValue.arrayUnion([groupId])
+      });
+      // 2. Crea il documento richiesta
+      await _db.collection('groups').doc(groupId).collection('requests').doc(uid).set({
+        'id': uid,
+        'name': name,
+        'email': email,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print("Errore invio richiesta: $e");
+      rethrow;
+    }
+  }
+
   // Logout
   Future<void> signOut() async {
     try {

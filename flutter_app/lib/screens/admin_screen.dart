@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_state.dart';
 
 class AdminScreen extends StatefulWidget {
@@ -13,33 +14,15 @@ class AdminScreen extends StatefulWidget {
 class _AdminScreenState extends State<AdminScreen> {
   final _profileFormKey = GlobalKey<FormState>();
   
-  // State variables for profile form
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
 
-  // Mock list of group members
-  List<Map<String, String>> _members = [
-    {"name": "Tu", "role": "Admin", "id": "1"},
-    {"name": "Marco Rossini", "role": "Coinquilino", "id": "2"},
-    {"name": "Giulia Bianchi", "role": "Coinquilina", "id": "3"},
-  ];
-
-  // Mock list of join requests
-  List<Map<String, String>> _requests = [
-    {"name": "Davide Neri", "email": "davide.neri@email.com", "id": "req_1"},
-    {"name": "Sofia Verdi", "email": "sofia.verdi@email.com", "id": "req_2"},
-  ];
-
-  // Check if current user is admin (always true for the mockup view)
-  final bool _isGroupAdmin = true;
-
   @override
   void initState() {
     super.initState();
-    // Initialize with values from AppState if available, otherwise mock data
-    final userName = widget.state.currentUserData?.name ?? "Studente Fuorisede";
-    final userEmail = widget.state.currentUserAuth?.email ?? "studente@avanzizero.it";
+    final userName = widget.state.currentUserData?.name ?? "";
+    final userEmail = widget.state.currentUserAuth?.email ?? "";
     
     _nameController = TextEditingController(text: userName);
     _emailController = TextEditingController(text: userEmail);
@@ -55,66 +38,107 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   void _saveProfile() async {
-    if (_profileFormKey.currentState!.validate()) {
-      await widget.state.updateProfileName(_nameController.text.trim());
+    // Funzionalità mockata per il profilo personale (da implementare in futuro)
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("✨ Profilo aggiornato con successo!"),
+        backgroundColor: Color(0xFF5A9E87),
+      ),
+    );
+  }
+
+  // ============== GESTIONE GRUPPO E RICHIESTE =================
+
+  Future<void> _removeMember(String uid) async {
+    final groupId = widget.state.groupId;
+    if (groupId == null) return;
+    try {
+      await FirebaseFirestore.instance.collection('groups').doc(groupId).update({
+        'members': FieldValue.arrayRemove([uid]),
+        'adminIds': FieldValue.arrayRemove([uid]),
+      });
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'groupIds': FieldValue.arrayRemove([groupId])
+      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("✨ Profilo aggiornato con successo!"),
-            backgroundColor: Color(0xFF5A9E87),
-          ),
+          const SnackBar(content: Text("🗑️ Membro rimosso dal gruppo."), backgroundColor: Color(0xFFEF4444)),
         );
       }
+    } catch (e) {
+      print("Errore rimozione membro: $e");
     }
   }
 
-  void _removeMember(String id, String name) {
-    setState(() {
-      _members.removeWhere((m) => m["id"] == id);
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("🗑️ $name rimosso dal gruppo."),
-        backgroundColor: const Color(0xFFEF4444),
-      ),
-    );
-  }
-
-  void _acceptRequest(String id, String name) {
-    setState(() {
-      _requests.removeWhere((r) => r["id"] == id);
-      _members.add({
-        "name": name,
-        "role": "Coinquilino/a",
-        "id": DateTime.now().millisecondsSinceEpoch.toString(),
+  Future<void> _promoteToAdmin(String uid) async {
+    final groupId = widget.state.groupId;
+    if (groupId == null) return;
+    try {
+      await FirebaseFirestore.instance.collection('groups').doc(groupId).update({
+        'adminIds': FieldValue.arrayUnion([uid]),
       });
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("✅ Richiesta di $name accettata!"),
-        backgroundColor: const Color(0xFF5A9E87),
-      ),
-    );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("👑 Membro promosso ad Admin!"), backgroundColor: Color(0xFF5A9E87)),
+        );
+      }
+    } catch (e) {
+      print("Errore promozione admin: $e");
+    }
   }
 
-  void _rejectRequest(String id, String name) {
-    setState(() {
-      _requests.removeWhere((r) => r["id"] == id);
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("❌ Richiesta di $name rifiutata."),
-        backgroundColor: const Color(0xFFEF4444),
-      ),
-    );
+  Future<void> _acceptRequest(String uid) async {
+    final groupId = widget.state.groupId;
+    if (groupId == null) return;
+    try {
+      final db = FirebaseFirestore.instance;
+      // 1. Rimuovi la richiesta
+      await db.collection('groups').doc(groupId).collection('requests').doc(uid).delete();
+      // 2. Aggiungi il membro al gruppo
+      await db.collection('groups').doc(groupId).update({
+        'members': FieldValue.arrayUnion([uid])
+      });
+      // 3. Aggiorna l'utente (aggiungi groupIds, rimuovi pending)
+      await db.collection('users').doc(uid).update({
+        'groupIds': FieldValue.arrayUnion([groupId]),
+        'pendingGroupIds': FieldValue.arrayRemove([groupId])
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("✅ Richiesta accettata!"), backgroundColor: Color(0xFF5A9E87)),
+        );
+      }
+    } catch (e) {
+      print("Errore accettazione: $e");
+    }
+  }
+
+  Future<void> _rejectRequest(String uid) async {
+    final groupId = widget.state.groupId;
+    if (groupId == null) return;
+    try {
+      final db = FirebaseFirestore.instance;
+      await db.collection('groups').doc(groupId).collection('requests').doc(uid).delete();
+      await db.collection('users').doc(uid).update({
+        'pendingGroupIds': FieldValue.arrayRemove([groupId])
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("❌ Richiesta rifiutata."), backgroundColor: Color(0xFFEF4444)),
+        );
+      }
+    } catch (e) {
+      print("Errore rifiuto: $e");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final activeGroupId = widget.state.groupId ?? "NESSUN GRUPPO";
+    final myUid = widget.state.currentUserAuth?.uid ?? "";
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFBFBF9), // Avorio Soft
+      backgroundColor: const Color(0xFFFBFBF9),
       appBar: AppBar(
         backgroundColor: const Color(0xFFFBFBF9),
         elevation: 0,
@@ -149,11 +173,7 @@ class _AdminScreenState extends State<AdminScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x051C3D32),
-                      blurRadius: 15,
-                      offset: Offset(0, 4),
-                    ),
+                    BoxShadow(color: Color(0x051C3D32), blurRadius: 15, offset: Offset(0, 4)),
                   ],
                   border: Border.all(color: const Color(0xFF5A9E87).withOpacity(0.15)),
                 ),
@@ -161,7 +181,6 @@ class _AdminScreenState extends State<AdminScreen> {
                   key: _profileFormKey,
                   child: Column(
                     children: [
-                      // Input Nome
                       TextFormField(
                         controller: _nameController,
                         decoration: InputDecoration(
@@ -174,10 +193,9 @@ class _AdminScreenState extends State<AdminScreen> {
                         validator: (val) => val == null || val.isEmpty ? "Inserisci il tuo nome" : null,
                       ),
                       const SizedBox(height: 16),
-                      
-                      // Input Email
                       TextFormField(
                         controller: _emailController,
+                        readOnly: true,
                         decoration: InputDecoration(
                           labelText: "Email",
                           prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF5A9E87)),
@@ -185,27 +203,8 @@ class _AdminScreenState extends State<AdminScreen> {
                           filled: true,
                           fillColor: const Color(0xFFFBFBF9),
                         ),
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (val) => val == null || !val.contains('@') ? "Inserisci una email valida" : null,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Input Password
-                      TextFormField(
-                        controller: _passwordController,
-                        decoration: InputDecoration(
-                          labelText: "Password",
-                          prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF5A9E87)),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          filled: true,
-                          fillColor: const Color(0xFFFBFBF9),
-                        ),
-                        obscureText: true,
-                        validator: (val) => val == null || val.isEmpty ? "Inserisci la password" : null,
                       ),
                       const SizedBox(height: 20),
-
-                      // Pulsante Salva
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -217,10 +216,7 @@ class _AdminScreenState extends State<AdminScreen> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             elevation: 0,
                           ),
-                          child: const Text(
-                            "Salva Modifiche",
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
+                          child: const Text("Salva Modifiche", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ],
@@ -229,171 +225,188 @@ class _AdminScreenState extends State<AdminScreen> {
               ),
               const SizedBox(height: 28),
 
-              // ==========================================
-              // SEZIONE 2: MEMBRI DEL GRUPPO
-              // ==========================================
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildSectionTitle("Membri del Gruppo"),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD1FAE5),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      "Codice: $activeGroupId",
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF065F46),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x051C3D32),
-                      blurRadius: 15,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                  border: Border.all(color: const Color(0xFF5A9E87).withOpacity(0.15)),
-                ),
-                child: _members.isEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        child: Text(
-                          "Nessun partecipante nel gruppo.",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      )
-                    : ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _members.length,
-                        separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF3F4F6)),
-                        itemBuilder: (context, index) {
-                          final member = _members[index];
-                          final isMe = member["name"] == "Tu";
-                          final isAdmin = member["role"] == "Admin";
+              // Se non c'è un gruppo attivo, fermati qui
+              if (widget.state.groupId == null) const SizedBox.shrink() else ...[
+                // Dati real-time del gruppo
+                StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance.collection('groups').doc(activeGroupId).snapshots(),
+                  builder: (context, groupSnapshot) {
+                    if (!groupSnapshot.hasData || !groupSnapshot.data!.exists) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                          return ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                            title: Text(
-                              member["name"]!,
-                              style: const TextStyle(
-                                fontFamily: 'Outfit',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                                color: Color(0xFF1C3D32),
+                    final groupData = groupSnapshot.data!.data() as Map<String, dynamic>;
+                    final membersList = List<String>.from(groupData['members'] ?? []);
+                    final adminIds = List<String>.from(groupData['adminIds'] ?? []);
+                    final isMeAdmin = adminIds.contains(myUid);
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // ==========================================
+                        // SEZIONE 2: MEMBRI DEL GRUPPO
+                        // ==========================================
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _buildSectionTitle("Membri del Gruppo"),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFD1FAE5),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                "Codice: $activeGroupId",
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF065F46)),
                               ),
                             ),
-                            trailing: (_isGroupAdmin && !isMe)
-                                ? IconButton(
-                                    icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFEF4444)),
-                                    onPressed: () => _removeMember(member["id"]!, member["name"]!),
-                                  )
-                                : null,
-                          );
-                        },
-                      ),
-              ),
-              const SizedBox(height: 28),
-
-              // ==========================================
-              // SEZIONE 3: RICHIESTE DI INGRESSO (Solo per Admin)
-              // ==========================================
-              if (_isGroupAdmin) ...[
-                _buildSectionTitle("Richieste di Ingresso"),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x051C3D32),
-                        blurRadius: 15,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                    border: Border.all(color: const Color(0xFF5A9E87).withOpacity(0.15)),
-                  ),
-                  child: _requests.isEmpty
-                      ? const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24),
-                          child: Column(
-                            children: [
-                              Icon(Icons.mark_email_read_outlined, color: Color(0xFF789088), size: 36),
-                              SizedBox(height: 8),
-                              Text(
-                                "Nessuna richiesta di ingresso in attesa.",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontFamily: 'Outfit',
-                                  fontSize: 14,
-                                  color: Color(0xFF789088),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _requests.length,
-                          separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF3F4F6)),
-                          itemBuilder: (context, index) {
-                            final request = _requests[index];
-
-                            return ListTile(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                              leading: const CircleAvatar(
-                                backgroundColor: Color(0xFFF3F4F6),
-                                child: Icon(Icons.hourglass_empty_rounded, color: Color(0xFF789088), size: 18),
-                              ),
-                              title: Text(
-                                request["name"]!,
-                                style: const TextStyle(
-                                  fontFamily: 'Outfit',
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                  color: Color(0xFF1C3D32),
-                                ),
-                              ),
-                              subtitle: Text(
-                                request["email"]!,
-                                style: const TextStyle(fontSize: 12, color: Colors.grey),
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // Accetta (Spunta Verde)
-                                  IconButton(
-                                    icon: const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF10B981)),
-                                    onPressed: () => _acceptRequest(request["id"]!, request["name"]!),
-                                  ),
-                                  // Rifiuta (Croce Rossa)
-                                  IconButton(
-                                    icon: const Icon(Icons.cancel_outlined, color: Color(0xFFEF4444)),
-                                    onPressed: () => _rejectRequest(request["id"]!, request["name"]!),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
+                          ],
                         ),
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: const [BoxShadow(color: Color(0x051C3D32), blurRadius: 15, offset: Offset(0, 4))],
+                            border: Border.all(color: const Color(0xFF5A9E87).withOpacity(0.15)),
+                          ),
+                          child: ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: membersList.length,
+                            separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                            itemBuilder: (context, index) {
+                              final memberUid = membersList[index];
+                              final isMe = memberUid == myUid;
+                              final isAdmin = adminIds.contains(memberUid);
+
+                              return FutureBuilder<DocumentSnapshot>(
+                                future: FirebaseFirestore.instance.collection('users').doc(memberUid).get(),
+                                builder: (context, userSnapshot) {
+                                  String name = "Caricamento...";
+                                  if (userSnapshot.hasData && userSnapshot.data!.exists) {
+                                    name = userSnapshot.data!.get('name') ?? "Utente Sconosciuto";
+                                  }
+
+                                  return ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                                    title: Row(
+                                      children: [
+                                        Text(
+                                          isMe ? "$name (Tu)" : name,
+                                          style: const TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF1C3D32)),
+                                        ),
+                                        if (isAdmin) ...[
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(color: const Color(0xFFFEF3C7), borderRadius: BorderRadius.circular(4)),
+                                            child: const Text("ADMIN", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFD97706))),
+                                          ),
+                                        ]
+                                      ],
+                                    ),
+                                    trailing: (isMeAdmin && !isMe)
+                                        ? Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              if (!isAdmin)
+                                                IconButton(
+                                                  icon: const Icon(Icons.arrow_upward_rounded, color: Color(0xFF5A9E87)),
+                                                  tooltip: "Promuovi Admin",
+                                                  onPressed: () => _promoteToAdmin(memberUid),
+                                                ),
+                                              IconButton(
+                                                icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFEF4444)),
+                                                tooltip: "Rimuovi Membro",
+                                                onPressed: () => _removeMember(memberUid),
+                                              ),
+                                            ],
+                                          )
+                                        : null,
+                                  );
+                                }
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+
+                        // ==========================================
+                        // SEZIONE 3: RICHIESTE DI INGRESSO
+                        // ==========================================
+                        if (isMeAdmin) ...[
+                          _buildSectionTitle("Richieste di Ingresso"),
+                          const SizedBox(height: 10),
+                          StreamBuilder<QuerySnapshot>(
+                            stream: FirebaseFirestore.instance.collection('groups').doc(activeGroupId).collection('requests').snapshots(),
+                            builder: (context, requestsSnapshot) {
+                              if (!requestsSnapshot.hasData) return const Center(child: CircularProgressIndicator());
+                              
+                              final requests = requestsSnapshot.data!.docs;
+
+                              return Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: const [BoxShadow(color: Color(0x051C3D32), blurRadius: 15, offset: Offset(0, 4))],
+                                  border: Border.all(color: const Color(0xFF5A9E87).withOpacity(0.15)),
+                                ),
+                                child: requests.isEmpty
+                                    ? const Padding(
+                                        padding: EdgeInsets.symmetric(vertical: 24),
+                                        child: Column(
+                                          children: [
+                                            Icon(Icons.mark_email_read_outlined, color: Color(0xFF789088), size: 36),
+                                            SizedBox(height: 8),
+                                            Text("Nessuna richiesta di ingresso in attesa.", textAlign: TextAlign.center, style: TextStyle(fontFamily: 'Outfit', fontSize: 14, color: Color(0xFF789088))),
+                                          ],
+                                        ),
+                                      )
+                                    : ListView.separated(
+                                        shrinkWrap: true,
+                                        physics: const NeverScrollableScrollPhysics(),
+                                        itemCount: requests.length,
+                                        separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                                        itemBuilder: (context, index) {
+                                          final reqDoc = requests[index];
+                                          final reqData = reqDoc.data() as Map<String, dynamic>;
+                                          final reqUid = reqDoc.id;
+
+                                          return ListTile(
+                                            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                                            leading: const CircleAvatar(
+                                              backgroundColor: Color(0xFFF3F4F6),
+                                              child: Icon(Icons.hourglass_empty_rounded, color: Color(0xFF789088), size: 18),
+                                            ),
+                                            title: Text(reqData['name'] ?? 'Utente', style: const TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF1C3D32))),
+                                            subtitle: Text(reqData['email'] ?? '', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                            trailing: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                IconButton(
+                                                  icon: const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF10B981)),
+                                                  onPressed: () => _acceptRequest(reqUid),
+                                                ),
+                                                IconButton(
+                                                  icon: const Icon(Icons.cancel_outlined, color: Color(0xFFEF4444)),
+                                                  onPressed: () => _rejectRequest(reqUid),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                              );
+                            }
+                          ),
+                        ],
+                      ],
+                    );
+                  }
                 ),
               ],
             ],
@@ -408,12 +421,7 @@ class _AdminScreenState extends State<AdminScreen> {
       padding: const EdgeInsets.only(left: 4, bottom: 12),
       child: Text(
         title,
-        style: const TextStyle(
-          fontFamily: 'Outfit',
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFF1C3D32),
-        ),
+        style: const TextStyle(fontFamily: 'Outfit', fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1C3D32)),
       ),
     );
   }

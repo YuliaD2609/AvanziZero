@@ -60,6 +60,22 @@ class AppState extends ChangeNotifier {
       currentUserAuth = user;
       if (user != null) {
         currentUserData = await authService.getUserData(user.uid);
+        if (currentUserData == null) {
+          // Risoluzione Race Condition: durante la registrazione Auth triggera prima che la scrittura su Firestore sia completata
+          await Future.delayed(const Duration(milliseconds: 800));
+          currentUserData = await authService.getUserData(user.uid);
+        }
+
+        // AUTO-LOGIN AL GRUPPO
+        if (currentUserData != null) {
+          try {
+            final prefs = await SharedPreferences.getInstance();
+            final lastActive = prefs.getString('lastActiveGroupId');
+            if (lastActive != null && currentUserData!.groupIds.contains(lastActive)) {
+              setGroupId(lastActive); // Background
+            }
+          } catch (_) {}
+        }
       } else {
         currentUserData = null;
         await leaveGroup();
@@ -94,20 +110,21 @@ class AppState extends ChangeNotifier {
     notifyListeners();
 
     // Aggiunge alla cronologia se non presente e salva localmente
-    if (!savedGroups.contains(code)) {
-      savedGroups.insert(0, code);
-      try {
-        final prefs = await SharedPreferences.getInstance();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (!savedGroups.contains(code)) {
+        savedGroups.insert(0, code);
         await prefs.setStringList('savedGroups', savedGroups);
-      } catch (e) {
-        print("Errore salvataggio cronologia: $e");
       }
+      await prefs.setString('lastActiveGroupId', code);
+    } catch (e) {
+      print("Errore salvataggio SharedPreferences: $e");
     }
 
     _firebaseService = FirebaseService(groupId: groupId!);
 
-    // Copia i dati demo iniziali su Firestore se il gruppo è appena stato creato
-    await _firebaseService!.seedInitialDataIfNeeded(_initialDemoItems);
+    // Esegue il seeding in background senza bloccare la navigazione utente
+    _firebaseService!.seedInitialDataIfNeeded(_initialDemoItems, uid: currentUserAuth?.uid);
 
     // Cancella eventuali sottoscrizioni precedenti
     await _itemsSubscription?.cancel();
@@ -154,6 +171,10 @@ class AppState extends ChangeNotifier {
     }
 
     groupId = null;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('lastActiveGroupId');
+    } catch (_) {}
     await _itemsSubscription?.cancel();
     _itemsSubscription = null;
 

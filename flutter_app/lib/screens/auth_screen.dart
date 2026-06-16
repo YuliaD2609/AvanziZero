@@ -42,60 +42,31 @@ class _AuthScreenState extends State<AuthScreen> {
         }
       } on FirebaseAuthException catch (e) {
         if (mounted) {
-          if (e.code == 'user-not-found' || e.code == 'invalid-email') {
-            setState(() {
-              _emailError = "Email non registrata";
-            });
+          if (e.code == 'user-not-found') {
+            setState(() => _emailError = "Email non registrata");
+            _formKey.currentState!.validate();
+          } else if (e.code == 'invalid-email') {
+            setState(() => _emailError = "Formato email non valido");
+            _formKey.currentState!.validate();
+          } else if (e.code == 'email-already-in-use') {
+            setState(() => _emailError = "Questa email è già registrata");
             _formKey.currentState!.validate();
           } else if (e.code == 'wrong-password') {
-            setState(() {
-              _passwordError = "Password errata";
-            });
+            setState(() => _passwordError = "Password errata");
+            _formKey.currentState!.validate();
+          } else if (e.code == 'weak-password') {
+            setState(() => _passwordError = "La password è troppo debole");
             _formKey.currentState!.validate();
           } else if (e.code == 'invalid-credential') {
-            bool checked = false;
-            // 1. Prova con fetchSignInMethodsForEmail (FirebaseAuth)
-            try {
-              final methods = await FirebaseAuth.instance.fetchSignInMethodsForEmail(_email.trim());
+            if (_isLogin) {
               setState(() {
-                if (methods.isEmpty) {
-                  _emailError = "Email non registrata";
-                } else {
-                  _passwordError = "Password errata";
-                }
+                _emailError = "Credenziali non valide";
+                _passwordError = "Credenziali non valide";
               });
-              _formKey.currentState!.validate();
-              checked = true;
-            } catch (_) {}
-
-            // 2. Se fallisce, prova con query Firestore
-            if (!checked) {
-              try {
-                final query = await FirebaseFirestore.instance
-                    .collection('users')
-                    .where('email', isEqualTo: _email.trim())
-                    .limit(1)
-                    .get();
-                setState(() {
-                  if (query.docs.isEmpty) {
-                    _emailError = "Email non registrata";
-                  } else {
-                    _passwordError = "Password errata";
-                  }
-                });
-                _formKey.currentState!.validate();
-                checked = true;
-              } catch (_) {}
+            } else {
+              setState(() => _emailError = "Credenziali non valide");
             }
-
-            // 3. Fallback finale: se entrambi falliscono, colora entrambi i campi in rosso
-            if (!checked) {
-              setState(() {
-                _emailError = "Email non registrata";
-                _passwordError = "Password errata";
-              });
-              _formKey.currentState!.validate();
-            }
+            _formKey.currentState!.validate();
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(e.message ?? "Errore di autenticazione")),
@@ -242,6 +213,8 @@ class _AuthScreenState extends State<AuthScreen> {
                     onPressed: () {
                       setState(() {
                         _isLogin = !_isLogin;
+                        _emailError = null;
+                        _passwordError = null;
                         // Resetta i campi e i messaggi di errore del form
                         _formKey.currentState?.reset();
                       });

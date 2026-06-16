@@ -107,8 +107,19 @@ class FirebaseService {
   }
 
   /// Inizializza un nuovo gruppo con dati demo se vuoto
-  Future<void> seedInitialDataIfNeeded(List<ItemModel> initialItems) async {
+  Future<void> seedInitialDataIfNeeded(List<ItemModel> initialItems, {String? uid}) async {
     try {
+      // Assicura che il documento del gruppo esista per poterlo vedere chiaramente nel db
+      final groupDoc = await _db.collection('groups').doc(groupId).get();
+      if (!groupDoc.exists) {
+        await _db.collection('groups').doc(groupId).set({
+          'createdAt': FieldValue.serverTimestamp(),
+          'code': groupId,
+          'adminIds': uid != null ? [uid] : [],
+          'members': uid != null ? [uid] : [],
+        });
+      }
+
       final itemsSnap = await _itemsRef.limit(1).get();
       if (itemsSnap.docs.isEmpty) {
         // Popola Articoli

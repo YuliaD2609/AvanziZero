@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_state.dart';
 import '../main.dart'; // Per accedere a MainNavigator
 
@@ -39,13 +40,17 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
 
   /// Flusso di creazione di un nuovo gruppo domestico
   Future<void> _createNewGroup() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
     final newCode = _generateRandomCode();
-    await widget.state.setGroupId(newCode);
+    
+    // Esecuzione in background (senza await)
+    if (widget.state.currentUserAuth != null) {
+      widget.state.authService.addGroupToUser(widget.state.currentUserAuth!.uid, newCode);
+      if (widget.state.currentUserData != null) {
+        widget.state.currentUserData!.groupIds.add(newCode);
+      }
+    }
+
+    widget.state.setGroupId(newCode);
 
     if (!mounted) return;
 
@@ -91,23 +96,81 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
       _errorMessage = null;
     });
 
-    await widget.state.setGroupId(inputCode);
+    final uid = widget.state.currentUserAuth?.uid;
+    final userData = widget.state.currentUserData;
 
-    if (!mounted) return;
+    if (uid != null && userData != null) {
+      // 1. Controllo anti-spam in memoria locale
+      if (userData.pendingGroupIds.contains(inputCode)) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("⏳ Hai già inviato una richiesta per $inputCode. Attendi l'approvazione."),
+            backgroundColor: const Color(0xFFEAB308), // Giallo Ambra
+          ),
+        );
+        setState(() => _isLoading = false);
+        return;
+      }
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MainNavigator(state: widget.state),
-      ),
-    );
+      // 2. Controllo se sei già membro
+      if (userData.groupIds.contains(inputCode)) {
+        widget.state.setGroupId(inputCode);
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MainNavigator(state: widget.state)),
+        );
+        return;
+      }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("🔗 Collegato con successo al gruppo: $inputCode"),
-        backgroundColor: const Color(0xFF5A9E87),
-      ),
-    );
+      // 3. Verifica l'esistenza del gruppo su Firebase e controlla membri
+      try {
+        final groupDoc = await FirebaseFirestore.instance.collection('groups').doc(inputCode).get();
+        if (!groupDoc.exists) {
+          setState(() {
+            _errorMessage = "Il gruppo $inputCode non esiste.";
+            _isLoading = false;
+          });
+          return;
+        }
+
+        final members = List<String>.from(groupDoc.data()?['members'] ?? []);
+        if (members.contains(uid)) {
+          // Sei già membro (magari aggiunto da un admin ma appState non è aggiornato)
+          widget.state.authService.addGroupToUser(uid, inputCode);
+          userData.groupIds.add(inputCode);
+          widget.state.setGroupId(inputCode);
+          
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => MainNavigator(state: widget.state)),
+          );
+          return;
+        } else {
+          // 4. Invia richiesta
+          await widget.state.authService.sendJoinRequest(uid, inputCode, userData.name, userData.email);
+          userData.pendingGroupIds.add(inputCode);
+
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("📩 Richiesta inviata! L'admin di $inputCode dovrà approvarti."),
+              backgroundColor: const Color(0xFF5A9E87),
+            ),
+          );
+          setState(() => _isLoading = false);
+          return;
+        }
+      } catch (e) {
+        setState(() {
+          _errorMessage = "Errore durante l'operazione. Riprova.";
+          _isLoading = false;
+        });
+        return;
+      }
+    }
   }
 
   @override
@@ -316,20 +379,64 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                               ),
                             ],
                             const SizedBox(height: 12),
-                            ElevatedButton(
-                              onPressed: _joinExistingGroup,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFFFB088), // Accento Pesca Pastello
-                                foregroundColor: const Color(0xFF1C3D32),
-                                elevation: 0,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              ),
-                              child: const Text(
-                                "Accedi al Gruppo",
-                                style: TextStyle(fontFamily: 'Outfit', fontSize: 16, fontWeight: FontWeight.bold),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _joinExistingGroup,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF1C3D32),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  elevation: 0,
+                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                      )
+                                    : const Text(
+                                        "Entra nel Gruppo",
+                                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                      ),
                               ),
                             ),
+                            const SizedBox(height: 16),
+                            // Pannello Richieste in Attesa
+                            if (widget.state.currentUserData?.pendingGroupIds.isNotEmpty ?? false)
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEF3C7), // Giallo tenue
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: const Color(0xFFFDE047)),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Row(
+                                      children: [
+                                        Icon(Icons.hourglass_top_rounded, color: Color(0xFFCA8A04), size: 18),
+                                        SizedBox(width: 6),
+                                        Text(
+                                          "Richieste in Attesa",
+                                          style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF854D0E)),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ...widget.state.currentUserData!.pendingGroupIds.map((code) => Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 2),
+                                          child: Text(
+                                            "• $code",
+                                            style: const TextStyle(color: Color(0xFFA16207), fontWeight: FontWeight.w500),
+                                          ),
+                                        )),
+                                  ],
+                                ),
+                              ),
                           ],
                         ),
                       ),
