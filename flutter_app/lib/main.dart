@@ -118,6 +118,7 @@ class _MainNavigatorState extends State<MainNavigator> {
       HomeScreen(
         state: widget.state,
         onNavigate: _navigate,
+        onCartPressed: () => _showNearbySupermarketsModal(context),
       ),
       PantryScreen(
         state: widget.state,

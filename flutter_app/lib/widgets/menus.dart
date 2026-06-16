@@ -5,6 +5,7 @@ class HorizontalHeaderMenu extends StatelessWidget {
   final VoidCallback onHomePressed;
   final VoidCallback onCartPressed;
   final bool showHome;
+  final Widget? leftAction;
 
   const HorizontalHeaderMenu({
     super.key,
@@ -12,6 +13,7 @@ class HorizontalHeaderMenu extends StatelessWidget {
     required this.onHomePressed,
     required this.onCartPressed,
     this.showHome = true,
+    this.leftAction,
   });
 
   @override
@@ -38,14 +40,16 @@ class HorizontalHeaderMenu extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Pulsante Home a sinistra come da layout nativo
-            showHome
-                ? IconButton(
-                    icon: const Icon(Icons.home_rounded, color: Colors.white, size: 30),
-                    onPressed: onHomePressed,
-                    tooltip: 'Torna alla Home',
-                  )
-                : const SizedBox(width: 48),
+            // Pulsante Home o leftAction a sinistra come da layout nativo
+            leftAction != null
+                ? leftAction!
+                : (showHome
+                    ? IconButton(
+                        icon: const Icon(Icons.home_rounded, color: Colors.white, size: 30),
+                        onPressed: onHomePressed,
+                        tooltip: 'Torna alla Home',
+                      )
+                    : const SizedBox(width: 48)),
             
             // Titolo della sezione al centro
             Expanded(

@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import '../models/app_state.dart';
 import '../widgets/ocr_scanner_modal.dart';
+import '../widgets/menus.dart';
 import 'admin_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final AppState state;
   final Function(int) onNavigate;
+  final VoidCallback onCartPressed;
 
   const HomeScreen({
     super.key,
     required this.state,
     required this.onNavigate,
+    required this.onCartPressed,
   });
 
   @override
@@ -23,40 +26,46 @@ class HomeScreen extends StatelessWidget {
       
       // Rimosso FAB come richiesto, l'IA scanner è stato spostato in Dispensa
 
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Barra Superiore (Icona cestino e Notifiche)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Column(
+        children: [
+          HorizontalHeaderMenu(
+            title: "AvanziZero",
+            onHomePressed: () {},
+            onCartPressed: onCartPressed,
+            showHome: false,
+            leftAction: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.person_outline_rounded, color: Colors.white, size: 28),
+                  tooltip: "Area Admin",
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AdminScreen(state: state),
+                      ),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 26),
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Nessuna notifica.")),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.person_outline_rounded, color: Color(0xFF789088)),
-                    tooltip: "Area Admin",
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AdminScreen(state: state),
-                        ),
-                      );
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF789088)),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Nessuna notifica.")),
-                      );
-                    },
-                  ),
-                ],
-              ),
-
-              // Banner premium del Gruppo Casa Attivo con opzione di Uscita
+                  // Banner premium del Gruppo Casa Attivo con opzione di Uscita
               if (state.groupId != null)
                 Container(
                   margin: const EdgeInsets.only(bottom: 8),
@@ -280,7 +289,9 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ],
+  ),
+);
   }
 
   // Costruisce i bottoni principali replicando il design con i bordi e l'icona a sinistra
