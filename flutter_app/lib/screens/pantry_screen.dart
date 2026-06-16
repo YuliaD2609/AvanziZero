@@ -125,8 +125,9 @@ class _PantryScreenState extends State<PantryScreen> {
                         alignment: Alignment.bottomRight,
                         child: Padding(
                           padding: const EdgeInsets.all(12),
-                          child: Row(
+                          child: Column(
                             mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               FloatingActionButton(
                                 heroTag: 'scanner_fab',
@@ -135,12 +136,12 @@ class _PantryScreenState extends State<PantryScreen> {
                                 elevation: 2,
                                 child: const Icon(Icons.document_scanner_rounded, color: Color(0xFF5A9E87)),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(height: 12),
                               ElevatedButton(
                                 onPressed: () => _showAddItemDialog(context),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFFFFB088), // Accento Pesca Pastello
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                   elevation: 2,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                 ),

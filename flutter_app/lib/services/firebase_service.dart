@@ -12,7 +12,7 @@ class FirebaseService {
 
   // Riferimenti alle sotto-collezioni del gruppo corrente
   CollectionReference get _itemsRef => _db.collection('groups').doc(groupId).collection('items');
-  CollectionReference get _expensesRef => _db.collection('groups').doc(groupId).collection('expenses');
+
 
   // ===========================================================================
   // STREAM IN TEMPO REALE (REAL-TIME READS)
@@ -32,21 +32,6 @@ class FirebaseService {
           isPantry: data['isPantry'] ?? false,
           isShopping: data['isShopping'] ?? false,
           isSuitcase: data['isSuitcase'] ?? false,
-        );
-      }).toList();
-    });
-  }
-
-  /// Ascolta in tempo reale tutte le spese condivise dai coinquilini del gruppo.
-  Stream<List<RoommateExpense>> getExpensesStream() {
-    return _expensesRef.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>? ?? {};
-        return RoommateExpense(
-          id: doc.id,
-          description: data['description'] ?? '',
-          amount: (data['amount'] as num?)?.toDouble() ?? 0.0,
-          paidBy: data['paidBy'] ?? 'Sconosciuto',
         );
       }).toList();
     });
@@ -97,20 +82,7 @@ class FirebaseService {
     }
   }
 
-  /// Aggiunge una nuova spesa condivisa su Firestore.
-  Future<void> addExpense(RoommateExpense expense) async {
-    try {
-      final docRef = expense.id.isNotEmpty ? _expensesRef.doc(expense.id) : _expensesRef.doc();
-      await docRef.set({
-        'description': expense.description,
-        'amount': expense.amount,
-        'paidBy': expense.paidBy,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-    } catch (e) {
-      print("Errore nell'aggiunta della spesa: $e");
-    }
-  }
+
 
   /// Sposta tutti gli articoli della Lista della Spesa in Dispensa (Spesa Fatta)
   /// utilizzando un'operazione batch atomica.
@@ -134,18 +106,15 @@ class FirebaseService {
     }
   }
 
-  /// Inizializza il gruppo con dati demo se la collezione è vuota,
-  /// per garantire che l'utente veda immediatamente i prodotti iniziali al primo accesso.
-  Future<void> seedInitialDataIfNeeded(List<ItemModel> initialItems, List<RoommateExpense> initialExpenses) async {
+  /// Inizializza un nuovo gruppo con dati demo se vuoto
+  Future<void> seedInitialDataIfNeeded(List<ItemModel> initialItems) async {
     try {
-      final snapshot = await _itemsRef.limit(1).get();
-      if (snapshot.docs.isEmpty) {
-        print("Inizializzazione del gruppo $groupId con i dati di default...");
-        final batch = _db.batch();
-        
+      final itemsSnap = await _itemsRef.limit(1).get();
+      if (itemsSnap.docs.isEmpty) {
+        // Popola Articoli
         for (var item in initialItems) {
           final docRef = _itemsRef.doc(item.id);
-          batch.set(docRef, {
+          await docRef.set({
             'name': item.name,
             'expireDate': item.expireDate,
             'quantity': item.quantity,
@@ -153,25 +122,11 @@ class FirebaseService {
             'isPantry': item.isPantry,
             'isShopping': item.isShopping,
             'isSuitcase': item.isSuitcase,
-            'updatedAt': FieldValue.serverTimestamp(),
           });
         }
-
-        for (var exp in initialExpenses) {
-          final docRef = _expensesRef.doc(exp.id);
-          batch.set(docRef, {
-            'description': exp.description,
-            'amount': exp.amount,
-            'paidBy': exp.paidBy,
-            'createdAt': FieldValue.serverTimestamp(),
-          });
-        }
-
-        await batch.commit();
-        print("Dati demo inizializzati con successo su Firestore!");
       }
     } catch (e) {
-      print("Errore durante il seeding iniziale: $e");
+      print("Errore nel seeding iniziale: $e");
     }
   }
 }

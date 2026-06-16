@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -19,7 +21,15 @@ class _AuthScreenState extends State<AuthScreen> {
   String _password = '';
   String _name = '';
 
+  String? _emailError;
+  String? _passwordError;
+
   void _submit() async {
+    setState(() {
+      _emailError = null;
+      _passwordError = null;
+    });
+
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       setState(() => _isLoading = true);
@@ -29,6 +39,68 @@ class _AuthScreenState extends State<AuthScreen> {
           await _auth.signInWithEmailAndPassword(_email.trim(), _password.trim());
         } else {
           await _auth.registerWithEmailAndPassword(_email.trim(), _password.trim(), _name.trim());
+        }
+      } on FirebaseAuthException catch (e) {
+        if (mounted) {
+          if (e.code == 'user-not-found' || e.code == 'invalid-email') {
+            setState(() {
+              _emailError = "Email non registrata";
+            });
+            _formKey.currentState!.validate();
+          } else if (e.code == 'wrong-password') {
+            setState(() {
+              _passwordError = "Password errata";
+            });
+            _formKey.currentState!.validate();
+          } else if (e.code == 'invalid-credential') {
+            bool checked = false;
+            // 1. Prova con fetchSignInMethodsForEmail (FirebaseAuth)
+            try {
+              final methods = await FirebaseAuth.instance.fetchSignInMethodsForEmail(_email.trim());
+              setState(() {
+                if (methods.isEmpty) {
+                  _emailError = "Email non registrata";
+                } else {
+                  _passwordError = "Password errata";
+                }
+              });
+              _formKey.currentState!.validate();
+              checked = true;
+            } catch (_) {}
+
+            // 2. Se fallisce, prova con query Firestore
+            if (!checked) {
+              try {
+                final query = await FirebaseFirestore.instance
+                    .collection('users')
+                    .where('email', isEqualTo: _email.trim())
+                    .limit(1)
+                    .get();
+                setState(() {
+                  if (query.docs.isEmpty) {
+                    _emailError = "Email non registrata";
+                  } else {
+                    _passwordError = "Password errata";
+                  }
+                });
+                _formKey.currentState!.validate();
+                checked = true;
+              } catch (_) {}
+            }
+
+            // 3. Fallback finale: se entrambi falliscono, colora entrambi i campi in rosso
+            if (!checked) {
+              setState(() {
+                _emailError = "Email non registrata";
+                _passwordError = "Password errata";
+              });
+              _formKey.currentState!.validate();
+            }
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(e.message ?? "Errore di autenticazione")),
+            );
+          }
         }
       } catch (e) {
         if (mounted) {
@@ -56,16 +128,21 @@ class _AuthScreenState extends State<AuthScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(Icons.home_work_rounded, size: 80, color: Color(0xFF5A9E87)),
+                  Image.asset(
+                    'assets/images/logo.png',
+                    height: 180,
+                    width: 180,
+                    fit: BoxFit.contain,
+                  ),
                   const SizedBox(height: 16),
-                  Text(
-                    "FarFromHome",
+                  const Text(
+                    "AvanziZero",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontFamily: 'Outfit',
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1C3D32),
+                      color: Color(0xFF1C3D32),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -102,7 +179,18 @@ class _AuthScreenState extends State<AuthScreen> {
                       fillColor: Colors.white,
                     ),
                     keyboardType: TextInputType.emailAddress,
-                    validator: (val) => val == null || !val.contains('@') ? "Inserisci una email valida" : null,
+                    validator: (val) {
+                      if (_emailError != null) return _emailError;
+                      if (val == null || !val.contains('@')) return "Inserisci una email valida";
+                      return null;
+                    },
+                    onChanged: (val) {
+                      if (_emailError != null) {
+                        setState(() {
+                          _emailError = null;
+                        });
+                      }
+                    },
                     onSaved: (val) => _email = val!,
                   ),
                   const SizedBox(height: 16),
@@ -116,7 +204,19 @@ class _AuthScreenState extends State<AuthScreen> {
                       fillColor: Colors.white,
                     ),
                     obscureText: true,
-                    validator: (val) => val == null || val.length < 6 ? "La password deve avere almeno 6 caratteri" : null,
+                    validator: (val) {
+                      if (_passwordError != null) return _passwordError;
+                      if (val == null || val.isEmpty) return "Inserisci la password";
+                      if (!_isLogin && val.length < 6) return "La password deve avere almeno 6 caratteri";
+                      return null;
+                    },
+                    onChanged: (val) {
+                      if (_passwordError != null) {
+                        setState(() {
+                          _passwordError = null;
+                        });
+                      }
+                    },
                     onSaved: (val) => _password = val!,
                   ),
                   const SizedBox(height: 32),
@@ -142,6 +242,8 @@ class _AuthScreenState extends State<AuthScreen> {
                     onPressed: () {
                       setState(() {
                         _isLogin = !_isLogin;
+                        // Resetta i campi e i messaggi di errore del form
+                        _formKey.currentState?.reset();
                       });
                     },
                     child: Text(
