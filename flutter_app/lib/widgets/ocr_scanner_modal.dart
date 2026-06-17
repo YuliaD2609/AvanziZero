@@ -310,7 +310,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                     }
                                   },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFFB088), // Accento Pesca Pastello
+                              backgroundColor: const Color(0xFF056C3F), // Accento Verde Scuro/Teal
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               elevation: 0,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -321,7 +321,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                 fontFamily: 'Outfit',
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1C3D32),
+                                color: Colors.white,
                               ),
                             ),
                           ),

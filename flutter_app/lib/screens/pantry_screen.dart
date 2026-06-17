@@ -145,7 +145,7 @@ class _PantryScreenState extends State<PantryScreen> {
                               ElevatedButton(
                                 onPressed: () => _showAddItemDialog(context),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFFFB088), // Accento Pesca Pastello
+                                  backgroundColor: const Color(0xFF056C3F), // Accento Verde Scuro/Teal
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                   elevation: 2,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -156,7 +156,7 @@ class _PantryScreenState extends State<PantryScreen> {
                                     fontFamily: 'Outfit',
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1C3D32),
+                                    color: Colors.white,
                                   ),
                                 ),
                               ),
@@ -341,6 +341,7 @@ class _PantryScreenState extends State<PantryScreen> {
   // Finestra di dialogo per aggiungere manualmente un prodotto
   void _showAddItemDialog(BuildContext context) {
     final TextEditingController nameController = TextEditingController();
+    bool nameError = false;
     DateTime? selectedDate;
     String selectedCat = widget.state.selectedPantryCategory == "Tutti"
         ? widget.state.pantryCategories[1]
@@ -357,7 +358,15 @@ class _PantryScreenState extends State<PantryScreen> {
             children: [
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(labelText: "Nome Elemento"),
+                decoration: InputDecoration(
+                  labelText: "Nome Elemento",
+                  errorText: nameError ? "Inserisci il nome dell'elemento" : null,
+                ),
+                onChanged: (val) {
+                  if (nameError && val.trim().isNotEmpty) {
+                    setDialogState(() => nameError = false);
+                  }
+                },
               ),
               const SizedBox(height: 8),
               TextFormField(
@@ -428,19 +437,21 @@ class _PantryScreenState extends State<PantryScreen> {
             TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annulla")),
             ElevatedButton(
               onPressed: () {
-                if (nameController.text.isNotEmpty) {
+                if (nameController.text.trim().isNotEmpty) {
                   final expireStr = selectedDate == null
                       ? "-"
                       : "${selectedDate!.day.toString().padLeft(2, '0')}/${selectedDate!.month.toString().padLeft(2, '0')}/${selectedDate!.year}";
                   widget.state.addItem(ItemModel(
                     id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    name: nameController.text,
+                    name: nameController.text.trim(),
                     expireDate: expireStr,
                     quantity: 1,
                     category: selectedCat,
                     isPantry: true,
                   ));
                   Navigator.pop(context);
+                } else {
+                  setDialogState(() => nameError = true);
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5A9E87)),

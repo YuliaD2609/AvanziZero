@@ -169,7 +169,7 @@ class VerticalCategoryMenu extends StatelessWidget {
               height: 50,
               width: double.infinity,
               decoration: const BoxDecoration(
-                color: Color(0xFFFFB088), // Accento Pesca Pastello
+                color: Color(0xFF056C3F), // Accento Verde Scuro/Teal
                 borderRadius: BorderRadius.only(topRight: Radius.circular(12)),
               ),
               child: const Center(
@@ -179,7 +179,7 @@ class VerticalCategoryMenu extends StatelessWidget {
                     fontFamily: 'Outfit',
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1C3D32), // Alto contrasto
+                    color: Colors.white, // Alto contrasto
                   ),
                 ),
               ),

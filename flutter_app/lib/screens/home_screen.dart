@@ -48,14 +48,6 @@ class HomeScreen extends StatelessWidget {
                     );
                   },
                 ),
-                IconButton(
-                  icon: const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 26),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Nessuna notifica.")),
-                    );
-                  },
-                ),
               ],
             ),
           ),
@@ -93,29 +85,34 @@ class HomeScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      TextButton.icon(
-                        onPressed: () {
-                          // Uscita istantanea dal gruppo corrente
-                          state.leaveGroup();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Sei uscito dal gruppo appartamento.")),
-                          );
-                        },
-                        icon: const Icon(Icons.logout_rounded, size: 16, color: Color(0xFFEF4444)),
-                        label: const Text(
-                          "Esci",
-                          style: TextStyle(
-                            fontFamily: 'Outfit',
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFFEF4444),
-                            fontSize: 13,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextButton.icon(
+                            onPressed: () {
+                              // Uscita istantanea dal gruppo corrente
+                              state.leaveGroup();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Sei uscito dal gruppo appartamento.")),
+                              );
+                            },
+                            icon: const Icon(Icons.logout_rounded, size: 16, color: Color(0xFFEF4444)),
+                            label: const Text(
+                              "Esci",
+                              style: TextStyle(
+                                fontFamily: 'Outfit',
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFEF4444),
+                                fontSize: 13,
+                              ),
+                            ),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
                           ),
-                        ),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
+                        ],
                       ),
                     ],
                   ),
