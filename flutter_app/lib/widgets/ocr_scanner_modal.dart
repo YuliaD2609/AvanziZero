@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/app_state.dart';
 import '../services/ai_scanner_service.dart';
+import '../theme/app_colors.dart';
 
 /// Modale avanzato per l'acquisizione di scontrini tramite Intelligenza Artificiale.
 /// Integra l'accesso nativo all'hardware del dispositivo (Fotocamera e Galleria)
@@ -51,7 +52,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Impossibile accedere alla sorgente: $e"),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -77,7 +78,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: const Color(0xFFEAECE8),
+              color: AppColors.border,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -90,7 +91,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.document_scanner_rounded, color: Color(0xFF5A9E87), size: 28),
+                    Icon(Icons.document_scanner_rounded, color: AppColors.primary, size: 28),
                     SizedBox(width: 10),
                     Text(
                       "IA Scanning Scontrini",
@@ -98,19 +99,19 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                         fontFamily: 'Outfit',
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1C3D32),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ],
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, color: Color(0xFF789088)),
+                  icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
           ),
-          const Divider(color: Color(0xFFEAECE8), height: 1),
+          const Divider(color: AppColors.border, height: 1),
 
           // Contenuto Principale
           Expanded(
@@ -125,10 +126,10 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                     height: 260,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFBFBF9), // Avorio soft
+                      color: AppColors.background, // Avorio soft
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: _capturedImage != null ? const Color(0xFF5A9E87) : const Color(0xFFEAECE8),
+                        color: _capturedImage != null ? AppColors.primary : AppColors.border,
                         width: 2,
                       ),
                     ),
@@ -149,7 +150,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                     child: const Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        CircularProgressIndicator(color: Color(0xFF5A9E87)),
+                                        CircularProgressIndicator(color: AppColors.primary),
                                         SizedBox(height: 16),
                                         Text(
                                           "Estrazione OCR ed Elaborazione LLM...",
@@ -167,7 +168,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                           : const Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.add_a_photo_rounded, color: Color(0xFF789088), size: 54),
+                                Icon(Icons.add_a_photo_rounded, color: AppColors.textSecondary, size: 54),
                                 SizedBox(height: 12),
                                 Text(
                                   "Nessuno scontrino inquadrato",
@@ -175,7 +176,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                     fontFamily: 'Outfit',
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF789088),
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
                                 SizedBox(height: 4),
@@ -184,7 +185,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                   style: TextStyle(
                                     fontFamily: 'Outfit',
                                     fontSize: 13,
-                                    color: Color(0xFF789088),
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
                               ],
@@ -197,12 +198,12 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFD1FAE5), // Menta chiaro
+                      color: AppColors.primaryLight, // Menta chiaro
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.auto_awesome_rounded, color: Color(0xFF1C3D32), size: 24),
+                        Icon(Icons.auto_awesome_rounded, color: AppColors.textPrimary, size: 24),
                         SizedBox(width: 12),
                         Expanded(
                           child: Text(
@@ -210,7 +211,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                             style: TextStyle(
                               fontFamily: 'Outfit',
                               fontSize: 13,
-                              color: Color(0xFF1C3D32),
+                              color: AppColors.textPrimary,
                               height: 1.3,
                             ),
                           ),
@@ -227,14 +228,14 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () => _captureImage(ImageSource.gallery),
-                            icon: const Icon(Icons.photo_library_rounded, color: Color(0xFF5A9E87)),
+                            icon: const Icon(Icons.photo_library_rounded, color: AppColors.primary),
                             label: const Text(
                               "Galleria",
-                              style: TextStyle(fontFamily: 'Outfit', color: Color(0xFF5A9E87), fontWeight: FontWeight.bold),
+                              style: TextStyle(fontFamily: 'Outfit', color: AppColors.primary, fontWeight: FontWeight.bold),
                             ),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              side: const BorderSide(color: Color(0xFF5A9E87), width: 1.5),
+                              side: const BorderSide(color: AppColors.primary, width: 1.5),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
@@ -250,7 +251,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                               style: TextStyle(fontFamily: 'Outfit', color: Colors.white, fontWeight: FontWeight.bold),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF5A9E87), // Verde Salvia Intenso
+                              backgroundColor: AppColors.primary, // Verde Salvia Intenso
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               elevation: 2,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -270,12 +271,12 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                     _capturedImage = null;
                                   });
                                 },
-                          icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFEF4444)),
+                          icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
                           style: IconButton.styleFrom(
                             padding: const EdgeInsets.all(14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
-                              side: const BorderSide(color: Color(0xFFEAECE8)),
+                              side: const BorderSide(color: AppColors.border),
                             ),
                           ),
                         ),
@@ -302,7 +303,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           SnackBar(
                                             content: Text("Errore: $e"),
-                                            backgroundColor: const Color(0xFFEF4444),
+                                            backgroundColor: AppColors.error,
                                             duration: const Duration(seconds: 5),
                                           ),
                                         );
@@ -310,7 +311,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                     }
                                   },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF056C3F), // Accento Verde Scuro/Teal
+                              backgroundColor: AppColors.primaryDark, // Accento Verde Scuro/Teal
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               elevation: 0,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

@@ -9,6 +9,7 @@ import 'screens/home_screen.dart';
 import 'screens/pantry_screen.dart';
 import 'screens/shopping_screen.dart';
 import 'screens/auth_screen.dart';
+import 'theme/app_colors.dart';
 
 void main() async {
   // Garantisce che il binding nativo di Flutter sia pronto prima dell'inizializzazione cloud
@@ -19,9 +20,9 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print("🔥 Firebase inizializzato con successo!");
+    print("Firebase inizializzato con successo!");
   } catch (e) {
-    print("⚠️ Avviso: Firebase non configurato nativamente ($e). Avvio in fallback locale per test UI.");
+    print("Avviso: Firebase non configurato nativamente ($e). Avvio in fallback locale per test UI.");
   }
 
   runApp(const FarFromHomeApp());
@@ -63,15 +64,15 @@ class _FarFromHomeAppState extends State<FarFromHomeApp> {
           // Tema globale basato sui token Pastel Sage & Soft Mint
           theme: ThemeData(
             useMaterial3: true,
-            primaryColor: const Color(0xFF5A9E87), // Verde Salvia Intenso
-            scaffoldBackgroundColor: const Color(0xFFFBFBF9), // Avorio Soft
+            primaryColor: AppColors.primary, // Verde Salvia Intenso
+            scaffoldBackgroundColor: AppColors.background, // Avorio Soft
             fontFamily: 'Outfit',
             colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF5A9E87),
-              primary: const Color(0xFF5A9E87),
-              secondary: const Color(0xFF056C3F), // Verde Scuro/Teal
+              seedColor: AppColors.primary,
+              primary: AppColors.primary,
+              secondary: AppColors.primaryDark, // Verde Scuro/Teal
               surface: Colors.white,
-              onSurface: const Color(0xFF1C3D32), // Verde Foresta Scuro
+              onSurface: AppColors.textPrimary, // Verde Foresta Scuro
             ),
             pageTransitionsTheme: const PageTransitionsTheme(
               builders: {
@@ -150,7 +151,7 @@ class _MainNavigatorState extends State<MainNavigator> {
           decoration: const BoxDecoration(
             boxShadow: [
               BoxShadow(
-                color: Color(0x0A1C3D32),
+                color: AppColors.shadowNavbar,
                 blurRadius: 10,
                 offset: Offset(0, -2),
               ),
@@ -160,24 +161,24 @@ class _MainNavigatorState extends State<MainNavigator> {
           selectedIndex: _currentIndex,
           onDestinationSelected: _navigate,
           backgroundColor: Colors.white,
-          indicatorColor: const Color(0xFFD1FAE5), // Menta Chiaro per tab attiva
+          indicatorColor: AppColors.primaryLight, // Menta Chiaro per tab attiva
           elevation: 0,
           height: 65,
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
           destinations: const [
             NavigationDestination(
-              icon: Icon(Icons.home_outlined, color: Color(0xFF789088)),
-              selectedIcon: Icon(Icons.home_rounded, color: Color(0xFF5A9E87)),
+              icon: Icon(Icons.home_outlined, color: AppColors.textSecondary),
+              selectedIcon: Icon(Icons.home_rounded, color: AppColors.primary),
               label: 'Home',
             ),
             NavigationDestination(
-              icon: Icon(Icons.kitchen_outlined, color: Color(0xFF789088)),
-              selectedIcon: Icon(Icons.kitchen_rounded, color: Color(0xFF5A9E87)),
+              icon: Icon(Icons.kitchen_outlined, color: AppColors.textSecondary),
+              selectedIcon: Icon(Icons.kitchen_rounded, color: AppColors.primary),
               label: 'Dispensa',
             ),
             NavigationDestination(
-              icon: Icon(Icons.receipt_long_outlined, color: Color(0xFF789088)),
-              selectedIcon: Icon(Icons.receipt_long_rounded, color: Color(0xFF5A9E87)),
+              icon: Icon(Icons.receipt_long_outlined, color: AppColors.textSecondary),
+              selectedIcon: Icon(Icons.receipt_long_rounded, color: AppColors.primary),
               label: 'Spesa',
             ),
           ],
@@ -231,7 +232,7 @@ class _MainNavigatorState extends State<MainNavigator> {
                   children: [
                     const Row(
                       children: [
-                        Icon(Icons.storefront_rounded, color: Color(0xFF056C3F), size: 28),
+                        Icon(Icons.storefront_rounded, color: AppColors.primaryDark, size: 28),
                         SizedBox(width: 10),
                         Text(
                           "Supermercati Vicini",
@@ -239,23 +240,23 @@ class _MainNavigatorState extends State<MainNavigator> {
                             fontFamily: 'Outfit',
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF1C3D32),
+                            color: AppColors.textPrimary,
                           ),
                         ),
                       ],
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close_rounded, color: Color(0xFF789088)),
+                      icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),
-                const Divider(color: Color(0xFFEAECE8)),
+                const Divider(color: AppColors.border),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 4),
                   child: Text(
                     "Seleziona il supermercato desiderato per avviare la navigazione in Google Maps:",
-                    style: TextStyle(fontSize: 13, color: Color(0xFF789088)),
+                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -267,14 +268,14 @@ class _MainNavigatorState extends State<MainNavigator> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              CircularProgressIndicator(color: Color(0xFF5A9E87)),
+                              CircularProgressIndicator(color: AppColors.primary),
                               SizedBox(height: 16),
-                              Text("Ricerca supermercati nel raggio di 10km...", style: TextStyle(color: Color(0xFF789088))),
+                              Text("Ricerca supermercati nel raggio di 10km...", style: TextStyle(color: AppColors.textSecondary)),
                             ],
                           ),
                         )
                       : widget.state.nearbySupermarkets.isEmpty
-                          ? const Center(child: Text("Nessun supermercato trovato nei paraggi.", style: TextStyle(color: Color(0xFF789088))))
+                          ? const Center(child: Text("Nessun supermercato trovato nei paraggi.", style: TextStyle(color: AppColors.textSecondary)))
                           : ListView.builder(
                               shrinkWrap: true,
                               itemCount: widget.state.nearbySupermarkets.length,
@@ -295,10 +296,10 @@ class _MainNavigatorState extends State<MainNavigator> {
                             duration: const Duration(milliseconds: 200),
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                             decoration: BoxDecoration(
-                              color: isSelected ? const Color(0xFFD1FAE5) : const Color(0xFFFBFBF9),
+                              color: isSelected ? AppColors.primaryLight : AppColors.background,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: isSelected ? const Color(0xFF5A9E87) : const Color(0xFFEAECE8),
+                                color: isSelected ? AppColors.primary : AppColors.border,
                                 width: isSelected ? 1.5 : 1,
                               ),
                             ),
@@ -306,7 +307,7 @@ class _MainNavigatorState extends State<MainNavigator> {
                               children: [
                                 Icon(
                                   isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_unchecked_rounded,
-                                  color: const Color(0xFF5A9E87),
+                                  color: AppColors.primary,
                                   size: 20,
                                 ),
                                 const SizedBox(width: 12),
@@ -320,13 +321,13 @@ class _MainNavigatorState extends State<MainNavigator> {
                                           fontFamily: 'Outfit',
                                           fontWeight: FontWeight.bold,
                                           fontSize: 14,
-                                          color: isSelected ? const Color(0xFF1C3D32) : const Color(0xFF1C3D32).withOpacity(0.8),
+                                          color: isSelected ? AppColors.textPrimary : AppColors.textPrimary.withOpacity(0.8),
                                         ),
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
                                         s.address,
-                                        style: const TextStyle(fontSize: 12, color: Color(0xFF789088)),
+                                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                                       ),
                                     ],
                                   ),
@@ -334,12 +335,12 @@ class _MainNavigatorState extends State<MainNavigator> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: isSelected ? Colors.white : const Color(0xFFEAECE8).withOpacity(0.5),
+                                    color: isSelected ? Colors.white : AppColors.border.withOpacity(0.5),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
                                     s.distance,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF5A9E87), fontSize: 12),
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 12),
                                   ),
                                 ),
                               ],
@@ -378,7 +379,7 @@ class _MainNavigatorState extends State<MainNavigator> {
                     style: TextStyle(fontFamily: 'Outfit', fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF056C3F), // Accento Verde Scuro/Teal
+                    backgroundColor: AppColors.primaryDark, // Accento Verde Scuro/Teal
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
