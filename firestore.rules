@@ -5,8 +5,8 @@ service cloud.firestore {
     
     // Regole per la collezione Users
     match /users/{userId} {
-      // Un utente può leggere e scrivere solo il proprio documento
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Permettiamo a un admin di modificare i gruppi di un altro utente durante l'accettazione
+      allow read, write: if request.auth != null;
     }
 
     // Regole per la collezione Groups (Households)

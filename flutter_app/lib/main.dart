@@ -133,20 +133,30 @@ class _MainNavigatorState extends State<MainNavigator> {
       ),
     ];
 
-    return Scaffold(
-      body: screens[_currentIndex],
-      
-      // Barra di navigazione inferiore fluida e moderna
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadowNavbar,
-              blurRadius: 10,
-              offset: Offset(0, -2),
-            ),
-          ],
-        ),
+    return WillPopScope(
+      onWillPop: () async {
+        // Se non siamo nella Dashboard, torna alla Dashboard invece di chiudere l'app
+        if (_currentIndex != 0) {
+          _navigate(0);
+          return false;
+        }
+        // Se siamo nella Dashboard, chiudi l'app normalmente
+        return true;
+      },
+      child: Scaffold(
+        body: screens[_currentIndex],
+        
+        // Barra di navigazione inferiore fluida e moderna
+        bottomNavigationBar: Container(
+          decoration: const BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.shadowNavbar,
+                blurRadius: 10,
+                offset: Offset(0, -2),
+              ),
+            ],
+          ),
         child: NavigationBar(
           selectedIndex: _currentIndex,
           onDestinationSelected: _navigate,
@@ -174,7 +184,7 @@ class _MainNavigatorState extends State<MainNavigator> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   // Finestra di ricerca automatica supermercati con scorrimento e integrazione Maps nativa
