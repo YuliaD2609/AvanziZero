@@ -236,6 +236,16 @@ class _PantryScreenState extends State<PantryScreen> {
                   ),
                 ),
               ),
+              if (item.ownerId != null) ...[
+                const SizedBox(width: 8),
+                Container(
+                  width: 12, height: 12,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle, 
+                    color: widget.state.getMemberColor(item.ownerId!),
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 8),
@@ -447,6 +457,7 @@ class _PantryScreenState extends State<PantryScreen> {
     String selectedCat = widget.state.selectedPantryCategory == "Tutti"
         ? widget.state.pantryCategories[1]
         : widget.state.selectedPantryCategory;
+    String? selectedOwnerId;
 
     showDialog(
       context: context,
@@ -532,6 +543,27 @@ class _PantryScreenState extends State<PantryScreen> {
                 onChanged: (val) => setDialogState(() => selectedCat = val!),
                 decoration: const InputDecoration(labelText: "Categoria"),
               ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String?>(
+                value: selectedOwnerId,
+                items: [
+                  const DropdownMenuItem<String?>(value: null, child: Text("Tutti")),
+                  ...widget.state.groupMembers.map((member) => DropdownMenuItem<String?>(
+                        value: member.id,
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 12, height: 12, margin: const EdgeInsets.only(right: 8),
+                              decoration: BoxDecoration(shape: BoxShape.circle, color: widget.state.getMemberColor(member.id)),
+                            ),
+                            Text(member.name),
+                          ],
+                        ),
+                      ))
+                ],
+                onChanged: (val) => setDialogState(() => selectedOwnerId = val),
+                decoration: const InputDecoration(labelText: "Proprietà di"),
+              ),
             ],
           ),
           actions: [
@@ -549,6 +581,7 @@ class _PantryScreenState extends State<PantryScreen> {
                     quantity: 1,
                     category: selectedCat,
                     isPantry: true,
+                    ownerId: selectedOwnerId,
                   ));
                   Navigator.pop(context);
                 } else {
@@ -586,6 +619,7 @@ class _PantryScreenState extends State<PantryScreen> {
     String selectedCat = widget.state.pantryCategories.contains(item.category) 
         ? item.category 
         : (widget.state.pantryCategories.length > 1 ? widget.state.pantryCategories[1] : "Altro");
+    String? selectedOwnerId = item.ownerId;
 
     showDialog(
       context: context,
@@ -673,6 +707,27 @@ class _PantryScreenState extends State<PantryScreen> {
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(labelText: "Quantità"),
                 ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String?>(
+                  value: selectedOwnerId,
+                  items: [
+                    const DropdownMenuItem<String?>(value: null, child: Text("Tutti")),
+                    ...widget.state.groupMembers.map((member) => DropdownMenuItem<String?>(
+                          value: member.id,
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 12, height: 12, margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(shape: BoxShape.circle, color: widget.state.getMemberColor(member.id)),
+                              ),
+                              Text(member.name),
+                            ],
+                          ),
+                        ))
+                  ],
+                  onChanged: (val) => setDialogState(() => selectedOwnerId = val),
+                  decoration: const InputDecoration(labelText: "Proprietà di"),
+                ),
               ],
             ),
           ),
@@ -687,6 +742,7 @@ class _PantryScreenState extends State<PantryScreen> {
                   item.name = nameController.text.trim();
                   item.category = selectedCat;
                   item.quantity = q;
+                  item.ownerId = selectedOwnerId;
                   item.expireDate = selectedDate == null
                       ? "Data: N/A"
                       : "${selectedDate!.day.toString().padLeft(2, '0')}/${selectedDate!.month.toString().padLeft(2, '0')}/${selectedDate!.year}";
