@@ -293,11 +293,7 @@ class AppState extends ChangeNotifier {
   // ===========================================================================
   // SUPERMERCATI NELLE VICINANZE
   // ===========================================================================
-  List<SupermarketModel> nearbySupermarkets = [
-    SupermarketModel(name: 'Conad City (Convenzionato Studenti)', distance: '120m', address: 'Via dell\'Università, 14'),
-    SupermarketModel(name: 'Esselunga Superstore', distance: '450m', address: 'Viale dello Sport, 88'),
-    SupermarketModel(name: 'Lidl (Offerte Fuorisede)', distance: '600m', address: 'Via Roma, 212'),
-  ];
+  List<SupermarketModel> nearbySupermarkets = [];
 
   // ===========================================================================
   // LOGICA E AZIONI SINCRO

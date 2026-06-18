@@ -426,10 +426,18 @@ class _AdminScreenState extends State<AdminScreen> {
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               if (!isAdmin)
-                                                IconButton(
-                                                  icon: const Icon(Icons.arrow_upward_rounded, color: AppColors.primary),
-                                                  tooltip: "Promuovi Admin",
+                                                TextButton(
                                                   onPressed: () => _promoteToAdmin(memberUid),
+                                                  style: TextButton.styleFrom(
+                                                    foregroundColor: AppColors.primary,
+                                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                    minimumSize: Size.zero,
+                                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                  ),
+                                                  child: const Text(
+                                                    "Promuovi admin",
+                                                    style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 12),
+                                                  ),
                                                 ),
                                               IconButton(
                                                 icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),

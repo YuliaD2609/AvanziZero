@@ -269,8 +269,8 @@ class _PantryScreenState extends State<PantryScreen> {
                           context: context,
                           builder: (context) => AlertDialog(
                             backgroundColor: Colors.white,
-                            title: const Text("Prodotto terminato", style: TextStyle(fontFamily: 'Outfit', color: Color(0xFF1C3D32))),
-                            content: Text("Vuoi aggiungere '${item.name}' alla lista della spesa?", style: const TextStyle(color: Color(0xFF789088))),
+                            title: const Text("Prodotto terminato", style: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
+                            content: Text("Vuoi aggiungere '${item.name}' alla lista della spesa?", style: const TextStyle(color: AppColors.textSecondary)),
                             actions: [
                               TextButton(
                                 onPressed: () {
@@ -286,11 +286,11 @@ class _PantryScreenState extends State<PantryScreen> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text("${item.name} aggiunto alla spesa!"),
-                                      backgroundColor: const Color(0xFF5A9E87),
+                                      backgroundColor: AppColors.primary,
                                     ),
                                   );
                                 },
-                                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5A9E87)),
+                                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
                                 child: const Text("Sì, aggiungi", style: TextStyle(color: Colors.white)),
                               ),
                             ],
