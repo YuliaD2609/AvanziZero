@@ -53,7 +53,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
               children: [
                 // Menu Verticale sinistro (Categorie List lasciate intatte)
                 VerticalCategoryMenu(
-                  categories: widget.state.shoppingCategories,
+                  categories: widget.state.categories,
                   selectedCategory: widget.state.selectedShoppingCategory,
                   onCategorySelected: (category) => widget.state.selectCategory(category, 'shopping'),
                   onCategoryLongPressed: (category) => _showDeleteCategoryDialog(context, category, 'shopping'),
@@ -442,7 +442,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
     final TextEditingController nameController = TextEditingController();
     bool nameError = false;
     String selectedCat = widget.state.selectedShoppingCategory == "Tutti"
-        ? widget.state.shoppingCategories[1]
+        ? widget.state.categories[1]
         : widget.state.selectedShoppingCategory;
 
     showDialog(
@@ -469,7 +469,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: selectedCat,
-                items: widget.state.shoppingCategories
+                items: widget.state.categories
                     .where((c) => c != "Tutti")
                     .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                     .toList(),

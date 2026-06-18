@@ -143,11 +143,10 @@ class FirebaseService {
     return _db.collection('groups').doc(groupId).snapshots();
   }
 
-  Future<void> updateCategories(List<String> pantryCategories, List<String> shoppingCategories) async {
+  Future<void> updateCategories(List<String> categories) async {
     try {
       await _db.collection('groups').doc(groupId).set({
-        'pantryCategories': pantryCategories,
-        'shoppingCategories': shoppingCategories,
+        'categories': categories,
       }, SetOptions(merge: true));
     } catch (e) {
       print("Errore aggiornamento categorie: $e");

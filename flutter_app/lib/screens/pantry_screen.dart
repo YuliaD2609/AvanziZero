@@ -56,7 +56,7 @@ class _PantryScreenState extends State<PantryScreen> {
               children: [
                 // Menu Verticale a sinistra (lasciata intatta la divisione in categorie)
                 VerticalCategoryMenu(
-                  categories: widget.state.pantryCategories,
+                  categories: widget.state.categories,
                   selectedCategory: widget.state.selectedPantryCategory,
                   onCategorySelected: (category) => widget.state.selectCategory(category, 'pantry'),
                   onCategoryLongPressed: (category) => _showDeleteCategoryDialog(context, category, 'pantry'),
@@ -455,7 +455,7 @@ class _PantryScreenState extends State<PantryScreen> {
     bool nameError = false;
     DateTime? selectedDate;
     String selectedCat = widget.state.selectedPantryCategory == "Tutti"
-        ? widget.state.pantryCategories[1]
+        ? widget.state.categories[1]
         : widget.state.selectedPantryCategory;
     String? selectedOwnerId;
 
@@ -536,7 +536,7 @@ class _PantryScreenState extends State<PantryScreen> {
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: selectedCat,
-                items: widget.state.pantryCategories
+                items: widget.state.categories
                     .where((c) => c != "Tutti")
                     .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                     .toList(),
@@ -616,9 +616,9 @@ class _PantryScreenState extends State<PantryScreen> {
       }
     }
 
-    String selectedCat = widget.state.pantryCategories.contains(item.category) 
+    String selectedCat = widget.state.categories.contains(item.category) 
         ? item.category 
-        : (widget.state.pantryCategories.length > 1 ? widget.state.pantryCategories[1] : "Altro");
+        : (widget.state.categories.length > 1 ? widget.state.categories[1] : "Altro");
     String? selectedOwnerId = item.ownerId;
 
     showDialog(
@@ -646,7 +646,7 @@ class _PantryScreenState extends State<PantryScreen> {
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   value: selectedCat,
-                  items: widget.state.pantryCategories
+                  items: widget.state.categories
                       .where((c) => c != "Tutti")
                       .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                       .toList(),
@@ -895,10 +895,10 @@ class _PantryScreenState extends State<PantryScreen> {
                                   
                                   // Riga 3: Categoria
                                   DropdownButtonFormField<String>(
-                                    value: widget.state.pantryCategories.contains(item.category) ? item.category : 'Altro',
+                                    value: widget.state.categories.contains(item.category) ? item.category : 'Altro',
                                     isExpanded: true,
                                     icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
-                                    items: widget.state.pantryCategories.where((c) => c != "Tutti").map((c) {
+                                    items: widget.state.categories.where((c) => c != "Tutti").map((c) {
                                       return DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis));
                                     }).toList()
                                       ..add(const DropdownMenuItem(value: 'Altro', child: Text('Altro'))),

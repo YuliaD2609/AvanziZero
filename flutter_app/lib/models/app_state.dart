@@ -322,13 +322,24 @@ class AppState extends ChangeNotifier {
           });
         }
 
-        if (data.containsKey('pantryCategories')) {
-          final List<dynamic> loaded = data['pantryCategories'];
-          pantryCategories = loaded.map((e) => e.toString()).toList();
-        }
-        if (data.containsKey('shoppingCategories')) {
-          final List<dynamic> loaded = data['shoppingCategories'];
-          shoppingCategories = loaded.map((e) => e.toString()).toList();
+        if (data.containsKey('categories')) {
+          final List<dynamic> loaded = data['categories'];
+          categories = loaded.map((e) => e.toString()).toList();
+        } else {
+          // Migrazione dalle vecchie liste separate
+          Set<String> merged = {"Tutti", "Altro", "Frutta & Verdura", "Latticini", "Carne", "Bevande", "Snack"};
+          if (data.containsKey('pantryCategories')) {
+            merged.addAll((data['pantryCategories'] as List).map((e) => e.toString()));
+          }
+          if (data.containsKey('shoppingCategories')) {
+            merged.addAll((data['shoppingCategories'] as List).map((e) => e.toString()));
+          }
+          categories = merged.toList();
+          
+          // Salva la lista unificata su Firebase per sincronizzarla con tutti
+          if (groupDidExist && _firebaseService != null) {
+            _firebaseService!.updateCategories(categories);
+          }
         }
         if (data.containsKey('members')) {
           final List<dynamic> loadedMembers = data['members'];
@@ -456,24 +467,16 @@ class AppState extends ChangeNotifier {
   }
 
   // ===========================================================================
-  // CATEGORIE
+  // STATO UI E FILTRI (Locale)
   // ===========================================================================
-  List<String> pantryCategories = [
+  List<String> categories = [
     "Tutti",
+    "Altro",
     "Frutta & Verdura",
     "Latticini",
-    "Carne & Pesce",
-    "Secco & Pasta",
+    "Carne",
     "Bevande",
-  ];
-
-  List<String> shoppingCategories = [
-    "Tutti",
-    "Frutta & Verdura",
-    "Latticini",
-    "Carne & Pesce",
-    "Secco & Pasta",
-    "Igiene Casa",
+    "Snack"
   ];
 
   String selectedPantryCategory = "Tutti";
@@ -506,12 +509,8 @@ class AppState extends ChangeNotifier {
     if (newCategory.trim().isEmpty) return;
     bool updated = false;
     
-    if (!pantryCategories.contains(newCategory)) {
-      pantryCategories.add(newCategory);
-      updated = true;
-    }
-    if (!shoppingCategories.contains(newCategory)) {
-      shoppingCategories.add(newCategory);
+    if (!categories.contains(newCategory)) {
+      categories.add(newCategory);
       updated = true;
     }
 
@@ -520,15 +519,14 @@ class AppState extends ChangeNotifier {
 
     if (updated) {
       notifyListeners();
-      _firebaseService?.updateCategories(pantryCategories, shoppingCategories);
+      _firebaseService?.updateCategories(categories);
     }
   }
 
   void removeCustomCategory(String categoryToRemove, String section) {
     if (categoryToRemove == "Tutti") return; // "Tutti" non può mai essere eliminato
 
-    bool removedFromPantry = pantryCategories.remove(categoryToRemove);
-    bool removedFromShopping = shoppingCategories.remove(categoryToRemove);
+    bool removed = categories.remove(categoryToRemove);
 
     if (selectedPantryCategory == categoryToRemove) {
       selectedPantryCategory = "Tutti";
@@ -537,10 +535,16 @@ class AppState extends ChangeNotifier {
       selectedShoppingCategory = "Tutti";
     }
 
-    if (removedFromPantry || removedFromShopping) {
+    if (removed) {
+      // Se era un'appartenenza a liste, rimuoviamo le category da quegli item o li spostiamo su 'Altro'
+      for (var item in allItems) {
+        if (item.category == categoryToRemove) {
+          item.category = 'Altro';
+          _firebaseService?.saveItem(item);
+        }
+      }
       notifyListeners();
-      // Aggiorniamo anche su Firestore
-      _firebaseService?.updateCategories(pantryCategories, shoppingCategories);
+      _firebaseService?.updateCategories(categories);
     }
   }
 
