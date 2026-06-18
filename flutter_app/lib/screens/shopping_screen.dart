@@ -145,96 +145,104 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                         const SizedBox(height: 8),
                       ],
 
-                      // Lista della Spesa (ShoppingItemList)
+                      // Area principale: Lista della spesa e Pulsanti sovrapposti
                       Expanded(
-                        child: filteredItems.isEmpty
-                            ? const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 24),
-                                  child: Text(
-                                    "Lista della spesa vuota per questa categoria.",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                        child: Stack(
+                          children: [
+                            // 1. Lista della spesa scrollabile dietro i pulsanti
+                            Positioned.fill(
+                              child: filteredItems.isEmpty
+                                  ? const Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.symmetric(horizontal: 24),
+                                        child: Text(
+                                          "Lista della spesa vuota per questa categoria.",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                                        ),
+                                      ),
+                                    )
+                                  : ListView.builder(
+                                      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 130), // Padding extra per scrollare oltre i pulsanti
+                                      itemCount: filteredItems.length,
+                                      itemBuilder: (context, index) {
+                                        final item = filteredItems[index];
+                                        return _buildShoppingItemCard(item);
+                                      },
+                                    ),
+                            ),
+                            
+                            // 2. Pulsanti flottanti in basso a destra
+                            Positioned(
+                              bottom: 12,
+                              right: 12,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  // Pulsante Spesa fatta
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      if (_checkedItems.isEmpty) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text("Seleziona almeno un prodotto per completare la spesa!")),
+                                        );
+                                        return;
+                                      }
+                                      widget.state.markSelectedShoppingDone(_checkedItems.toList());
+                                      setState(() {
+                                        _checkedItems.clear();
+                                      });
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text("Spesa Fatta! Prodotti selezionati trasferiti in Dispensa con successo."),
+                                          backgroundColor: AppColors.primary,
+                                          duration: Duration(seconds: 3),
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primaryLight, // Menta Chiaro
+                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                      elevation: 2,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    ),
+                                    child: const Text(
+                                      "Spesa fatta",
+                                      style: TextStyle(
+                                        fontFamily: 'Outfit',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textPrimary, // Verde Foresta Scuro
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              )
-                            : ListView.builder(
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                itemCount: filteredItems.length,
-                                itemBuilder: (context, index) {
-                                  final item = filteredItems[index];
-                                  return _buildShoppingItemCard(item);
-                                },
-                              ),
-                      ),
-
-                      // Pulsante Spesa fatta
-                      Padding(
-                        padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 4),
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              if (_checkedItems.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text("Seleziona almeno un prodotto per completare la spesa!")),
-                                );
-                                return;
-                              }
-                              widget.state.markSelectedShoppingDone(_checkedItems.toList());
-                              setState(() {
-                                _checkedItems.clear();
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Spesa Fatta! Prodotti selezionati trasferiti in Dispensa con successo."),
-                                  backgroundColor: AppColors.primary,
-                                  duration: Duration(seconds: 3),
-                                ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primaryLight, // Menta Chiaro
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                              elevation: 1,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            ),
-                            child: const Text(
-                              "Spesa fatta",
-                              style: TextStyle(
-                                fontFamily: 'Outfit',
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary, // Verde Foresta Scuro (scurito)
+                                  
+                                  const SizedBox(height: 12),
+                                  
+                                  // Pulsante Aggiungi un Elemento
+                                  ElevatedButton(
+                                    onPressed: () => _showAddItemDialog(context),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primaryDark, // Accento Verde Scuro/Teal
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      elevation: 2,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    ),
+                                    child: const Text(
+                                      "Aggiungi un elemento",
+                                      style: TextStyle(
+                                        fontFamily: 'Outfit',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
-                        ),
-                      ),
-
-                      // Pulsante Aggiungi un Elemento (addItemButton)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 12, right: 12, top: 4, bottom: 12),
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: ElevatedButton(
-                            onPressed: () => _showAddItemDialog(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primaryDark, // Accento Verde Scuro/Teal
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              elevation: 1,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            ),
-                            child: const Text(
-                              "Aggiungi un elemento",
-                              style: TextStyle(
-                                fontFamily: 'Outfit',
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
+                          ],
                         ),
                       ),
                     ],

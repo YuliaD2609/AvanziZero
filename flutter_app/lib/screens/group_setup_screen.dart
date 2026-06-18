@@ -177,6 +177,33 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.state.groupWasDeleted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text("Gruppo Eliminato", style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+            content: const Text(
+              "L'amministratore ha eliminato definitivamente il gruppo. "
+              "Tutti i dati sono stati cancellati.",
+              style: TextStyle(fontFamily: 'Outfit'),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                },
+                child: const Text("Ho capito", style: TextStyle(color: AppColors.textPrimary)),
+              ),
+            ],
+          ),
+        );
+      });
+      // Resetta subito il flag per evitare dialoghi multipli durante eventuali rebuild
+      widget.state.groupWasDeleted = false;
+    }
+
     return AnimatedBuilder(
       animation: widget.state,
       builder: (context, child) {

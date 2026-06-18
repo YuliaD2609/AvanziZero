@@ -28,6 +28,21 @@ class ItemModel {
     this.ownerId,
   });
 
+  DateTime? get parsedExpireDate {
+    String cleanText = expireDate.replaceAll("In scadenza: ", "").replaceAll("Scadenza: ", "").trim();
+    if (cleanText == "-" || cleanText.isEmpty) return null;
+    final dateParts = cleanText.split('/');
+    if (dateParts.length == 3) {
+      final day = int.tryParse(dateParts[0]);
+      final month = int.tryParse(dateParts[1]);
+      final year = int.tryParse(dateParts[2]);
+      if (day != null && month != null && year != null) {
+        return DateTime(year, month, day);
+      }
+    }
+    return null;
+  }
+
   // Livello di urgenza "Zero Spreco"
   int get urgencyLevel {
     String cleanText = expireDate.replaceAll("In scadenza: ", "").replaceAll("Scadenza: ", "").trim();
@@ -206,6 +221,7 @@ class AppState extends ChangeNotifier {
   StreamSubscription<DocumentSnapshot>? _userDocSubscription;
 
   bool isLoading = false;
+  bool groupWasDeleted = false; // Aggiunto per il flag di eliminazione gruppo
 
   /// Carica la cronologia dei gruppi visitati dalla memoria persistente
   Future<void> loadSavedGroups() async {
@@ -225,18 +241,18 @@ class AppState extends ChangeNotifier {
     final code = newGroupId.trim().toUpperCase();
     groupId = code;
     isLoading = true;
+    groupWasDeleted = false;
     notifyListeners();
 
     await _checkPredictiveBannerStatus();
     await _checkCategoryDeleteHint();
 
-    // Aggiunge alla cronologia se non presente e salva localmente
+    // Aggiunge alla cronologia (o sposta in cima se già presente) e salva localmente
     try {
       final prefs = await SharedPreferences.getInstance();
-      if (!savedGroups.contains(code)) {
-        savedGroups.insert(0, code);
-        await prefs.setStringList('savedGroups', savedGroups);
-      }
+      savedGroups.remove(code);
+      savedGroups.insert(0, code);
+      await prefs.setStringList('savedGroups', savedGroups);
       await prefs.setString('lastActiveGroupId', code);
     } catch (e) {
       print("Errore salvataggio SharedPreferences: $e");
@@ -266,6 +282,12 @@ class AppState extends ChangeNotifier {
     );
 
     _groupSubscription = _firebaseService!.getGroupStream().listen((doc) {
+      if (!doc.exists && groupId != null) {
+        // Il documento del gruppo è stato eliminato
+        leaveGroup(deleted: true);
+        return;
+      }
+      
       if (doc.exists) {
         final data = doc.data() as Map<String, dynamic>? ?? {};
         if (data.containsKey('pantryCategories')) {
@@ -319,7 +341,27 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  Future<void> leaveGroup() async {
+  Future<void> deleteGroup() async {
+    await _firebaseService?.deleteGroup();
+  }
+
+  Future<void> leaveGroup({bool deleted = false}) async {
+    // Se il gruppo è stato eliminato, impostiamo il flag per la UI e rimuoviamo dalle cronologie
+    if (deleted) {
+      groupWasDeleted = true;
+      if (groupId != null) {
+        savedGroups.remove(groupId);
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setStringList('savedGroups', savedGroups);
+        } catch (_) {}
+        
+        if (currentUserData != null) {
+          currentUserData!.groupIds.remove(groupId);
+        }
+      }
+    }
+    
     // Aspetta che tutte le scritture pendenti su Firestore vengano completate
     try {
       await FirebaseFirestore.instance.waitForPendingWrites().timeout(const Duration(seconds: 3));

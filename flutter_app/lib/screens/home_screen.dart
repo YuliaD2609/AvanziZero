@@ -22,6 +22,12 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Identifica i prodotti in scadenza per il warningLayout
     final expiringItems = state.allItems.where((i) => i.isPantry && i.urgencyLevel > 0).toList();
+    expiringItems.sort((a, b) {
+      if (a.parsedExpireDate == null && b.parsedExpireDate == null) return 0;
+      if (a.parsedExpireDate == null) return 1;
+      if (b.parsedExpireDate == null) return -1;
+      return a.parsedExpireDate!.compareTo(b.parsedExpireDate!);
+    });
 
     return Scaffold(
       backgroundColor: AppColors.background, // Avorio soft
@@ -233,6 +239,20 @@ class HomeScreen extends StatelessWidget {
                               itemCount: expiringItems.length,
                               itemBuilder: (context, index) {
                                 final item = expiringItems[index];
+                                
+                                bool expired = false;
+                                if (item.parsedExpireDate != null) {
+                                  final today = DateTime.now();
+                                  final todayStart = DateTime(today.year, today.month, today.day);
+                                  final expireStart = DateTime(item.parsedExpireDate!.year, item.parsedExpireDate!.month, item.parsedExpireDate!.day);
+                                  if (expireStart.isBefore(todayStart)) {
+                                    expired = true;
+                                  }
+                                }
+
+                                final nameColor = expired ? AppColors.error : AppColors.textPrimary;
+                                final datePrefix = expired ? "Scaduto " : "";
+
                                 return Padding(
                                   padding: const EdgeInsets.symmetric(vertical: 4),
                                   child: Row(
@@ -240,13 +260,13 @@ class HomeScreen extends StatelessWidget {
                                     children: [
                                       Text(
                                         "• ${item.name}",
-                                        style: const TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                                        style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.w600, color: nameColor),
                                       ),
                                       Text(
-                                        _formatExpireDate(item.expireDate),
+                                        "$datePrefix${_formatExpireDate(item.expireDate)}",
                                         style: TextStyle(
                                           fontFamily: 'Outfit',
-                                          color: item.urgencyLevel == 2 ? AppColors.error : AppColors.textSecondary,
+                                          color: expired || item.urgencyLevel == 2 ? AppColors.error : AppColors.textSecondary,
                                           fontWeight: item.urgencyLevel > 0 ? FontWeight.bold : FontWeight.normal,
                                           fontSize: 12,
                                         ),
