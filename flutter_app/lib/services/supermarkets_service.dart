@@ -95,14 +95,70 @@ class SupermarketsService {
           });
         }
 
-        // Ordina per distanza crescente
-        tempSupermarkets.sort((a, b) => (a['distance'] as double).compareTo(b['distance'] as double));
+        // Raggruppamento per catena di supermercati
+        List<Map<String, dynamic>> groupedSupermarkets = [];
 
-        if (tempSupermarkets.length > 20) {
-          tempSupermarkets = tempSupermarkets.sublist(0, 20);
+        // Ordiniamo per lunghezza del nome: i nomi più corti (es. "Conad") vengono valutati per primi e faranno da "radice"
+        tempSupermarkets.sort((a, b) => a['name'].toString().length.compareTo(b['name'].toString().length));
+
+        for (var sm in tempSupermarkets) {
+          String currentName = sm['name'].toString().trim();
+          double currentDist = sm['distance'] as double;
+          bool foundGroup = false;
+
+          for (int i = 0; i < groupedSupermarkets.length; i++) {
+            String groupName = groupedSupermarkets[i]['name'].toString().trim();
+            double groupDist = groupedSupermarkets[i]['distance'] as double;
+            
+            String cLower = currentName.toLowerCase();
+            String gLower = groupName.toLowerCase();
+
+            // Evitiamo che tag troppo generici raggruppino catene diverse
+            bool isGeneric = (cLower == "supermercato" || cLower == "market" || gLower == "supermercato" || gLower == "market");
+
+            List<String> cWords = cLower.split(RegExp(r'\s+'));
+            List<String> gWords = gLower.split(RegExp(r'\s+'));
+            bool firstWordMatch = cWords.isNotEmpty && gWords.isNotEmpty && 
+                                  cWords[0] == gWords[0] && 
+                                  cWords[0].length > 3 && 
+                                  cWords[0] != "supermercato";
+
+            if (!isGeneric && (cLower.contains(gLower) || gLower.contains(cLower) || firstWordMatch)) {
+              
+              if (cLower.contains(gLower) || gLower.contains(cLower)) {
+                // Tieni il nome più breve come richiesto
+                if (currentName.length < groupName.length) {
+                  groupedSupermarkets[i]['name'] = currentName;
+                }
+              } else if (firstWordMatch) {
+                // Es. "Carrefour Market" e "Carrefour Express", raggruppa sotto "Carrefour"
+                groupedSupermarkets[i]['name'] = currentName.split(RegExp(r'\s+'))[0];
+              }
+
+              // Mantiene la distanza minore (quello più vicino) e il suo relativo indirizzo
+              if (currentDist < groupDist) {
+                groupedSupermarkets[i]['distance'] = currentDist;
+                groupedSupermarkets[i]['address'] = sm['address'];
+              }
+              
+              foundGroup = true;
+              break;
+            }
+          }
+
+          if (!foundGroup) {
+            groupedSupermarkets.add(Map<String, dynamic>.from(sm));
+          }
         }
 
-        return tempSupermarkets.map((data) {
+        // Ora ordiniamo i gruppi finali per distanza crescente
+        groupedSupermarkets.sort((a, b) => (a['distance'] as double).compareTo(b['distance'] as double));
+
+        if (groupedSupermarkets.length > 20) {
+          groupedSupermarkets = groupedSupermarkets.sublist(0, 20);
+        }
+
+        return groupedSupermarkets.map((data) {
           final dist = data['distance'] as double;
           String formattedDistance = dist < 1000 
             ? '${dist.round()}m' 
