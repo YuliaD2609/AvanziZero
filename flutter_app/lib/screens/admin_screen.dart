@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_state.dart';
 import '../theme/app_colors.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class AdminScreen extends StatefulWidget {
   final AppState state;
@@ -273,10 +274,28 @@ class _AdminScreenState extends State<AdminScreen> {
                       ),
                       activeColor: AppColors.primary,
                       value: _notificationsEnabled,
-                      onChanged: (val) {
-                        setState(() {
-                          _notificationsEnabled = val;
-                        });
+                      onChanged: (val) async {
+                        if (val) {
+                          final status = await Permission.notification.request();
+                          if (status.isGranted) {
+                            setState(() {
+                              _notificationsEnabled = true;
+                            });
+                          } else {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Permesso per le notifiche negato dal sistema.")),
+                              );
+                            }
+                            setState(() {
+                              _notificationsEnabled = false;
+                            });
+                          }
+                        } else {
+                          setState(() {
+                            _notificationsEnabled = false;
+                          });
+                        }
                       },
                     ),
                     if (_notificationsEnabled) ...[
