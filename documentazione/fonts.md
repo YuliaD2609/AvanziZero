@@ -1,6 +1,6 @@
 # 🔤 Style Guide: Tipografia & Gerarchia Visiva
 
-Questa guida stabilisce lo standard tipografico per l'applicazione mobile **FarFromHome**. La scelta dei font è mirata a garantire la massima **leggibilità su schermi mobile**, un'estetica **moderna e premium**, e una chiara **gerarchia dell'informazione** per studenti che consultano l'app frequentemente e in mobilità.
+Questa guida stabilisce lo standard tipografico per l'applicazione mobile **AvanziZero**. La scelta dei font è mirata a garantire la massima **leggibilità su schermi mobile**, un'estetica **moderna e premium**, e una chiara **gerarchia dell'informazione** per studenti che consultano l'app frequentemente e in mobilità.
 
 ---
 

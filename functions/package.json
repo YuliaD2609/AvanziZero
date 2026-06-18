@@ -1,6 +1,6 @@
 {
-  "name": "farfromhome-functions",
-  "description": "Cloud Functions for FarFromHome Backend",
+  "name": "AvanziZero-functions",
+  "description": "Cloud Functions for AvanziZero Backend",
   "engines": {
     "node": "18"
   },

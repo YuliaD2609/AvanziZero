@@ -1,6 +1,6 @@
 # 🎨 Style Guide: Palette Cromatica "Pastel Sage & Soft Mint"
 
-Questa guida definisce il sistema cromatico ufficiale per l'applicazione **FarFromHome**, appositamente studiato per il target di **studenti fuorisede** e orientato ai valori di **sostenibilità ("Zero Spreco")**, **collaborazione** e **organizzazione senza stress**.
+Questa guida definisce il sistema cromatico ufficiale per l'applicazione **AvanziZero**, appositamente studiato per il target di **studenti fuorisede** e orientato ai valori di **sostenibilità ("Zero Spreco")**, **collaborazione** e **organizzazione senza stress**.
 
 ---
 

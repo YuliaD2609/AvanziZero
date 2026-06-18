@@ -1,4 +1,4 @@
-# FarFromHome - Mobile App per Fuorisede
+# AvanziZero - Mobile App per Fuorisede
 
 Applicazione mobile in **Flutter** progettata per ottimizzare la gestione della casa, l'organizzazione della spesa e l'integrazione di coinquilini per studenti fuorisede, supportata da funzionalità intelligenti basate sul **Business Model Canvas**.
 
@@ -23,9 +23,9 @@ Il progetto è stato sottoposto a una profonda pulizia per isolare il codice att
 ## ✨ Funzionalità Principali (Core Value Propositions)
 
 1. **Dispensa "Zero Spreco":** Monitoraggio intelligente dei prodotti e alert cromatico automatico per le date di scadenza.
-2. **Lista della Spesa Predittiva:** Avvisi proattivi basati sulle abitudini di consumo prima che le scorte terminino, con trasferimento automatico in dispensa ("Spesa Fatta").
-3. **House Sync (Spese Condivise):** Sincronizzazione in tempo reale e calcolo automatico dei saldi tra coinquilini.
-4. **Ottimizzazione Tempi:** Ricerca immediata dei supermercati convenzionati nelle vicinanze basata su mappe.
+2. **Lista della Spesa Predittiva (IA):** Avvisi proattivi basati sulle abitudini di consumo prima che le scorte terminino, con trasferimento automatico in dispensa ("Spesa Fatta").
+3. **House Sync (Gestione Gruppo):** Sincronizzazione in tempo reale tra coinquilini con ruoli Admin e Membro.
+4. **Ottimizzazione Tempi:** Ricerca immediata dei supermercati nelle vicinanze basata su mappe.
 
 ---
 

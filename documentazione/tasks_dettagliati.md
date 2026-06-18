@@ -1,6 +1,6 @@
-# FarFromHome - Registro dei Task e Responsabilità di Progetto
+# AvanziZero - Registro dei Task e Responsabilità di Progetto
 
-Questo documento definisce formalmente la suddivisione delle responsabilità all'interno del team per il progetto **FarFromHome**, distinguendo i compiti del Frontend/Firebase (Serverless Full-Stack) da quelli del Backend/IA. 
+Questo documento definisce formalmente la suddivisione delle responsabilità all'interno del team per il progetto **AvanziZero**, distinguendo i compiti del Frontend/Firebase (Serverless Full-Stack) da quelli del Backend/IA. 
 
 Contiene lo stato attuale dell'applicazione (compiti completati) e i prossimi passaggi necessari prima della consegna.
 

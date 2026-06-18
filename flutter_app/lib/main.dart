@@ -33,17 +33,17 @@ void main() async {
     print("Avviso: Firebase non configurato nativamente ($e). Avvio in fallback locale per test UI.");
   }
 
-  runApp(const FarFromHomeApp());
+  runApp(const AvanziZeroApp());
 }
 
-class FarFromHomeApp extends StatefulWidget {
-  const FarFromHomeApp({super.key});
+class AvanziZeroApp extends StatefulWidget {
+  const AvanziZeroApp({super.key});
 
   @override
-  State<FarFromHomeApp> createState() => _FarFromHomeAppState();
+  State<AvanziZeroApp> createState() => _AvanziZeroAppState();
 }
 
-class _FarFromHomeAppState extends State<FarFromHomeApp> {
+class _AvanziZeroAppState extends State<AvanziZeroApp> {
   // Gestore di stato globale istanziato alla radice
   final AppState _appState = AppState();
 
