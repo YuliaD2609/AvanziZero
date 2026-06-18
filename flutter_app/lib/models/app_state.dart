@@ -192,10 +192,13 @@ class AppState extends ChangeNotifier {
           if (doc.exists) {
             currentUserData = UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
             
+            // Carica la cronologia specifica dell'utente appena loggato
+            await loadSavedGroups();
+
             // AUTO-LOGIN AL GRUPPO
             try {
               final prefs = await SharedPreferences.getInstance();
-              final lastActive = prefs.getString('lastActiveGroupId');
+              final lastActive = prefs.getString('lastActiveGroupId_${user.uid}');
               if (lastActive != null && currentUserData!.groupIds.contains(lastActive)) {
                 if (groupId != lastActive) setGroupId(lastActive); // Background
               }
@@ -227,7 +230,8 @@ class AppState extends ChangeNotifier {
   Future<void> loadSavedGroups() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      savedGroups = prefs.getStringList('savedGroups') ?? [];
+      final key = 'savedGroups_${currentUserAuth?.uid ?? ''}';
+      savedGroups = prefs.getStringList(key) ?? [];
       notifyListeners();
     } catch (e) {
       print("Errore nel caricamento della cronologia gruppi: $e");
@@ -252,8 +256,9 @@ class AppState extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       savedGroups.remove(code);
       savedGroups.insert(0, code);
-      await prefs.setStringList('savedGroups', savedGroups);
-      await prefs.setString('lastActiveGroupId', code);
+      final key = 'savedGroups_${currentUserAuth?.uid ?? ''}';
+      await prefs.setStringList(key, savedGroups);
+      await prefs.setString('lastActiveGroupId_${currentUserAuth?.uid ?? ''}', code);
     } catch (e) {
       print("Errore salvataggio SharedPreferences: $e");
     }
@@ -328,7 +333,8 @@ class AppState extends ChangeNotifier {
     savedGroups.remove(code);
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setStringList('savedGroups', savedGroups);
+      final key = 'savedGroups_${currentUserAuth?.uid ?? ''}';
+      await prefs.setStringList(key, savedGroups);
     } catch (e) {
       print("Errore rimozione gruppo da SharedPreferences: $e");
     }
@@ -353,7 +359,8 @@ class AppState extends ChangeNotifier {
         savedGroups.remove(groupId);
         try {
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setStringList('savedGroups', savedGroups);
+          final key = 'savedGroups_${currentUserAuth?.uid ?? ''}';
+          await prefs.setStringList(key, savedGroups);
         } catch (_) {}
         
         if (currentUserData != null) {
