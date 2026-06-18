@@ -399,12 +399,15 @@ class AppState extends ChangeNotifier {
 
   void addCustomCategory(String newCategory, String section) {
     if (newCategory.trim().isEmpty) return;
+    bool updated = false;
     if (section == 'pantry' && !pantryCategories.contains(newCategory)) {
       pantryCategories.add(newCategory);
       selectedPantryCategory = newCategory;
+      updated = true;
     } else if (section == 'shopping' && !shoppingCategories.contains(newCategory)) {
       shoppingCategories.add(newCategory);
       selectedShoppingCategory = newCategory;
+      updated = true;
     }
     if (updated) {
       notifyListeners();
