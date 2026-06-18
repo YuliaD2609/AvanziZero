@@ -187,6 +187,9 @@ class AppState extends ChangeNotifier {
   AppState() {
     _checkCategoryDeleteHint();
     authService.authStateChanges.listen((User? user) async {
+      isInitializingUser = true;
+      notifyListeners();
+      
       currentUserAuth = user;
       if (user != null) {
         _userDocSubscription?.cancel();
@@ -206,12 +209,16 @@ class AppState extends ChangeNotifier {
               }
             } catch (_) {}
             
+            isInitializingUser = false;
             notifyListeners();
           }
         });
       } else {
         _userDocSubscription?.cancel();
         currentUserData = null;
+        savedGroups.clear();
+        savedGroupNames.clear();
+        isInitializingUser = false;
         await leaveGroup();
       }
       await _checkPredictiveBannerStatus();
@@ -225,6 +232,7 @@ class AppState extends ChangeNotifier {
   StreamSubscription<DocumentSnapshot>? _groupSubscription;
   StreamSubscription<DocumentSnapshot>? _userDocSubscription;
 
+  bool isInitializingUser = true; // Mostra loader all'avvio finché non carichiamo i dati utente
   bool isLoading = false;
   bool groupWasDeleted = false; // Aggiunto per il flag di eliminazione gruppo
   bool userWasKicked = false; // Aggiunto per il flag di rimozione dal gruppo
@@ -424,7 +432,7 @@ class AppState extends ChangeNotifier {
     groupName = null;
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('lastActiveGroupId');
+      await prefs.remove('lastActiveGroupId_${currentUserAuth?.uid ?? ''}');
     } catch (_) {}
     await _itemsSubscription?.cancel();
     _itemsSubscription = null;

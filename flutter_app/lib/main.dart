@@ -93,9 +93,16 @@ class _FarFromHomeAppState extends State<FarFromHomeApp> {
           // Routing dinamico basato sull'autenticazione e sul Codice Gruppo
           home: _appState.currentUserAuth == null
               ? const AuthScreen()
-              : _appState.groupId == null
-                  ? GroupSetupScreen(state: _appState)
-                  : _appState.isLoading
+              : _appState.isInitializingUser
+                  ? const Scaffold(
+                      backgroundColor: AppColors.background,
+                      body: Center(
+                        child: CircularProgressIndicator(color: AppColors.primary),
+                      ),
+                    )
+                  : _appState.groupId == null
+                      ? GroupSetupScreen(state: _appState)
+                      : _appState.isLoading
                       ? const Scaffold(
                           backgroundColor: AppColors.background,
                           body: Center(
