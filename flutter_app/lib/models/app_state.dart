@@ -172,24 +172,25 @@ class AppState extends ChangeNotifier {
     authService.authStateChanges.listen((User? user) async {
       currentUserAuth = user;
       if (user != null) {
-        currentUserData = await authService.getUserData(user.uid);
-        if (currentUserData == null) {
-          // Risoluzione Race Condition: durante la registrazione Auth triggera prima che la scrittura su Firestore sia completata
-          await Future.delayed(const Duration(milliseconds: 800));
-          currentUserData = await authService.getUserData(user.uid);
-        }
-
-        // AUTO-LOGIN AL GRUPPO
-        if (currentUserData != null) {
-          try {
-            final prefs = await SharedPreferences.getInstance();
-            final lastActive = prefs.getString('lastActiveGroupId');
-            if (lastActive != null && currentUserData!.groupIds.contains(lastActive)) {
-              setGroupId(lastActive); // Background
-            }
-          } catch (_) {}
-        }
+        _userDocSubscription?.cancel();
+        _userDocSubscription = FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots().listen((doc) async {
+          if (doc.exists) {
+            currentUserData = UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+            
+            // AUTO-LOGIN AL GRUPPO
+            try {
+              final prefs = await SharedPreferences.getInstance();
+              final lastActive = prefs.getString('lastActiveGroupId');
+              if (lastActive != null && currentUserData!.groupIds.contains(lastActive)) {
+                if (groupId != lastActive) setGroupId(lastActive); // Background
+              }
+            } catch (_) {}
+            
+            notifyListeners();
+          }
+        });
       } else {
+        _userDocSubscription?.cancel();
         currentUserData = null;
         await leaveGroup();
       }
@@ -202,6 +203,7 @@ class AppState extends ChangeNotifier {
   FirebaseService? _firebaseService;
   StreamSubscription<List<ItemModel>>? _itemsSubscription;
   StreamSubscription<DocumentSnapshot>? _groupSubscription;
+  StreamSubscription<DocumentSnapshot>? _userDocSubscription;
 
   bool isLoading = false;
 
@@ -347,6 +349,7 @@ class AppState extends ChangeNotifier {
   void dispose() {
     _itemsSubscription?.cancel();
     _groupSubscription?.cancel();
+    _userDocSubscription?.cancel();
     super.dispose();
   }
 
