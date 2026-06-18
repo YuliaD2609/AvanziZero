@@ -354,6 +354,30 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                         style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                       ),
                     ] else ...[
+                      // Banner Utente Rimosso
+                      if (widget.state.userWasKicked)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 24),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.error.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.error.withOpacity(0.5)),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.person_off_rounded, color: AppColors.error),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  "Sei stato rimosso dal gruppo. Non hai più accesso ai contenuti.",
+                                  style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
                       // Card 1: Crea un Nuovo Gruppo
                       _buildCard(
                         title: "Crea un Nuovo Gruppo",

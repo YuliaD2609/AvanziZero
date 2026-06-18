@@ -54,7 +54,38 @@ class _AdminScreenState extends State<AdminScreen> {
 
   // ============== GESTIONE GRUPPO E RICHIESTE =================
 
-  Future<void> _removeMember(String uid) async {
+  Future<void> _confirmRemoveMember(String uid) async {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Rimuovi Membro", style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+        content: const Text(
+          "Sei sicuro di voler rimuovere questo utente dal gruppo? Questa azione non è reversibile.",
+          style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Annulla", style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _executeRemoveMember(uid);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text("Rimuovi", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _executeRemoveMember(String uid) async {
     final groupId = widget.state.groupId;
     if (groupId == null) return;
     try {
@@ -471,7 +502,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                               IconButton(
                                                 icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
                                                 tooltip: "Rimuovi Membro",
-                                                onPressed: () => _removeMember(memberUid),
+                                                onPressed: () => _confirmRemoveMember(memberUid),
                                               ),
                                             ],
                                           )

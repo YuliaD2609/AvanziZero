@@ -227,6 +227,7 @@ class AppState extends ChangeNotifier {
 
   bool isLoading = false;
   bool groupWasDeleted = false; // Aggiunto per il flag di eliminazione gruppo
+  bool userWasKicked = false; // Aggiunto per il flag di rimozione dal gruppo
   String? groupName;
   Map<String, String> savedGroupNames = {}; // Codice Gruppo -> Nome Gruppo
 
@@ -257,6 +258,7 @@ class AppState extends ChangeNotifier {
     groupId = code;
     isLoading = true;
     groupWasDeleted = false;
+    userWasKicked = false;
     notifyListeners();
 
     await _checkPredictiveBannerStatus();
@@ -322,7 +324,14 @@ class AppState extends ChangeNotifier {
         }
         if (data.containsKey('members')) {
           final List<dynamic> loadedMembers = data['members'];
-          _fetchGroupMembers(loadedMembers.map((e) => e.toString()).toList());
+          final memberStrings = loadedMembers.map((e) => e.toString()).toList();
+          
+          if (currentUserAuth != null && !memberStrings.contains(currentUserAuth!.uid)) {
+            leaveGroup(kicked: true);
+            return;
+          }
+          
+          _fetchGroupMembers(memberStrings);
         }
         notifyListeners();
       } else if (!doc.exists && groupId != null && groupDidExist) {
@@ -382,10 +391,12 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  Future<void> leaveGroup({bool deleted = false}) async {
-    // Se il gruppo è stato eliminato, impostiamo il flag per la UI
-    if (deleted) {
-      groupWasDeleted = true;
+  Future<void> leaveGroup({bool deleted = false, bool kicked = false}) async {
+    // Se il gruppo è stato eliminato o l'utente rimosso, impostiamo il flag per la UI
+    if (deleted) groupWasDeleted = true;
+    if (kicked) userWasKicked = true;
+
+    if (deleted || kicked) {
       if (groupId != null) {
         savedGroups.remove(groupId);
         savedGroupNames.remove(groupId);
