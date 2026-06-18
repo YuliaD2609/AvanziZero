@@ -15,6 +15,7 @@ class ItemModel {
   String category;
   bool isPantry;
   bool isShopping;
+  String? ownerId;
 
   ItemModel({
     required this.id,
@@ -24,6 +25,7 @@ class ItemModel {
     required this.category,
     this.isPantry = false,
     this.isShopping = false,
+    this.ownerId,
   });
 
   // Livello di urgenza "Zero Spreco"
@@ -81,6 +83,18 @@ class AppState extends ChangeNotifier {
 
   String? groupId;
   List<String> savedGroups = []; // Cronologia locale dei codici gruppo visitati
+  List<UserModel> groupMembers = []; // Utenti del gruppo attivo
+
+  Color getMemberColor(String uid) {
+    if (groupId == null) return Colors.grey;
+    final List<Color> palette = [
+      Colors.red, Colors.blue, Colors.green, Colors.orange, 
+      Colors.purple, Colors.teal, Colors.pink, Colors.indigo,
+      Colors.brown, Colors.cyan, Colors.amber, Colors.deepOrange
+    ];
+    int hash = (uid + groupId!).hashCode;
+    return palette[hash.abs() % palette.length];
+  }
 
   bool _isPredictiveBannerClosed = false;
   bool get isPredictiveBannerClosed => _isPredictiveBannerClosed;
@@ -222,9 +236,29 @@ class AppState extends ChangeNotifier {
           final List<dynamic> loaded = data['shoppingCategories'];
           shoppingCategories = loaded.map((e) => e.toString()).toList();
         }
+        if (data.containsKey('members')) {
+          final List<dynamic> loadedMembers = data['members'];
+          _fetchGroupMembers(loadedMembers.map((e) => e.toString()).toList());
+        }
         notifyListeners();
       }
     });
+  }
+
+  Future<void> _fetchGroupMembers(List<String> uids) async {
+    List<UserModel> members = [];
+    for (String uid in uids) {
+      try {
+        final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+        if (doc.exists) {
+          members.add(UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id));
+        }
+      } catch (e) {
+        print("Errore caricamento membro $uid: $e");
+      }
+    }
+    groupMembers = members;
+    notifyListeners();
   }
 
   /// Rimuove un gruppo specifico dalla cronologia locale

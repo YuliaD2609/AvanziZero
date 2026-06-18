@@ -31,6 +31,7 @@ class FirebaseService {
           category: data['category'] ?? 'Tutti',
           isPantry: data['isPantry'] ?? false,
           isShopping: data['isShopping'] ?? false,
+          ownerId: data['ownerId'],
         );
       }).toList();
     });
@@ -52,6 +53,7 @@ class FirebaseService {
         'category': item.category,
         'isPantry': item.isPantry,
         'isShopping': item.isShopping,
+        'ownerId': item.ownerId,
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {

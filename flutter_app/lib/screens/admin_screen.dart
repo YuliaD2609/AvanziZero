@@ -426,6 +426,14 @@ class _AdminScreenState extends State<AdminScreen> {
                                     contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                                     title: Row(
                                       children: [
+                                        Container(
+                                          width: 12, height: 12,
+                                          margin: const EdgeInsets.only(right: 8),
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle, 
+                                            color: widget.state.getMemberColor(memberUid),
+                                          ),
+                                        ),
                                         Text(
                                           isMe ? "$name (Tu)" : name,
                                           style: const TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),
