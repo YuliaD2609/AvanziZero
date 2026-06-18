@@ -189,9 +189,30 @@ class _MainNavigatorState extends State<MainNavigator> {
 
   // Finestra di ricerca automatica supermercati con scorrimento e integrazione Maps nativa
   void _showNearbySupermarketsModal(BuildContext context) {
-    int selectedIndex = 0;
+    int selectedIndex = -1;
     bool isLoading = true;
     bool hasStartedFetching = false;
+    bool locationError = false;
+
+    void fetchSupermarkets(Function setModalState) {
+      setModalState(() {
+        isLoading = true;
+        locationError = false;
+      });
+      SupermarketsService.fetchNearby(context).then((results) {
+        if (context.mounted) {
+          setModalState(() {
+            if (results != null) {
+              widget.state.nearbySupermarkets = results;
+              locationError = false;
+            } else {
+              locationError = true;
+            }
+            isLoading = false;
+          });
+        }
+      });
+    }
 
     showModalBottomSheet(
       context: context,
@@ -201,16 +222,119 @@ class _MainNavigatorState extends State<MainNavigator> {
         builder: (context, setModalState) {
           if (!hasStartedFetching) {
             hasStartedFetching = true;
-            SupermarketsService.fetchNearby(context).then((results) {
-              if (context.mounted) {
-                setModalState(() {
-                  if (results != null && results.isNotEmpty) {
-                    widget.state.nearbySupermarkets = results;
-                  }
-                  isLoading = false;
-                });
-              }
-            });
+            fetchSupermarkets(setModalState);
+          }
+
+          Widget contentWidget;
+          if (isLoading) {
+            contentWidget = const Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(color: AppColors.primary),
+                  SizedBox(height: 16),
+                  Text("Ricerca supermercati nel raggio di 5km...", style: TextStyle(color: AppColors.textSecondary)),
+                ],
+              ),
+            );
+          } else if (locationError) {
+            contentWidget = Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.location_off_rounded, size: 40, color: AppColors.error),
+                  const SizedBox(height: 12),
+                  const Text("Attiva la posizione per vedere i supermercati nelle vicinanze", textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSecondary)),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () => fetchSupermarkets(setModalState),
+                    icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+                    label: const Text("Riprova", style: TextStyle(color: Colors.white, fontFamily: 'Outfit', fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  )
+                ],
+              ),
+            );
+          } else if (widget.state.nearbySupermarkets.isEmpty) {
+            contentWidget = const Center(child: Text("Nessun supermercato trovato nei paraggi.", style: TextStyle(color: AppColors.textSecondary)));
+          } else {
+            contentWidget = ListView.builder(
+              shrinkWrap: true,
+              itemCount: widget.state.nearbySupermarkets.length,
+              itemBuilder: (context, index) {
+                final s = widget.state.nearbySupermarkets[index];
+                final isSelected = selectedIndex == index;
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: InkWell(
+                    onTap: () {
+                      setModalState(() {
+                        selectedIndex = index;
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppColors.primaryLight : AppColors.background,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected ? AppColors.primary : AppColors.border,
+                          width: isSelected ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_unchecked_rounded,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  s.name,
+                                  style: TextStyle(
+                                    fontFamily: 'Outfit',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: isSelected ? AppColors.textPrimary : AppColors.textPrimary.withOpacity(0.8),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  s.address,
+                                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isSelected ? Colors.white : AppColors.border.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              s.distance,
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
           }
 
           return Container(
@@ -261,103 +385,23 @@ class _MainNavigatorState extends State<MainNavigator> {
                 ),
                 const SizedBox(height: 8),
 
-                // Lista scrollabile dei supermercati
-                Expanded(
-                  child: isLoading
-                      ? const Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CircularProgressIndicator(color: AppColors.primary),
-                              SizedBox(height: 16),
-                              Text("Ricerca supermercati nel raggio di 10km...", style: TextStyle(color: AppColors.textSecondary)),
-                            ],
-                          ),
-                        )
-                      : widget.state.nearbySupermarkets.isEmpty
-                          ? const Center(child: Text("Nessun supermercato trovato nei paraggi.", style: TextStyle(color: AppColors.textSecondary)))
-                          : ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: widget.state.nearbySupermarkets.length,
-                              itemBuilder: (context, index) {
-                      final s = widget.state.nearbySupermarkets[index];
-                      final isSelected = selectedIndex == index;
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: InkWell(
-                          onTap: () {
-                            setModalState(() {
-                              selectedIndex = index;
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: isSelected ? AppColors.primaryLight : AppColors.background,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isSelected ? AppColors.primary : AppColors.border,
-                                width: isSelected ? 1.5 : 1,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_unchecked_rounded,
-                                  color: AppColors.primary,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        s.name,
-                                        style: TextStyle(
-                                          fontFamily: 'Outfit',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                          color: isSelected ? AppColors.textPrimary : AppColors.textPrimary.withOpacity(0.8),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        s.address,
-                                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: isSelected ? Colors.white : AppColors.border.withOpacity(0.5),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    s.distance,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 12),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                // Lista scrollabile o Errore
+                Expanded(child: contentWidget),
+                
                 const SizedBox(height: 12),
 
                 // Pulsante di avvio in Maps
                 ElevatedButton.icon(
                   onPressed: () async {
-                    final selectedSupermarket = widget.state.nearbySupermarkets[selectedIndex];
-                    final encodedQuery = Uri.encodeComponent("${selectedSupermarket.name} ${selectedSupermarket.address}");
+                    String query;
+                    if (selectedIndex == -1 || widget.state.nearbySupermarkets.isEmpty) {
+                      query = "supermercati";
+                    } else {
+                      final selectedSupermarket = widget.state.nearbySupermarkets[selectedIndex];
+                      query = "${selectedSupermarket.name} ${selectedSupermarket.address}";
+                    }
+                    
+                    final encodedQuery = Uri.encodeComponent(query);
                     final mapsUrl = Uri.parse("https://www.google.com/maps/search/?api=1&query=$encodedQuery");
 
                     Navigator.pop(context);
