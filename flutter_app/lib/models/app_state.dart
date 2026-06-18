@@ -298,14 +298,10 @@ class AppState extends ChangeNotifier {
       },
     );
 
+    bool groupDidExist = false;
     _groupSubscription = _firebaseService!.getGroupStream().listen((doc) {
-      if (!doc.exists && groupId != null) {
-        // Il documento del gruppo è stato eliminato
-        leaveGroup(deleted: true);
-        return;
-      }
-      
       if (doc.exists) {
+        groupDidExist = true;
         final data = doc.data() as Map<String, dynamic>? ?? {};
         
         groupName = data['name'];
@@ -329,8 +325,12 @@ class AppState extends ChangeNotifier {
           _fetchGroupMembers(loadedMembers.map((e) => e.toString()).toList());
         }
         notifyListeners();
+      } else if (!doc.exists && groupId != null && groupDidExist) {
+        // Il documento del gruppo è stato eliminato solo se l'abbiamo già visto esistere
+        leaveGroup(deleted: true);
       }
     });
+
   }
 
   Future<void> _fetchGroupMembers(List<String> uids) async {
