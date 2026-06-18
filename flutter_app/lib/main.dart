@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'firebase_options.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -20,6 +21,13 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    
+    // Abilita la persistenza offline e il caching per consentire il merge locale delle modifiche
+    FirebaseFirestore.instance.settings = const Settings(
+      persistenceEnabled: true,
+      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+    );
+
     print("Firebase inizializzato con successo!");
   } catch (e) {
     print("Avviso: Firebase non configurato nativamente ($e). Avvio in fallback locale per test UI.");
@@ -87,7 +95,14 @@ class _FarFromHomeAppState extends State<FarFromHomeApp> {
               ? const AuthScreen()
               : _appState.groupId == null
                   ? GroupSetupScreen(state: _appState)
-                  : MainNavigator(state: _appState),
+                  : _appState.isLoading
+                      ? const Scaffold(
+                          backgroundColor: AppColors.background,
+                          body: Center(
+                            child: CircularProgressIndicator(color: AppColors.primary),
+                          ),
+                        )
+                      : MainNavigator(state: _appState),
         );
       },
     );
