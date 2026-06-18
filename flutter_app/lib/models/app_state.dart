@@ -189,24 +189,28 @@ class AppState extends ChangeNotifier {
     authService.authStateChanges.listen((User? user) async {
       currentUserAuth = user;
       if (user != null) {
-        currentUserData = await authService.getUserData(user.uid);
-        if (currentUserData == null) {
-          // Risoluzione Race Condition: durante la registrazione Auth triggera prima che la scrittura su Firestore sia completata
-          await Future.delayed(const Duration(milliseconds: 800));
-          currentUserData = await authService.getUserData(user.uid);
-        }
+        _userDocSubscription?.cancel();
+        _userDocSubscription = FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots().listen((doc) async {
+          if (doc.exists) {
+            currentUserData = UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+            
+            // Carica la cronologia specifica dell'utente appena loggato
+            await loadSavedGroups();
 
-        // AUTO-LOGIN AL GRUPPO
-        if (currentUserData != null) {
-          try {
-            final prefs = await SharedPreferences.getInstance();
-            final lastActive = prefs.getString('lastActiveGroupId');
-            if (lastActive != null && currentUserData!.groupIds.contains(lastActive)) {
-              setGroupId(lastActive); // Background
-            }
-          } catch (_) {}
-        }
+            // AUTO-LOGIN AL GRUPPO
+            try {
+              final prefs = await SharedPreferences.getInstance();
+              final lastActive = prefs.getString('lastActiveGroupId_${user.uid}');
+              if (lastActive != null && currentUserData!.groupIds.contains(lastActive)) {
+                if (groupId != lastActive) setGroupId(lastActive); // Background
+              }
+            } catch (_) {}
+            
+            notifyListeners();
+          }
+        });
       } else {
+        _userDocSubscription?.cancel();
         currentUserData = null;
         await leaveGroup();
       }
@@ -219,6 +223,7 @@ class AppState extends ChangeNotifier {
   FirebaseService? _firebaseService;
   StreamSubscription<List<ItemModel>>? _itemsSubscription;
   StreamSubscription<DocumentSnapshot>? _groupSubscription;
+  StreamSubscription<DocumentSnapshot>? _userDocSubscription;
 
   bool isLoading = false;
   bool groupWasDeleted = false; // Aggiunto per il flag di eliminazione gruppo
@@ -229,7 +234,8 @@ class AppState extends ChangeNotifier {
   Future<void> loadSavedGroups() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      savedGroups = prefs.getStringList('savedGroups') ?? [];
+      final key = 'savedGroups_${currentUserAuth?.uid ?? ''}';
+      savedGroups = prefs.getStringList(key) ?? [];
       final groupNamesJson = prefs.getString('savedGroupNames');
       if (groupNamesJson != null) {
         try {
@@ -261,8 +267,9 @@ class AppState extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       savedGroups.remove(code);
       savedGroups.insert(0, code);
-      await prefs.setStringList('savedGroups', savedGroups);
-      await prefs.setString('lastActiveGroupId', code);
+      final key = 'savedGroups_${currentUserAuth?.uid ?? ''}';
+      await prefs.setStringList(key, savedGroups);
+      await prefs.setString('lastActiveGroupId_${currentUserAuth?.uid ?? ''}', code);
     } catch (e) {
       print("Errore salvataggio SharedPreferences: $e");
     }
@@ -348,7 +355,8 @@ class AppState extends ChangeNotifier {
     savedGroupNames.remove(code);
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setStringList('savedGroups', savedGroups);
+      final key = 'savedGroups_${currentUserAuth?.uid ?? ''}';
+      await prefs.setStringList(key, savedGroups);
       await prefs.setString('savedGroupNames', jsonEncode(savedGroupNames));
     } catch (e) {
       print("Errore rimozione gruppo da SharedPreferences: $e");
@@ -378,6 +386,20 @@ class AppState extends ChangeNotifier {
     // Se il gruppo è stato eliminato, impostiamo il flag per la UI
     if (deleted) {
       groupWasDeleted = true;
+      if (groupId != null) {
+        savedGroups.remove(groupId);
+        savedGroupNames.remove(groupId);
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          final key = 'savedGroups_${currentUserAuth?.uid ?? ''}';
+          await prefs.setStringList(key, savedGroups);
+          await prefs.setString('savedGroupNames', jsonEncode(savedGroupNames));
+        } catch (_) {}
+        
+        if (currentUserData != null) {
+          currentUserData!.groupIds.remove(groupId);
+        }
+      }
     }
     
     // Aspetta che tutte le scritture pendenti su Firestore vengano completate
@@ -410,6 +432,7 @@ class AppState extends ChangeNotifier {
   void dispose() {
     _itemsSubscription?.cancel();
     _groupSubscription?.cancel();
+    _userDocSubscription?.cancel();
     super.dispose();
   }
 
@@ -463,15 +486,19 @@ class AppState extends ChangeNotifier {
   void addCustomCategory(String newCategory, String section) {
     if (newCategory.trim().isEmpty) return;
     bool updated = false;
-    if (section == 'pantry' && !pantryCategories.contains(newCategory)) {
+    
+    if (!pantryCategories.contains(newCategory)) {
       pantryCategories.add(newCategory);
-      selectedPantryCategory = newCategory;
-      updated = true;
-    } else if (section == 'shopping' && !shoppingCategories.contains(newCategory)) {
-      shoppingCategories.add(newCategory);
-      selectedShoppingCategory = newCategory;
       updated = true;
     }
+    if (!shoppingCategories.contains(newCategory)) {
+      shoppingCategories.add(newCategory);
+      updated = true;
+    }
+
+    if (section == 'pantry') selectedPantryCategory = newCategory;
+    if (section == 'shopping') selectedShoppingCategory = newCategory;
+
     if (updated) {
       notifyListeners();
       _firebaseService?.updateCategories(pantryCategories, shoppingCategories);
@@ -481,18 +508,21 @@ class AppState extends ChangeNotifier {
   void removeCustomCategory(String categoryToRemove, String section) {
     if (categoryToRemove == "Tutti") return; // "Tutti" non può mai essere eliminato
 
-    if (section == 'pantry') {
-      pantryCategories.remove(categoryToRemove);
-      if (selectedPantryCategory == categoryToRemove) {
-        selectedPantryCategory = "Tutti";
-      }
-    } else if (section == 'shopping') {
-      shoppingCategories.remove(categoryToRemove);
-      if (selectedShoppingCategory == categoryToRemove) {
-        selectedShoppingCategory = "Tutti";
-      }
+    bool removedFromPantry = pantryCategories.remove(categoryToRemove);
+    bool removedFromShopping = shoppingCategories.remove(categoryToRemove);
+
+    if (selectedPantryCategory == categoryToRemove) {
+      selectedPantryCategory = "Tutti";
     }
-    notifyListeners();
+    if (selectedShoppingCategory == categoryToRemove) {
+      selectedShoppingCategory = "Tutti";
+    }
+
+    if (removedFromPantry || removedFromShopping) {
+      notifyListeners();
+      // Aggiorniamo anche su Firestore
+      _firebaseService?.updateCategories(pantryCategories, shoppingCategories);
+    }
   }
 
   Future<void> updateQuantity(String itemId, int delta) async {
