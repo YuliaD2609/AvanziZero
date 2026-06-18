@@ -425,7 +425,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                   Center(
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 32),
-                      child: Text("Nessun suggerimento al momento! La tua dispensa è in ottima forma.", textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSecondary)),
+                      child: Text("Nessun suggerimento al momento! Non ci sono elementi in scadenza o che stanno per finire.", textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSecondary)),
                     ),
                   )
                 else ...[
