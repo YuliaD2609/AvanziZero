@@ -52,7 +52,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
       }
     }
 
-    widget.state.setGroupId(newCode);
+    await widget.state.setGroupId(newCode);
 
     if (!mounted) return;
 
@@ -117,7 +117,9 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
 
       // 2. Controllo se sei già membro
       if (userData.groupIds.contains(inputCode)) {
-        widget.state.setGroupId(inputCode);
+        // Inizializza lo stato con il nuovo gruppo e attendi che Firebase completi il setup iniziale
+        await widget.state.setGroupId(inputCode);
+        
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
@@ -130,8 +132,15 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
       try {
         final groupDoc = await FirebaseFirestore.instance.collection('groups').doc(inputCode).get();
         if (!groupDoc.exists) {
+          // Se cliccato dai recenti (o inserito manualmente) e non esiste, mostriamo il banner
+          widget.state.groupWasDeleted = true;
+          // E lo rimuoviamo dai recenti
+          widget.state.removeSavedGroup(inputCode);
+          if (userData.groupIds.contains(inputCode)) {
+            userData.groupIds.remove(inputCode);
+          }
+          
           setState(() {
-            _errorMessage = "Il gruppo $inputCode non esiste.";
             _isLoading = false;
           });
           return;
@@ -517,7 +526,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
                                 leading: const Icon(Icons.history_rounded, color: AppColors.primary),
                                 title: Text(
-                                  code,
+                                  widget.state.savedGroupNames[code] ?? code,
                                   style: const TextStyle(
                                     fontFamily: 'Outfit',
                                     fontWeight: FontWeight.bold,
@@ -525,7 +534,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                     fontSize: 15,
                                   ),
                                 ),
-                                subtitle: const Text("Tocca per accedere", style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                                subtitle: Text("Codice: $code", style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                                 onTap: () {
                                   _codeController.text = code;
                                   _joinExistingGroup();

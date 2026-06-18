@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/app_state.dart';
 import '../theme/app_colors.dart';
 
@@ -357,13 +358,29 @@ class _AdminScreenState extends State<AdminScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         // ==========================================
-                        // SEZIONE 2: MEMBRI DEL GRUPPO
+                        // NOME DEL GRUPPO E CODICE
                         // ==========================================
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _buildSectionTitle("Membri del Gruppo"),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Flexible(
+                                    child: _buildSectionTitle(widget.state.groupName?.isNotEmpty == true ? widget.state.groupName! : "Nome Gruppo"),
+                                  ),
+                                  if (isMeAdmin)
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_rounded, color: AppColors.primary, size: 20),
+                                      padding: const EdgeInsets.only(left: 4, bottom: 12),
+                                      constraints: const BoxConstraints(),
+                                      onPressed: () => _showRenameDialog(context),
+                                    ),
+                                ],
+                              ),
+                            ),
                             Container(
+                              margin: const EdgeInsets.only(bottom: 12),
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
                                 color: AppColors.primaryLight,
@@ -376,7 +393,11 @@ class _AdminScreenState extends State<AdminScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
+
+                        // ==========================================
+                        // SEZIONE 2: MEMBRI DEL GRUPPO
+                        // ==========================================
+                        _buildSectionTitle("Membri del Gruppo"),
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
@@ -532,7 +553,29 @@ class _AdminScreenState extends State<AdminScreen> {
                               );
                             }
                           ),
-                          const SizedBox(height: 28),
+                        ],
+
+                        const SizedBox(height: 28),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () => _confirmLeaveGroup(context, isMeAdmin, adminIds.length),
+                            icon: const Icon(Icons.exit_to_app_rounded, color: AppColors.textPrimary),
+                            label: const Text(
+                              "Esci dal gruppo",
+                              style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.surfaceLight,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                          ),
+                        ),
+
+                        if (isMeAdmin) ...[
+                          const SizedBox(height: 16),
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
@@ -604,5 +647,128 @@ class _AdminScreenState extends State<AdminScreen> {
         ],
       ),
     );
+  }
+
+  void _confirmLeaveGroup(BuildContext context, bool isMeAdmin, int numAdmins) {
+    if (isMeAdmin && numAdmins <= 1) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text("Azione non consentita", style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+          content: const Text(
+            "Sei l'unico amministratore rimasto. Prima di uscire, devi promuovere un altro membro ad amministratore.",
+            style: TextStyle(fontFamily: 'Outfit'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text("Ho capito", style: TextStyle(color: AppColors.textPrimary)),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Esci dal Gruppo", style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+        content: const Text(
+          "Sei sicuro di voler uscire da questo gruppo? L'azione non è reversibile a meno che tu non mandi un'altra richiesta di ingresso.",
+          style: TextStyle(fontFamily: 'Outfit'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Annulla", style: TextStyle(color: AppColors.textPrimary)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await _leaveGroupAction();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text("Esci", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRenameDialog(BuildContext context) {
+    final TextEditingController nameController = TextEditingController(text: widget.state.groupName ?? "");
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Rinomina Gruppo", style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+        content: TextField(
+          controller: nameController,
+          decoration: InputDecoration(
+            hintText: "Es: Casa dolce casa",
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+            fillColor: AppColors.background,
+          ),
+          textCapitalization: TextCapitalization.words,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Annulla", style: TextStyle(color: AppColors.textPrimary)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newName = nameController.text.trim();
+              Navigator.pop(ctx);
+              await widget.state.updateGroupName(newName);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Nome del gruppo aggiornato!"), backgroundColor: AppColors.primary),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text("Salva", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _leaveGroupAction() async {
+    final groupId = widget.state.groupId;
+    final myUid = widget.state.currentUserAuth?.uid;
+    if (groupId == null || myUid == null) return;
+    
+    try {
+      final db = FirebaseFirestore.instance;
+      // Rimuovi dal gruppo
+      await db.collection('groups').doc(groupId).update({
+        'members': FieldValue.arrayRemove([myUid]),
+        'adminIds': FieldValue.arrayRemove([myUid]),
+      });
+      // Rimuovi dall'utente
+      await db.collection('users').doc(myUid).update({
+        'groupIds': FieldValue.arrayRemove([groupId])
+      });
+      
+      // Rimuovi dalle cronologie locali per non mostrare più il gruppo nei recenti
+      widget.state.savedGroups.remove(groupId);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('savedGroups', widget.state.savedGroups);
+      if (widget.state.currentUserData != null) {
+        widget.state.currentUserData!.groupIds.remove(groupId);
+      }
+      
+      // Resetta stato locale senza attivare l'alert di gruppo eliminato
+      await widget.state.leaveGroup(deleted: false);
+      
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      print("Errore uscita gruppo: $e");
+    }
   }
 }

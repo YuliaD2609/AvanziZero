@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -220,12 +222,21 @@ class AppState extends ChangeNotifier {
 
   bool isLoading = false;
   bool groupWasDeleted = false; // Aggiunto per il flag di eliminazione gruppo
+  String? groupName;
+  Map<String, String> savedGroupNames = {}; // Codice Gruppo -> Nome Gruppo
 
   /// Carica la cronologia dei gruppi visitati dalla memoria persistente
   Future<void> loadSavedGroups() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       savedGroups = prefs.getStringList('savedGroups') ?? [];
+      final groupNamesJson = prefs.getString('savedGroupNames');
+      if (groupNamesJson != null) {
+        try {
+          final Map<String, dynamic> decoded = jsonDecode(groupNamesJson);
+          savedGroupNames = decoded.map((key, value) => MapEntry(key, value.toString()));
+        } catch (_) {}
+      }
       notifyListeners();
     } catch (e) {
       print("Errore nel caricamento della cronologia gruppi: $e");
@@ -258,8 +269,9 @@ class AppState extends ChangeNotifier {
 
     _firebaseService = FirebaseService(groupId: groupId!);
 
-    // Esegue il seeding in background senza bloccare la navigazione utente
-    _firebaseService!.seedInitialDataIfNeeded(_initialDemoItems, uid: currentUserAuth?.uid);
+    // Esegue il seeding aspettando il completamento per evitare race condition con lo stream
+    // (altrimenti lo stream leggerebbe "non esiste" e scatenerebbe leaveGroup)
+    await _firebaseService!.seedInitialDataIfNeeded(_initialDemoItems, uid: currentUserAuth?.uid);
 
     // Cancella eventuali sottoscrizioni precedenti
     await _itemsSubscription?.cancel();
@@ -288,6 +300,15 @@ class AppState extends ChangeNotifier {
       
       if (doc.exists) {
         final data = doc.data() as Map<String, dynamic>? ?? {};
+        
+        groupName = data['name'];
+        if (groupName != null && groupName!.isNotEmpty && groupId != null) {
+          savedGroupNames[groupId!] = groupName!;
+          SharedPreferences.getInstance().then((prefs) {
+            prefs.setString('savedGroupNames', jsonEncode(savedGroupNames));
+          });
+        }
+
         if (data.containsKey('pantryCategories')) {
           final List<dynamic> loaded = data['pantryCategories'];
           pantryCategories = loaded.map((e) => e.toString()).toList();
@@ -324,9 +345,11 @@ class AppState extends ChangeNotifier {
   /// Rimuove un gruppo specifico dalla cronologia locale
   Future<void> removeSavedGroup(String code) async {
     savedGroups.remove(code);
+    savedGroupNames.remove(code);
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setStringList('savedGroups', savedGroups);
+      await prefs.setString('savedGroupNames', jsonEncode(savedGroupNames));
     } catch (e) {
       print("Errore rimozione gruppo da SharedPreferences: $e");
     }
@@ -343,21 +366,18 @@ class AppState extends ChangeNotifier {
     await _firebaseService?.deleteGroup();
   }
 
+  Future<void> updateGroupName(String newName) async {
+    if (groupId != null) {
+      await FirebaseFirestore.instance.collection('groups').doc(groupId).update({
+        'name': newName.trim(),
+      });
+    }
+  }
+
   Future<void> leaveGroup({bool deleted = false}) async {
-    // Se il gruppo è stato eliminato, impostiamo il flag per la UI e rimuoviamo dalle cronologie
+    // Se il gruppo è stato eliminato, impostiamo il flag per la UI
     if (deleted) {
       groupWasDeleted = true;
-      if (groupId != null) {
-        savedGroups.remove(groupId);
-        try {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setStringList('savedGroups', savedGroups);
-        } catch (_) {}
-        
-        if (currentUserData != null) {
-          currentUserData!.groupIds.remove(groupId);
-        }
-      }
     }
     
     // Aspetta che tutte le scritture pendenti su Firestore vengano completate
@@ -368,6 +388,7 @@ class AppState extends ChangeNotifier {
     }
 
     groupId = null;
+    groupName = null;
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('lastActiveGroupId');

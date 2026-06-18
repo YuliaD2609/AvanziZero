@@ -37,7 +37,7 @@ class HomeScreen extends StatelessWidget {
       body: Column(
         children: [
           HorizontalHeaderMenu(
-            title: "AvanziZero",
+            title: state.groupName?.isNotEmpty == true ? state.groupName! : "AvanziZero",
             onHomePressed: () {},
             onCartPressed: onCartPressed,
             showHome: false,
@@ -83,7 +83,7 @@ class HomeScreen extends StatelessWidget {
                           const Icon(Icons.maps_home_work_rounded, color: AppColors.primary, size: 20),
                           const SizedBox(width: 8),
                           Text(
-                            "Gruppo: ${state.groupId}",
+                            "Codice: ${state.groupId}",
                             style: const TextStyle(
                               fontFamily: 'Outfit',
                               fontWeight: FontWeight.bold,
@@ -143,9 +143,9 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const Text(
-                      "AvanziZero",
-                      style: TextStyle(
+                    Text(
+                      state.groupName?.isNotEmpty == true ? state.groupName! : "AvanziZero",
+                      style: const TextStyle(
                         fontFamily: 'Outfit',
                         fontSize: 36,
                         fontWeight: FontWeight.w800,
@@ -153,6 +153,8 @@ class HomeScreen extends StatelessWidget {
                         letterSpacing: -0.5,
                       ),
                       textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(

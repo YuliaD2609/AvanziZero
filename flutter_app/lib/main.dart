@@ -114,8 +114,24 @@ class _MainNavigatorState extends State<MainNavigator> {
 
   @override
   Widget build(BuildContext context) {
-    // Array delle 3 schermate principali con i riferimenti incrociati di navigazione
-    final List<Widget> screens = [
+    return AnimatedBuilder(
+      animation: widget.state,
+      builder: (context, child) {
+        // Se il gruppo viene eliminato mentre l'utente è dentro, rimandalo alla home (GroupSetupScreen)
+        if (widget.state.groupId == null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => GroupSetupScreen(state: widget.state)),
+                (Route<dynamic> route) => false,
+              );
+            }
+          });
+          return const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.primary)));
+        }
+
+        // Array delle 3 schermate principali con i riferimenti incrociati di navigazione
+        final List<Widget> screens = [
       HomeScreen(
         state: widget.state,
         onNavigate: _navigate,
@@ -185,6 +201,8 @@ class _MainNavigatorState extends State<MainNavigator> {
         ),
       ),
     ));
+      },
+    );
   }
 
   // Finestra di ricerca automatica supermercati con scorrimento e integrazione Maps nativa
