@@ -3,6 +3,7 @@ import '../models/app_state.dart';
 import '../widgets/ocr_scanner_modal.dart';
 import '../widgets/menus.dart';
 import 'admin_screen.dart';
+import '../theme/app_colors.dart';
 
 class HomeScreen extends StatelessWidget {
   final AppState state;
@@ -22,7 +23,7 @@ class HomeScreen extends StatelessWidget {
     final expiringItems = state.allItems.where((i) => i.isPantry && i.urgencyLevel > 0).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFBFBF9), // Avorio soft
+      backgroundColor: AppColors.background, // Avorio soft
       
       // Rimosso FAB come richiesto, l'IA scanner è stato spostato in Dispensa
 
@@ -63,23 +64,23 @@ class HomeScreen extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD1FAE5), // Menta Chiaro
+                    color: AppColors.primaryLight, // Menta Chiaro
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFF5A9E87).withOpacity(0.3)),
+                    border: Border.all(color: AppColors.primary.withOpacity(0.3)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.maps_home_work_rounded, color: Color(0xFF5A9E87), size: 20),
+                          const Icon(Icons.maps_home_work_rounded, color: AppColors.primary, size: 20),
                           const SizedBox(width: 8),
                           Text(
                             "Gruppo: ${state.groupId}",
                             style: const TextStyle(
                               fontFamily: 'Outfit',
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1C3D32),
+                              color: AppColors.textPrimary,
                               fontSize: 14,
                             ),
                           ),
@@ -96,13 +97,13 @@ class HomeScreen extends StatelessWidget {
                                 const SnackBar(content: Text("Sei uscito dal gruppo appartamento.")),
                               );
                             },
-                            icon: const Icon(Icons.logout_rounded, size: 16, color: Color(0xFFEF4444)),
+                            icon: const Icon(Icons.logout_rounded, size: 16, color: AppColors.error),
                             label: const Text(
                               "Esci",
                               style: TextStyle(
                                 fontFamily: 'Outfit',
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFFEF4444),
+                                color: AppColors.error,
                                 fontSize: 13,
                               ),
                             ),
@@ -139,7 +140,7 @@ class HomeScreen extends StatelessWidget {
                         fontFamily: 'Outfit',
                         fontSize: 36,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF5A9E87), // Verde Salvia Intenso
+                        color: AppColors.primary, // Verde Salvia Intenso
                         letterSpacing: -0.5,
                       ),
                       textAlign: TextAlign.center,
@@ -150,7 +151,7 @@ class HomeScreen extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: 'Outfit',
                         fontSize: 13,
-                        color: const Color(0xFF1C3D32).withOpacity(0.7),
+                        color: AppColors.textPrimary.withOpacity(0.7),
                         fontWeight: FontWeight.w500,
                       ),
                       textAlign: TextAlign.center,
@@ -188,9 +189,9 @@ class HomeScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.4), width: 1.5),
+                  border: Border.all(color: AppColors.error.withOpacity(0.4), width: 1.5),
                   boxShadow: const [
-                    BoxShadow(color: Color(0x051C3D32), blurRadius: 10, offset: Offset(0, 4)),
+                    BoxShadow(color: AppColors.shadowLight, blurRadius: 10, offset: Offset(0, 4)),
                   ],
                 ),
                 child: Column(
@@ -200,7 +201,7 @@ class HomeScreen extends StatelessWidget {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: const BoxDecoration(
-                        color: Color(0xFFFEE2E2), // Sfondo rosso chiaro
+                        color: AppColors.errorLight, // Sfondo rosso chiaro
                         borderRadius: BorderRadius.only(topLeft: Radius.circular(18), topRight: Radius.circular(18)),
                       ),
                       child: const Text(
@@ -210,7 +211,7 @@ class HomeScreen extends StatelessWidget {
                           fontFamily: 'Outfit',
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFFEF4444),
+                          color: AppColors.error,
                         ),
                       ),
                     ),
@@ -221,7 +222,7 @@ class HomeScreen extends StatelessWidget {
                           ? const Center(
                               child: Text(
                                 "Nessun prodotto in scadenza!",
-                                style: TextStyle(fontFamily: 'Outfit', color: Color(0xFF5A9E87), fontWeight: FontWeight.bold),
+                                style: TextStyle(fontFamily: 'Outfit', color: AppColors.primary, fontWeight: FontWeight.bold),
                               ),
                             )
                           : ListView.builder(
@@ -236,13 +237,13 @@ class HomeScreen extends StatelessWidget {
                                     children: [
                                       Text(
                                         "• ${item.name}",
-                                        style: const TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.w600, color: Color(0xFF1C3D32)),
+                                        style: const TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                                       ),
                                       Text(
                                         _formatExpireDate(item.expireDate),
                                         style: TextStyle(
                                           fontFamily: 'Outfit',
-                                          color: item.urgencyLevel == 2 ? const Color(0xFFEF4444) : const Color(0xFF789088),
+                                          color: item.urgencyLevel == 2 ? AppColors.error : AppColors.textSecondary,
                                           fontWeight: item.urgencyLevel > 0 ? FontWeight.bold : FontWeight.normal,
                                           fontSize: 12,
                                         ),
@@ -262,18 +263,18 @@ class HomeScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFBFBF9),
+                  color: AppColors.background,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFEAECE8)),
+                  border: Border.all(color: AppColors.border),
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.info_outline_rounded, color: Color(0xFF789088), size: 18),
+                    Icon(Icons.info_outline_rounded, color: AppColors.textSecondary, size: 18),
                     SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         "I supermercati nelle vicinanze sono consultabili in qualsiasi momento dall'icona negozio in alto a destra.",
-                        style: TextStyle(fontSize: 12, color: Color(0xFF789088), height: 1.3),
+                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.3),
                       ),
                     ),
                   ],
@@ -305,9 +306,9 @@ class HomeScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFF5A9E87), width: 1.5),
+          border: Border.all(color: AppColors.primary, width: 1.5),
           boxShadow: const [
-            BoxShadow(color: Color(0x081C3D32), blurRadius: 8, offset: Offset(0, 2)),
+            BoxShadow(color: AppColors.shadowMedium, blurRadius: 8, offset: Offset(0, 2)),
           ],
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -317,10 +318,10 @@ class HomeScreen extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: const Color(0xFFFBFBF9),
+                color: AppColors.background,
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(iconData, color: const Color(0xFF5A9E87), size: 26),
+              child: Icon(iconData, color: AppColors.primary, size: 26),
             ),
             const SizedBox(width: 16),
 
@@ -331,12 +332,12 @@ class HomeScreen extends StatelessWidget {
                   fontFamily: 'Outfit',
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1C3D32),
+                  color: AppColors.textPrimary,
                 ),
               ),
             ),
 
-            const Icon(Icons.chevron_right_rounded, color: Color(0xFF5A9E87), size: 28),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.primary, size: 28),
           ],
         ),
       ),

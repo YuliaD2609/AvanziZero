@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import '../theme/app_colors.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -88,7 +89,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFBFBF9),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -113,7 +114,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       fontFamily: 'Outfit',
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1C3D32),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -122,7 +123,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
-                      color: const Color(0xFF789088),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -193,11 +194,11 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 32),
 
                   _isLoading
-                      ? const Center(child: CircularProgressIndicator(color: Color(0xFF5A9E87)))
+                      ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
                       : ElevatedButton(
                           onPressed: _submit,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF5A9E87),
+                            backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -221,7 +222,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     },
                     child: Text(
                       _isLogin ? "Non hai un account? Registrati" : "Hai già un account? Accedi",
-                      style: const TextStyle(color: Color(0xFF5A9E87), fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],

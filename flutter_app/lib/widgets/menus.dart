@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class HorizontalHeaderMenu extends StatelessWidget {
   final String title;
@@ -23,13 +24,13 @@ class HorizontalHeaderMenu extends StatelessWidget {
       height: 85, // Altezza proporzionata per il mobile (leggermente ingrandito)
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF5A9E87), Color(0xFF76B59D)],
+          colors: [AppColors.primary, AppColors.primaryGradientEnd],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: Color(0x1A1C3D32),
+            color: AppColors.shadowDark,
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -103,11 +104,11 @@ class VerticalCategoryMenu extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
-          right: BorderSide(color: const Color(0xFFEAECE8), width: 1),
+          right: BorderSide(color: AppColors.border, width: 1),
         ),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x051C3D32),
+            color: AppColors.shadowLight,
             blurRadius: 4,
             offset: Offset(2, 0),
           )
@@ -131,10 +132,10 @@ class VerticalCategoryMenu extends StatelessWidget {
                     margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
                     padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF5A9E87) : Colors.transparent,
+                      color: isSelected ? AppColors.primary : Colors.transparent,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: isSelected ? const Color(0xFF5A9E87) : const Color(0xFFEAECE8),
+                        color: isSelected ? AppColors.primary : AppColors.border,
                         width: 1,
                       ),
                     ),
@@ -149,7 +150,7 @@ class VerticalCategoryMenu extends StatelessWidget {
                             fontFamily: 'Outfit',
                             fontSize: 11,
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            color: isSelected ? Colors.white : const Color(0xFF1C3D32),
+                            color: isSelected ? Colors.white : AppColors.textPrimary,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -169,7 +170,7 @@ class VerticalCategoryMenu extends StatelessWidget {
               height: 50,
               width: double.infinity,
               decoration: const BoxDecoration(
-                color: Color(0xFF056C3F), // Accento Verde Scuro/Teal
+                color: AppColors.primaryDark, // Accento Verde Scuro/Teal
                 borderRadius: BorderRadius.only(topRight: Radius.circular(12)),
               ),
               child: const Center(

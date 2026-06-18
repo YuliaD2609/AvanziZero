@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_state.dart';
 import '../main.dart'; // Per accedere a MainNavigator
 import 'admin_screen.dart';
+import '../theme/app_colors.dart';
 
 /// Schermata iniziale ordinata ed elegante per la configurazione del gruppo casa.
 /// Permette di avviare un nuovo ambiente di co-living generando un codice univoco,
@@ -67,14 +68,14 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          "🏠 Gruppo creato! Codice di invito: $newCode",
+          "Gruppo creato! Codice di invito: $newCode",
           style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        backgroundColor: const Color(0xFF5A9E87), // Verde Salvia Intenso
+        backgroundColor: AppColors.primary, // Verde Salvia Intenso
         duration: const Duration(seconds: 8),
         action: SnackBarAction(
           label: 'OK',
-          textColor: const Color(0xFF056C3F),
+          textColor: AppColors.primaryDark,
           onPressed: () {},
         ),
       ),
@@ -106,8 +107,8 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("⏳ Hai già inviato una richiesta per $inputCode. Attendi l'approvazione."),
-            backgroundColor: const Color(0xFFEAB308), // Giallo Ambra
+            content: Text("Hai già inviato una richiesta per $inputCode. Attendi l'approvazione."),
+            backgroundColor: AppColors.warningAlt, // Giallo Ambra
           ),
         );
         setState(() => _isLoading = false);
@@ -157,8 +158,8 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("📩 Richiesta inviata! L'admin di $inputCode dovrà approvarti."),
-              backgroundColor: const Color(0xFF5A9E87),
+              content: Text("Richiesta inviata! L'admin di $inputCode dovrà approvarti."),
+              backgroundColor: AppColors.primary,
             ),
           );
           setState(() => _isLoading = false);
@@ -182,7 +183,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
         final userName = widget.state.currentUserData?.name ?? "";
 
         return Scaffold(
-          backgroundColor: const Color(0xFFFBFBF9), // Avorio Soft
+          backgroundColor: AppColors.background, // Avorio Soft
           body: SafeArea(
             child: Stack(
               children: [
@@ -195,7 +196,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                     height: 250,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFFD1FAE5).withOpacity(0.5),
+                      color: AppColors.primaryLight.withOpacity(0.5),
                     ),
                   ),
                 ),
@@ -207,7 +208,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                     height: 300,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFF056C3F).withOpacity(0.2),
+                      color: AppColors.primaryDark.withOpacity(0.2),
                     ),
                   ),
                 ),
@@ -228,7 +229,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                 children: [
                                   const Text(
                                     "Bentornato,",
-                                    style: TextStyle(fontFamily: 'Outfit', fontSize: 16, color: Color(0xFF789088)),
+                                    style: TextStyle(fontFamily: 'Outfit', fontSize: 16, color: AppColors.textSecondary),
                                   ),
                                   Text(
                                     userName,
@@ -236,7 +237,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                       fontFamily: 'Outfit',
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1C3D32)
+                                      color: AppColors.textPrimary
                                     ),
                                   ),
                                 ],
@@ -255,14 +256,14 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                       ),
                                     );
                                   },
-                                  icon: const Icon(Icons.person_outline_rounded, color: Color(0xFF5A9E87), size: 28),
+                                  icon: const Icon(Icons.person_outline_rounded, color: AppColors.primary, size: 28),
                                   tooltip: "Profilo",
                                 ),
                                 IconButton(
                                   onPressed: () async {
                                     await widget.state.authService.signOut();
                                   },
-                                  icon: const Icon(Icons.logout_rounded, color: Color(0xFFEF4444), size: 28),
+                                  icon: const Icon(Icons.logout_rounded, color: AppColors.error, size: 28),
                                   tooltip: "Logout",
                                 ),
                               ],
@@ -288,7 +289,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                         fontFamily: 'Outfit',
                         fontSize: 32,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF1C3D32), // Verde Foresta Scuro
+                        color: AppColors.textPrimary, // Verde Foresta Scuro
                         letterSpacing: -0.5,
                       ),
                     ),
@@ -299,7 +300,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                       style: TextStyle(
                         fontFamily: 'Outfit',
                         fontSize: 15,
-                        color: Color(0xFF789088), // Salvia Desaturato
+                        color: AppColors.textSecondary, // Salvia Desaturato
                         height: 1.3,
                       ),
                     ),
@@ -308,13 +309,13 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                     // Visualizzazione di caricamento generale
                     if (_isLoading) ...[
                       const Center(
-                        child: CircularProgressIndicator(color: Color(0xFF5A9E87)),
+                        child: CircularProgressIndicator(color: AppColors.primary),
                       ),
                       const SizedBox(height: 16),
                       const Text(
                         "Sincronizzazione in tempo reale con il Cloud...",
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Color(0xFF789088), fontSize: 14),
+                        style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                       ),
                     ] else ...[
                       // Card 1: Crea un Nuovo Gruppo
@@ -326,7 +327,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                           child: ElevatedButton(
                             onPressed: _createNewGroup,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF5A9E87), // Verde Salvia Intenso
+                              backgroundColor: AppColors.primary, // Verde Salvia Intenso
                               foregroundColor: Colors.white,
                               elevation: 0,
                               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
@@ -344,15 +345,15 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                       // Divisore grafico
                       const Row(
                         children: [
-                          Expanded(child: Divider(color: Color(0xFFEAECE8), thickness: 1)),
+                          Expanded(child: Divider(color: AppColors.border, thickness: 1)),
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: 16),
                             child: Text(
                               "OPPURE",
-                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF789088)),
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
                             ),
                           ),
-                          Expanded(child: Divider(color: Color(0xFFEAECE8), thickness: 1)),
+                          Expanded(child: Divider(color: AppColors.border, thickness: 1)),
                         ],
                       ),
                       const SizedBox(height: 20),
@@ -370,30 +371,30 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                               textCapitalization: TextCapitalization.characters,
                               decoration: InputDecoration(
                                 hintText: "Es. CASA-7B4D",
-                                hintStyle: const TextStyle(color: Color(0xFF789088)),
+                                hintStyle: const TextStyle(color: AppColors.textSecondary),
                                 filled: true,
-                                fillColor: const Color(0xFFFBFBF9),
+                                fillColor: AppColors.background,
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(color: Color(0xFFEAECE8)),
+                                  borderSide: const BorderSide(color: AppColors.border),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(color: Color(0xFFEAECE8)),
+                                  borderSide: const BorderSide(color: AppColors.border),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(color: Color(0xFF5A9E87), width: 2),
+                                  borderSide: const BorderSide(color: AppColors.primary, width: 2),
                                 ),
                               ),
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1C3D32)),
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                             ),
                             if (_errorMessage != null) ...[
                               const SizedBox(height: 8),
                               Text(
                                 _errorMessage!,
-                                style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13),
+                                style: const TextStyle(color: AppColors.error, fontSize: 13),
                               ),
                             ],
                             const SizedBox(height: 12),
@@ -402,7 +403,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                               child: ElevatedButton(
                                 onPressed: _isLoading ? null : _joinExistingGroup,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF1C3D32),
+                                  backgroundColor: AppColors.textPrimary,
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(vertical: 14),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -427,20 +428,20 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                 width: double.infinity,
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFFEF3C7), // Giallo tenue
+                                  color: AppColors.warningLight, // Giallo tenue
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: const Color(0xFFFDE047)),
+                                  border: Border.all(color: AppColors.warningBorder),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     const Row(
                                       children: [
-                                        Icon(Icons.hourglass_top_rounded, color: Color(0xFFCA8A04), size: 18),
+                                        Icon(Icons.hourglass_top_rounded, color: AppColors.warningIcon, size: 18),
                                         SizedBox(width: 6),
                                         Text(
                                           "Richieste in Attesa",
-                                          style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF854D0E)),
+                                          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.warningTextDark),
                                         ),
                                       ],
                                     ),
@@ -449,7 +450,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                           padding: const EdgeInsets.symmetric(vertical: 2),
                                           child: Text(
                                             "• $code",
-                                            style: const TextStyle(color: Color(0xFFA16207), fontWeight: FontWeight.w500),
+                                            style: const TextStyle(color: AppColors.warningTextMedium, fontWeight: FontWeight.w500),
                                           ),
                                         )),
                                   ],
@@ -468,7 +469,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                             fontFamily: 'Outfit',
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF789088),
+                            color: AppColors.textSecondary,
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -483,27 +484,27 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: const Color(0xFFEAECE8)),
+                                border: Border.all(color: AppColors.border),
                               ),
                               child: ListTile(
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-                                leading: const Icon(Icons.history_rounded, color: Color(0xFF5A9E87)),
+                                leading: const Icon(Icons.history_rounded, color: AppColors.primary),
                                 title: Text(
                                   code,
                                   style: const TextStyle(
                                     fontFamily: 'Outfit',
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1C3D32),
+                                    color: AppColors.textPrimary,
                                     fontSize: 15,
                                   ),
                                 ),
-                                subtitle: const Text("Tocca per accedere", style: TextStyle(fontSize: 12, color: Color(0xFF789088))),
+                                subtitle: const Text("Tocca per accedere", style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                                 onTap: () {
                                   _codeController.text = code;
                                   _joinExistingGroup();
                                 },
                                 trailing: IconButton(
-                                  icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFEF4444), size: 20),
+                                  icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 20),
                                   onPressed: () {
                                     widget.state.removeSavedGroup(code);
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -540,10 +541,10 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEAECE8)),
+        border: Border.all(color: AppColors.border),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x0D1C3D32), // 5% di opacità per un'ombra morbida e naturale
+            color: AppColors.shadowCard, // 5% di opacità per un'ombra morbida e naturale
             blurRadius: 20,
             offset: Offset(0, 4),
           ),
@@ -554,7 +555,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
         children: [
           Row(
             children: [
-              Icon(icon, color: const Color(0xFF5A9E87), size: 24),
+              Icon(icon, color: AppColors.primary, size: 24),
               const SizedBox(width: 10),
               Text(
                 title,
@@ -562,7 +563,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                   fontFamily: 'Outfit',
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1C3D32),
+                  color: AppColors.textPrimary,
                 ),
               ),
             ],
@@ -573,7 +574,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
             style: const TextStyle(
               fontFamily: 'Outfit',
               fontSize: 13,
-              color: Color(0xFF789088),
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 16),

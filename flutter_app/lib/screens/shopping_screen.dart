@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/app_state.dart';
 import '../widgets/menus.dart';
+import '../theme/app_colors.dart';
 
 class ShoppingScreen extends StatefulWidget {
   final AppState state;
@@ -34,7 +35,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFBFBF9), // Avorio soft
+      backgroundColor: AppColors.background, // Avorio soft
       body: Column(
         children: [
           // Menu Orizzontale Superiore
@@ -72,18 +73,18 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(22),
-                                  border: Border.all(color: const Color(0xFFF2F3F0)),
+                                  border: Border.all(color: AppColors.borderLight),
                                 ),
                                 child: TextField(
                                   controller: _searchController,
                                   onChanged: (val) => setState(() => _searchQuery = val),
                                   decoration: const InputDecoration(
                                     hintText: "Cerca un prodotto",
-                                    hintStyle: TextStyle(color: Color(0xFFB8B6AF), fontSize: 14),
+                                    hintStyle: TextStyle(color: AppColors.textHint, fontSize: 14),
                                     border: InputBorder.none,
                                     contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                   ),
-                                  style: const TextStyle(color: Color(0xFF1C3D32), fontSize: 14),
+                                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
                                 ),
                               ),
                             ),
@@ -92,7 +93,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                               height: 44,
                               width: 44,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF6BB099),
+                                color: AppColors.primaryVariant,
                                 borderRadius: BorderRadius.circular(22),
                               ),
                               child: const Icon(Icons.search_rounded, color: Colors.white, size: 22),
@@ -107,12 +108,12 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                           margin: const EdgeInsets.symmetric(horizontal: 12),
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFD1FAE5), // Menta Chiaro
+                            color: AppColors.primaryLight, // Menta Chiaro
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.auto_awesome_rounded, color: Color(0xFF5A9E87), size: 18),
+                              const Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 18),
                               const SizedBox(width: 8),
                               const Expanded(
                                 child: Text(
@@ -121,7 +122,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                     fontFamily: 'Outfit',
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1C3D32),
+                                    color: AppColors.textPrimary,
                                   ),
                                 ),
                               ),
@@ -132,7 +133,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                 },
                                 child: const Icon(
                                   Icons.close_rounded,
-                                  color: Color(0xFF5A9E87),
+                                  color: AppColors.primary,
                                   size: 18,
                                 ),
                               ),
@@ -151,7 +152,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                   child: Text(
                                     "Lista della spesa vuota per questa categoria.",
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(color: Color(0xFF789088), fontSize: 14),
+                                    style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                                   ),
                                 ),
                               )
@@ -176,13 +177,13 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text("Spesa Fatta! Prodotti trasferiti in Dispensa con successo."),
-                                  backgroundColor: Color(0xFF5A9E87),
+                                  backgroundColor: AppColors.primary,
                                   duration: Duration(seconds: 3),
                                 ),
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFD1FAE5), // Menta Chiaro
+                              backgroundColor: AppColors.primaryLight, // Menta Chiaro
                               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                               elevation: 1,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -193,7 +194,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                 fontFamily: 'Outfit',
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1C3D32), // Verde Foresta Scuro (scurito)
+                                color: AppColors.textPrimary, // Verde Foresta Scuro (scurito)
                               ),
                             ),
                           ),
@@ -208,7 +209,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                           child: ElevatedButton(
                             onPressed: () => _showAddItemDialog(context),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF056C3F), // Accento Verde Scuro/Teal
+                              backgroundColor: AppColors.primaryDark, // Accento Verde Scuro/Teal
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                               elevation: 1,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -245,10 +246,10 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFEAECE8)),
+        border: Border.all(color: AppColors.border),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x051C3D32),
+            color: AppColors.shadowLight,
             blurRadius: 4,
             offset: Offset(0, 1),
           ),
@@ -270,7 +271,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
               width: 22,
               height: 22,
               decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFF5A9E87), width: 2),
+                border: Border.all(color: AppColors.primary, width: 2),
                 borderRadius: BorderRadius.circular(6),
               ),
             ),
@@ -285,7 +286,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                 fontFamily: 'Outfit',
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1C3D32),
+                color: AppColors.textPrimary,
               ),
             ),
           ),
@@ -299,9 +300,9 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFBFBF9),
+                    color: AppColors.background,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFEAECE8)),
+                    border: Border.all(color: AppColors.border),
                   ),
                   child: const Center(child: Text("-", style: TextStyle(fontWeight: FontWeight.bold))),
                 ),
@@ -319,7 +320,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF5A9E87),
+                    color: AppColors.primary,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Center(child: Text("+", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
@@ -338,7 +339,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.white,
-        title: const Text("Nuova Categoria Spesa", style: TextStyle(fontFamily: 'Outfit', color: Color(0xFF1C3D32))),
+        title: const Text("Nuova Categoria Spesa", style: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
         content: TextField(
           controller: catController,
           decoration: const InputDecoration(hintText: "Nome categoria"),
@@ -350,7 +351,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
               widget.state.addCustomCategory(catController.text, 'shopping');
               Navigator.pop(context);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5A9E87)),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             child: const Text("Aggiungi", style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -370,7 +371,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: Colors.white,
-          title: const Text("Aggiungi Elemento Spesa", style: TextStyle(fontFamily: 'Outfit', color: Color(0xFF1C3D32))),
+          title: const Text("Aggiungi Elemento Spesa", style: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -416,7 +417,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                   setDialogState(() => nameError = true);
                 }
               },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5A9E87)),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
               child: const Text("Inserisci", style: TextStyle(color: Colors.white)),
             ),
           ],

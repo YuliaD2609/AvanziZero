@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_state.dart';
+import '../theme/app_colors.dart';
 
 class AdminScreen extends StatefulWidget {
   final AppState state;
@@ -19,6 +20,7 @@ class _AdminScreenState extends State<AdminScreen> {
   late TextEditingController _passwordController;
   
   bool _notificationsEnabled = true;
+  TimeOfDay _notificationTime = const TimeOfDay(hour: 9, minute: 0);
 
   @override
   void initState() {
@@ -44,7 +46,7 @@ class _AdminScreenState extends State<AdminScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text("Profilo aggiornato con successo!"),
-        backgroundColor: Color(0xFF5A9E87),
+        backgroundColor: AppColors.primary,
       ),
     );
   }
@@ -64,7 +66,7 @@ class _AdminScreenState extends State<AdminScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Membro rimosso dal gruppo."), backgroundColor: Color(0xFFEF4444)),
+          const SnackBar(content: Text("Membro rimosso dal gruppo."), backgroundColor: AppColors.error),
         );
       }
     } catch (e) {
@@ -81,7 +83,7 @@ class _AdminScreenState extends State<AdminScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Membro promosso ad Admin!"), backgroundColor: Color(0xFF5A9E87)),
+          const SnackBar(content: Text("Membro promosso ad Admin!"), backgroundColor: AppColors.primary),
         );
       }
     } catch (e) {
@@ -107,7 +109,7 @@ class _AdminScreenState extends State<AdminScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Richiesta accettata!"), backgroundColor: Color(0xFF5A9E87)),
+          const SnackBar(content: Text("Richiesta accettata!"), backgroundColor: AppColors.primary),
         );
       }
     } catch (e) {
@@ -126,7 +128,7 @@ class _AdminScreenState extends State<AdminScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Richiesta rifiutata."), backgroundColor: Color(0xFFEF4444)),
+          const SnackBar(content: Text("Richiesta rifiutata."), backgroundColor: AppColors.error),
         );
       }
     } catch (e) {
@@ -140,12 +142,12 @@ class _AdminScreenState extends State<AdminScreen> {
     final myUid = widget.state.currentUserAuth?.uid ?? "";
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFBFBF9),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFBFBF9),
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1C3D32)),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
@@ -154,7 +156,7 @@ class _AdminScreenState extends State<AdminScreen> {
             fontFamily: 'Outfit',
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1C3D32),
+            color: AppColors.textPrimary,
           ),
         ),
         centerTitle: true,
@@ -175,9 +177,9 @@ class _AdminScreenState extends State<AdminScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: const [
-                    BoxShadow(color: Color(0x051C3D32), blurRadius: 15, offset: Offset(0, 4)),
+                    BoxShadow(color: AppColors.shadowLight, blurRadius: 15, offset: Offset(0, 4)),
                   ],
-                  border: Border.all(color: const Color(0xFF5A9E87).withOpacity(0.15)),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.15)),
                 ),
                 child: Form(
                   key: _profileFormKey,
@@ -187,10 +189,10 @@ class _AdminScreenState extends State<AdminScreen> {
                         controller: _nameController,
                         decoration: InputDecoration(
                           labelText: "Nome",
-                          prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF5A9E87)),
+                          prefixIcon: const Icon(Icons.person_outline, color: AppColors.primary),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           filled: true,
-                          fillColor: const Color(0xFFFBFBF9),
+                          fillColor: AppColors.background,
                         ),
                         validator: (val) => val == null || val.isEmpty ? "Inserisci il tuo nome" : null,
                       ),
@@ -200,10 +202,10 @@ class _AdminScreenState extends State<AdminScreen> {
                         readOnly: true,
                         decoration: InputDecoration(
                           labelText: "Email",
-                          prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF5A9E87)),
+                          prefixIcon: const Icon(Icons.email_outlined, color: AppColors.primary),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           filled: true,
-                          fillColor: const Color(0xFFFBFBF9),
+                          fillColor: AppColors.background,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -212,10 +214,10 @@ class _AdminScreenState extends State<AdminScreen> {
                         obscureText: true,
                         decoration: InputDecoration(
                           labelText: "Nuova Password",
-                          prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF5A9E87)),
+                          prefixIcon: const Icon(Icons.lock_outline, color: AppColors.primary),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           filled: true,
-                          fillColor: const Color(0xFFFBFBF9),
+                          fillColor: AppColors.background,
                         ),
                         validator: (val) {
                           if (val != null && val.isNotEmpty && val.length < 6) {
@@ -230,7 +232,7 @@ class _AdminScreenState extends State<AdminScreen> {
                         child: ElevatedButton(
                           onPressed: _saveProfile,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF5A9E87),
+                            backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -254,26 +256,84 @@ class _AdminScreenState extends State<AdminScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: const [
-                    BoxShadow(color: Color(0x051C3D32), blurRadius: 15, offset: Offset(0, 4)),
+                    BoxShadow(color: AppColors.shadowLight, blurRadius: 15, offset: Offset(0, 4)),
                   ],
-                  border: Border.all(color: const Color(0xFF5A9E87).withOpacity(0.15)),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.15)),
                 ),
-                child: SwitchListTile(
-                  title: const Text(
-                    "Ricevi notifiche",
-                    style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, color: Color(0xFF1C3D32)),
-                  ),
-                  subtitle: const Text(
-                    "Avvisi per scadenze e attività di gruppo",
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                  activeColor: const Color(0xFF5A9E87),
-                  value: _notificationsEnabled,
-                  onChanged: (val) {
-                    setState(() {
-                      _notificationsEnabled = val;
-                    });
-                  },
+                child: Column(
+                  children: [
+                    SwitchListTile(
+                      title: const Text(
+                        "Ricevi notifiche",
+                        style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      ),
+                      subtitle: const Text(
+                        "Avvisi per scadenze e attività di gruppo",
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                      activeColor: AppColors.primary,
+                      value: _notificationsEnabled,
+                      onChanged: (val) {
+                        setState(() {
+                          _notificationsEnabled = val;
+                        });
+                      },
+                    ),
+                    if (_notificationsEnabled) ...[
+                      const Divider(height: 1, color: AppColors.surfaceLight),
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        title: const Text(
+                          "Orario Notifiche",
+                          style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        ),
+                        subtitle: const Text(
+                          "Scegli l'orario per i promemoria giornalieri",
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                        trailing: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryLight,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            _notificationTime.format(context),
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryDarker),
+                          ),
+                        ),
+                        onTap: () async {
+                          final TimeOfDay? picked = await showTimePicker(
+                            context: context,
+                            initialTime: _notificationTime,
+                            builder: (context, child) {
+                              return Theme(
+                                data: Theme.of(context).copyWith(
+                                  colorScheme: const ColorScheme.light(
+                                    primary: AppColors.primary,
+                                    onPrimary: Colors.white,
+                                    onSurface: AppColors.textPrimary,
+                                  ),
+                                ),
+                                child: child!,
+                              );
+                            },
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              _notificationTime = picked;
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Orario notifiche aggiornato: ${picked.format(context)}"),
+                                backgroundColor: AppColors.primary,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ],
                 ),
               ),
               const SizedBox(height: 28),
@@ -306,12 +366,12 @@ class _AdminScreenState extends State<AdminScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFD1FAE5),
+                                color: AppColors.primaryLight,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
                                 "Codice: $activeGroupId",
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF065F46)),
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primaryDarker),
                               ),
                             ),
                           ],
@@ -322,14 +382,14 @@ class _AdminScreenState extends State<AdminScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(20),
-                            boxShadow: const [BoxShadow(color: Color(0x051C3D32), blurRadius: 15, offset: Offset(0, 4))],
-                            border: Border.all(color: const Color(0xFF5A9E87).withOpacity(0.15)),
+                            boxShadow: const [BoxShadow(color: AppColors.shadowLight, blurRadius: 15, offset: Offset(0, 4))],
+                            border: Border.all(color: AppColors.primary.withOpacity(0.15)),
                           ),
                           child: ListView.separated(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: membersList.length,
-                            separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                            separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.surfaceLight),
                             itemBuilder: (context, index) {
                               final memberUid = membersList[index];
                               final isMe = memberUid == myUid;
@@ -349,14 +409,14 @@ class _AdminScreenState extends State<AdminScreen> {
                                       children: [
                                         Text(
                                           isMe ? "$name (Tu)" : name,
-                                          style: const TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF1C3D32)),
+                                          style: const TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),
                                         ),
                                         if (isAdmin) ...[
                                           const SizedBox(width: 8),
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                            decoration: BoxDecoration(color: const Color(0xFFFEF3C7), borderRadius: BorderRadius.circular(4)),
-                                            child: const Text("ADMIN", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFD97706))),
+                                            decoration: BoxDecoration(color: AppColors.warningLight, borderRadius: BorderRadius.circular(4)),
+                                            child: const Text("ADMIN", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.warningDark)),
                                           ),
                                         ]
                                       ],
@@ -367,12 +427,12 @@ class _AdminScreenState extends State<AdminScreen> {
                                             children: [
                                               if (!isAdmin)
                                                 IconButton(
-                                                  icon: const Icon(Icons.arrow_upward_rounded, color: Color(0xFF5A9E87)),
+                                                  icon: const Icon(Icons.arrow_upward_rounded, color: AppColors.primary),
                                                   tooltip: "Promuovi Admin",
                                                   onPressed: () => _promoteToAdmin(memberUid),
                                                 ),
                                               IconButton(
-                                                icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFEF4444)),
+                                                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
                                                 tooltip: "Rimuovi Membro",
                                                 onPressed: () => _removeMember(memberUid),
                                               ),
@@ -405,17 +465,17 @@ class _AdminScreenState extends State<AdminScreen> {
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(20),
-                                  boxShadow: const [BoxShadow(color: Color(0x051C3D32), blurRadius: 15, offset: Offset(0, 4))],
-                                  border: Border.all(color: const Color(0xFF5A9E87).withOpacity(0.15)),
+                                  boxShadow: const [BoxShadow(color: AppColors.shadowLight, blurRadius: 15, offset: Offset(0, 4))],
+                                  border: Border.all(color: AppColors.primary.withOpacity(0.15)),
                                 ),
                                 child: requests.isEmpty
                                     ? const Padding(
                                         padding: EdgeInsets.symmetric(vertical: 24),
                                         child: Column(
                                           children: [
-                                            Icon(Icons.mark_email_read_outlined, color: Color(0xFF789088), size: 36),
+                                            Icon(Icons.mark_email_read_outlined, color: AppColors.textSecondary, size: 36),
                                             SizedBox(height: 8),
-                                            Text("Nessuna richiesta di ingresso in attesa.", textAlign: TextAlign.center, style: TextStyle(fontFamily: 'Outfit', fontSize: 14, color: Color(0xFF789088))),
+                                            Text("Nessuna richiesta di ingresso in attesa.", textAlign: TextAlign.center, style: TextStyle(fontFamily: 'Outfit', fontSize: 14, color: AppColors.textSecondary)),
                                           ],
                                         ),
                                       )
@@ -423,7 +483,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                         shrinkWrap: true,
                                         physics: const NeverScrollableScrollPhysics(),
                                         itemCount: requests.length,
-                                        separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                                        separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.surfaceLight),
                                         itemBuilder: (context, index) {
                                           final reqDoc = requests[index];
                                           final reqData = reqDoc.data() as Map<String, dynamic>;
@@ -432,20 +492,20 @@ class _AdminScreenState extends State<AdminScreen> {
                                           return ListTile(
                                             contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                                             leading: const CircleAvatar(
-                                              backgroundColor: Color(0xFFF3F4F6),
-                                              child: Icon(Icons.hourglass_empty_rounded, color: Color(0xFF789088), size: 18),
+                                              backgroundColor: AppColors.surfaceLight,
+                                              child: Icon(Icons.hourglass_empty_rounded, color: AppColors.textSecondary, size: 18),
                                             ),
-                                            title: Text(reqData['name'] ?? 'Utente', style: const TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF1C3D32))),
+                                            title: Text(reqData['name'] ?? 'Utente', style: const TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary)),
                                             subtitle: Text(reqData['email'] ?? '', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                                             trailing: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 IconButton(
-                                                  icon: const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF10B981)),
+                                                  icon: const Icon(Icons.check_circle_outline_rounded, color: AppColors.success),
                                                   onPressed: () => _acceptRequest(reqUid),
                                                 ),
                                                 IconButton(
-                                                  icon: const Icon(Icons.cancel_outlined, color: Color(0xFFEF4444)),
+                                                  icon: const Icon(Icons.cancel_outlined, color: AppColors.error),
                                                   onPressed: () => _rejectRequest(reqUid),
                                                 ),
                                               ],
@@ -474,7 +534,7 @@ class _AdminScreenState extends State<AdminScreen> {
       padding: const EdgeInsets.only(left: 4, bottom: 12),
       child: Text(
         title,
-        style: const TextStyle(fontFamily: 'Outfit', fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1C3D32)),
+        style: const TextStyle(fontFamily: 'Outfit', fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
       ),
     );
   }

@@ -71,7 +71,7 @@ Restituisci ESATTAMENTE e SOLO un array JSON in questo formato (nessun blocco ma
       return scannedItems;
     } catch (e, stackTrace) {
       print("=========================================");
-      print("❌ ERRORE CRITICO IA SCANNER");
+      print("ERRORE CRITICO IA SCANNER");
       print("=========================================");
       print("Dettaglio Errore: $e");
       print("Stack Trace: $stackTrace");
