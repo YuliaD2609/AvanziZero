@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/app_state.dart';
 import '../widgets/menus.dart';
 import '../theme/app_colors.dart';
+import '../services/ai_scanner_service.dart';
 
 class ShoppingScreen extends StatefulWidget {
   final AppState state;
@@ -104,46 +105,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                         ),
                       ),
 
-                      // Avviso / Badge Predictive Shopping (Business Model Canvas)
-                      if (!widget.state.isPredictiveBannerClosed) ...[
-                        Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 12),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryLight, // Menta Chiaro
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 18),
-                              const SizedBox(width: 8),
-                              const Expanded(
-                                child: Text(
-                                  "Predictive Shopping: suggerimenti automatici e previsione scorte",
-                                  style: TextStyle(
-                                    fontFamily: 'Outfit',
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              InkWell(
-                                onTap: () {
-                                  widget.state.closePredictiveBannerPermanent();
-                                },
-                                child: const Icon(
-                                  Icons.close_rounded,
-                                  color: AppColors.primary,
-                                  size: 18,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                      ],
+
 
                       // Area principale: Lista della spesa e Pulsanti sovrapposti
                       Expanded(
@@ -220,24 +182,39 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                   
                                   const SizedBox(height: 12),
                                   
-                                  // Pulsante Aggiungi un Elemento
-                                  ElevatedButton(
-                                    onPressed: () => _showAddItemDialog(context),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primaryDark, // Accento Verde Scuro/Teal
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                      elevation: 2,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                    ),
-                                    child: const Text(
-                                      "Aggiungi un elemento",
-                                      style: TextStyle(
-                                        fontFamily: 'Outfit',
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                  // Pulsanti flottanti in basso a destra
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      // Pulsante Predictive Shopping
+                                      FloatingActionButton(
+                                        heroTag: "predictive_btn",
+                                        onPressed: () => _showPredictiveShoppingModal(context),
+                                        backgroundColor: AppColors.primary,
+                                        elevation: 2,
+                                        child: const Icon(Icons.auto_awesome_rounded, color: Colors.white),
                                       ),
-                                    ),
+                                      const SizedBox(width: 12),
+                                      // Pulsante Aggiungi un Elemento
+                                      ElevatedButton(
+                                        onPressed: () => _showAddItemDialog(context),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.primaryDark, // Accento Verde Scuro/Teal
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                          elevation: 2,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                        ),
+                                        child: const Text(
+                                          "Aggiungi un elemento",
+                                          style: TextStyle(
+                                            fontFamily: 'Outfit',
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -354,6 +331,156 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showPredictiveShoppingModal(BuildContext context) {
+    bool isAILoading = true;
+    List<ItemModel> scarcityItems = [];
+    List<ItemModel> expiringItems = [];
+    bool hasFetched = false;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateModal) {
+          // Lancia la chiamata AI solo al primo render
+          if (!hasFetched) {
+            hasFetched = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) async {
+              try {
+                final history = await widget.state.firebaseService?.getConsumptionHistory() ?? [];
+                final pantryItems = widget.state.allItems.where((i) => i.isPantry).toList();
+                final shoppingItems = widget.state.allItems.where((i) => i.isShopping).toList();
+                final groupSize = widget.state.groupMembers.isNotEmpty ? widget.state.groupMembers.length : 1;
+                
+                final result = await AIScannerService.getPredictiveSuggestions(
+                  pantryItems,
+                  shoppingItems,
+                  history,
+                  groupSize,
+                );
+                
+                if (mounted) {
+                  setStateModal(() {
+                    scarcityItems = result["scarcity"] ?? [];
+                    expiringItems = result["expiring"] ?? [];
+                    isAILoading = false;
+                  });
+                }
+              } catch (e) {
+                if (mounted) {
+                  setStateModal(() {
+                    isAILoading = false;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Errore IA: $e")));
+                }
+              }
+            });
+          }
+
+          return Container(
+            padding: const EdgeInsets.all(24),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.auto_awesome_rounded, color: AppColors.primary),
+                    SizedBox(width: 8),
+                    Text(
+                      "Predictive Shopping",
+                      style: TextStyle(fontFamily: 'Outfit', fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  isAILoading ? "L'IA sta analizzando lo storico dei consumi..." : "I suggerimenti intelligenti basati sulle tue abitudini.",
+                  style: const TextStyle(fontFamily: 'Outfit', color: AppColors.textSecondary, fontSize: 14),
+                ),
+                const SizedBox(height: 24),
+                if (isAILoading)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32),
+                      child: Column(
+                        children: [
+                          CircularProgressIndicator(color: AppColors.primary),
+                          SizedBox(height: 16),
+                          Text("Elaborazione IA in corso...", style: TextStyle(color: AppColors.textSecondary, fontStyle: FontStyle.italic)),
+                        ],
+                      ),
+                    ),
+                  )
+                else if (scarcityItems.isEmpty && expiringItems.isEmpty)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32),
+                      child: Text("Nessun suggerimento al momento! La tua dispensa è in ottima forma.", textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSecondary)),
+                    ),
+                  )
+                else ...[
+                  if (scarcityItems.isNotEmpty) ...[
+                    const Text("Scarsità prodotti", style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, color: AppColors.primary)),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: scarcityItems.map((item) => _buildSuggestionChip(item)).toList(),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                  if (expiringItems.isNotEmpty) ...[
+                    const Text("Vicino alla scadenza", style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, color: AppColors.error)),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: expiringItems.map((item) => _buildSuggestionChip(item)).toList(),
+                    ),
+                  ],
+                ],
+                const SizedBox(height: 16),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSuggestionChip(ItemModel item) {
+    return ActionChip(
+      backgroundColor: AppColors.background,
+      side: const BorderSide(color: AppColors.primaryLight),
+      label: Text("+ ${item.name}", style: const TextStyle(color: AppColors.primaryDark, fontWeight: FontWeight.bold)),
+      onPressed: () {
+        final newItemId = DateTime.now().millisecondsSinceEpoch.toString();
+        final newItem = ItemModel(
+          id: newItemId,
+          name: item.name,
+          expireDate: "Data: N/A", // Default per la spesa
+          quantity: 1,
+          category: item.category,
+          isShopping: true,
+          isPantry: false,
+        );
+        widget.state.addItem(newItem);
+        Navigator.pop(context); // Chiude il modal
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("${item.name} aggiunto alla spesa!"),
+          backgroundColor: AppColors.primary,
+          duration: const Duration(seconds: 2),
+        ));
+      },
     );
   }
 

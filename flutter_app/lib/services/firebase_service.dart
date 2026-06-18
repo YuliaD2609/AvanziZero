@@ -171,4 +171,34 @@ class FirebaseService {
       print("Errore nell'eliminazione del gruppo: $e");
     }
   }
+
+  /// Registra il consumo di un prodotto nello storico leggero
+  Future<void> logConsumption(String itemName, int quantityConsumed) async {
+    try {
+      final docRef = _db.collection('groups').doc(groupId).collection('consumption_history').doc();
+      await docRef.set({
+        'name': itemName,
+        'quantity': quantityConsumed,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print("Errore logging consumi: $e");
+    }
+  }
+
+  /// Recupera gli ultimi log di consumo
+  Future<List<Map<String, dynamic>>> getConsumptionHistory() async {
+    try {
+      final snap = await _db.collection('groups').doc(groupId)
+          .collection('consumption_history')
+          .get();
+      
+      // Ordiniamo in locale per non perdere i log pending (dove timestamp potrebbe essere null localmente)
+      final docs = snap.docs.map((d) => d.data()).toList();
+      return docs;
+    } catch (e) {
+      print("Errore get history: $e");
+      return [];
+    }
+  }
 }
