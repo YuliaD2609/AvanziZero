@@ -583,6 +583,10 @@ class AppState extends ChangeNotifier {
       final item = allItems.firstWhere((i) => i.id == itemId);
       item.quantity += delta;
       
+      if (delta < 0 && item.isPantry) {
+        _firebaseService?.logConsumption(item.name, -delta);
+      }
+      
       if (item.quantity <= 0) {
         allItems.remove(item);
         notifyListeners();
@@ -598,6 +602,11 @@ class AppState extends ChangeNotifier {
 
   Future<void> deleteItem(String itemId) async {
     try {
+      final item = allItems.firstWhere((i) => i.id == itemId);
+      if (item.isPantry) {
+        _firebaseService?.logConsumption(item.name, item.quantity);
+      }
+      
       allItems.removeWhere((i) => i.id == itemId);
       notifyListeners();
       await _firebaseService?.deleteItem(itemId);

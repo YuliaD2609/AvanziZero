@@ -1,40 +1,72 @@
+import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../models/app_state.dart';
 import '../services/local_ai_model.dart';
-import '../services/local_receipt_parser.dart';
 
 class AIScannerService {
-  
-  /// Scansiona uno scontrino usando Google ML Kit OCR (completamente offline)
-  /// e poi applica il nostro Parser IA (LocalReceiptParser) per estrarre i prodotti.
+
   static Future<List<ItemModel>> scanReceipt(XFile imageFile) async {
+    // Leggiamo la chiave dal file .env segreto e non caricato su GitHub
+    final apiKey = dotenv.env['GEMINI_API_KEY'] ?? "";
+    
+    if (apiKey.isEmpty || apiKey == "INSERISCI_QUI_LA_TUA_NUOVA_CHIAVE") {
+      throw Exception(
+          "API Key mancante! Inserisci la tua chiave nel file .env alla radice del progetto.");
+    }
+
+    final model = GenerativeModel(
+      model: 'gemini-flash-latest',
+      apiKey: apiKey,
+    );
+
+    final bytes = await imageFile.readAsBytes();
+
+    final prompt = TextPart('''
+Sei un assistente AI per un'app di gestione dispensa per studenti fuorisede.
+Analizza questo scontrino della spesa (ignora tasse, sconti globali o subtotali).
+Per ogni prodotto acquistato, estrai il nome e assegna una categoria logica tra queste: "Frutta & Verdura", "Latticini", "Carne & Pesce", "Secco & Pasta", "Bevande", "Igiene Casa", "Altro".
+REGOLE PER IL NOME: Il nome del prodotto DEVE essere estremamente generico e pulito. Ignora marchi, grammature, provenienze geografiche o dettagli inutili. (Esempio: "Uova allevate a terra Piemonte 6pz" -> "Uova", "Coca Cola Zero 1L" -> "Coca Cola", "Latte Arborea Parz. Scremato" -> "Latte").
+Per il nome fai una eccezione per prodotti conosciuti internazionalmente come la Coca Cola, in questo caso es. “Coca Cola Zero 1L” -> “Coca Cola”. Eccezione anche formaggi, birre o brand molto conosciuti, non snaturare il prodotto.
+Se riesci a dedurre la quantità dallo scontrino inseriscila, altrimenti metti 1.
+
+Non è necessario salvare i sacchetti spesa, quindi ignora l`analisi di essi. Contenitori, sacchi a pelo si. Sacco biodegradabile, sacco spesa, sacco termico no.
+
+Restituisci ESATTAMENTE e SOLO un array JSON in questo formato (nessun blocco markdown, nessun backtick):
+[
+  {"name": "Latte Intero", "quantity": 1, "category": "Latticini"}
+]
+''');
+    final imagePart = DataPart('image/jpeg', bytes);
+
     try {
-      final inputImage = InputImage.fromFilePath(imageFile.path);
-      final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
-      
-      // Esecuzione OCR Locale
-      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
-      
-      // Chiusura del riconoscitore per liberare memoria
-      textRecognizer.close();
+      final response = await model.generateContent([
+        Content.multi([prompt, imagePart])
+      ]);
 
-      // Passiamo il testo raw (puro) al nostro Parser IA locale
-      final List<ItemModel> scannedItems = LocalReceiptParser.parseReceiptText(recognizedText.text);
+      String responseText = response.text ?? "[]";
+      // Pulizia forzata
+      responseText =
+          responseText.replaceAll("```json", "").replaceAll("```", "").trim();
 
-      if (scannedItems.isEmpty) {
-        throw Exception("Non sono riuscito a trovare prodotti riconoscibili nello scontrino.");
-      }
+      final List<dynamic> jsonList = jsonDecode(responseText);
+
+      List<ItemModel> scannedItems = jsonList.map((item) {
+        return ItemModel(
+          id: DateTime.now().millisecondsSinceEpoch.toString() +
+              item['name'].toString().hashCode.toString(),
+          name: item['name'],
+          expireDate: 'Data: N/A',
+          quantity: item['quantity'],
+          category: item['category'],
+          isPantry: true,
+        );
+      }).toList();
 
       return scannedItems;
-    } catch (e, stackTrace) {
-      print("=========================================");
-      print("ERRORE CRITICO OCR LOCALE");
-      print("=========================================");
-      print("Dettaglio Errore: $e");
-      print("Stack Trace: $stackTrace");
-      print("=========================================");
-      throw Exception("Errore di lettura dello scontrino: $e");
+    } catch (e) {
+      throw Exception("Errore durante l'analisi Gemini: $e");
     }
   }
 
@@ -45,10 +77,9 @@ class AIScannerService {
       List<Map<String, dynamic>> consumptionHistory,
       int groupSize) async {
     
-    // Piccolo delay artificiale per far godere all'utente la bella animazione di caricamento richiesta
     await Future.delayed(const Duration(milliseconds: 800));
     
-    // Passaggio diretto al nostro modello AI statistico in locale (0 ms di latenza)
+    // Manteniamo la fantastica intelligenza statistica in locale
     return LocalPredictiveModel.predict(pantryItems, shoppingItems, consumptionHistory, groupSize);
   }
 }

@@ -910,10 +910,12 @@ class _PantryScreenState extends State<PantryScreen> {
                                     value: widget.state.categories.contains(item.category) ? item.category : 'Altro',
                                     isExpanded: true,
                                     icon: Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
-                                    items: widget.state.categories.where((c) => c != "Tutti").map((c) {
+                                    items: {
+                                      ...widget.state.categories.where((c) => c != "Tutti"),
+                                      'Altro'
+                                    }.map((c) {
                                       return DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis));
-                                    }).toList()
-                                      ..add(DropdownMenuItem(value: 'Altro', child: Text('Altro'))),
+                                    }).toList(),
                                     onChanged: (val) => item.category = val ?? 'Altro',
                                     decoration: InputDecoration(
                                       labelText: "Categoria",
