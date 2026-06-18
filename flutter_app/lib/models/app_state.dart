@@ -452,15 +452,19 @@ class AppState extends ChangeNotifier {
   void addCustomCategory(String newCategory, String section) {
     if (newCategory.trim().isEmpty) return;
     bool updated = false;
-    if (section == 'pantry' && !pantryCategories.contains(newCategory)) {
+    
+    if (!pantryCategories.contains(newCategory)) {
       pantryCategories.add(newCategory);
-      selectedPantryCategory = newCategory;
-      updated = true;
-    } else if (section == 'shopping' && !shoppingCategories.contains(newCategory)) {
-      shoppingCategories.add(newCategory);
-      selectedShoppingCategory = newCategory;
       updated = true;
     }
+    if (!shoppingCategories.contains(newCategory)) {
+      shoppingCategories.add(newCategory);
+      updated = true;
+    }
+
+    if (section == 'pantry') selectedPantryCategory = newCategory;
+    if (section == 'shopping') selectedShoppingCategory = newCategory;
+
     if (updated) {
       notifyListeners();
       _firebaseService?.updateCategories(pantryCategories, shoppingCategories);
@@ -470,18 +474,21 @@ class AppState extends ChangeNotifier {
   void removeCustomCategory(String categoryToRemove, String section) {
     if (categoryToRemove == "Tutti") return; // "Tutti" non può mai essere eliminato
 
-    if (section == 'pantry') {
-      pantryCategories.remove(categoryToRemove);
-      if (selectedPantryCategory == categoryToRemove) {
-        selectedPantryCategory = "Tutti";
-      }
-    } else if (section == 'shopping') {
-      shoppingCategories.remove(categoryToRemove);
-      if (selectedShoppingCategory == categoryToRemove) {
-        selectedShoppingCategory = "Tutti";
-      }
+    bool removedFromPantry = pantryCategories.remove(categoryToRemove);
+    bool removedFromShopping = shoppingCategories.remove(categoryToRemove);
+
+    if (selectedPantryCategory == categoryToRemove) {
+      selectedPantryCategory = "Tutti";
     }
-    notifyListeners();
+    if (selectedShoppingCategory == categoryToRemove) {
+      selectedShoppingCategory = "Tutti";
+    }
+
+    if (removedFromPantry || removedFromShopping) {
+      notifyListeners();
+      // Aggiorniamo anche su Firestore
+      _firebaseService?.updateCategories(pantryCategories, shoppingCategories);
+    }
   }
 
   Future<void> updateQuantity(String itemId, int delta) async {

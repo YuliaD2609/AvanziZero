@@ -179,7 +179,12 @@ class _AuthScreenState extends State<AuthScreen> {
                     validator: (val) {
                       if (_passwordError != null) return _passwordError;
                       if (val == null || val.isEmpty) return "Inserisci la password";
-                      if (!_isLogin && val.length < 6) return "La password deve avere almeno 6 caratteri";
+                      if (!_isLogin) {
+                        if (val.length < 6) return "La password deve avere almeno 6 caratteri";
+                        if (!RegExp(r'[A-Z]').hasMatch(val)) return "Deve contenere almeno una lettera maiuscola";
+                        if (!RegExp(r'[a-z]').hasMatch(val)) return "Deve contenere almeno una lettera minuscola";
+                        if (!RegExp(r'[!@#\$&*~_+\-\.\/\\><?\^%]').hasMatch(val)) return "Deve contenere almeno un carattere speciale";
+                      }
                       return null;
                     },
                     onChanged: (val) {
