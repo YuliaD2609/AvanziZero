@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'firebase_options.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'models/app_state.dart';
 import 'services/supermarkets_service.dart';
 import 'screens/group_setup_screen.dart';
@@ -16,6 +17,13 @@ void main() async {
   // Garantisce che il binding nativo di Flutter sia pronto prima dell'inizializzazione cloud
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Caricamento variabili d'ambiente
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    print("Avviso: File .env non trovato. Le funzionalità API potrebbero non funzionare.");
+  }
+
   try {
     // Inizializza Firebase nativamente usando le options generate da FlutterFire CLI
     await Firebase.initializeApp(
