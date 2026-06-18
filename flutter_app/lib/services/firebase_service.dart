@@ -137,4 +137,18 @@ class FirebaseService {
       print("Errore nel seeding iniziale: $e");
     }
   }
+  Stream<DocumentSnapshot> getGroupStream() {
+    return _db.collection('groups').doc(groupId).snapshots();
+  }
+
+  Future<void> updateCategories(List<String> pantryCategories, List<String> shoppingCategories) async {
+    try {
+      await _db.collection('groups').doc(groupId).set({
+        'pantryCategories': pantryCategories,
+        'shoppingCategories': shoppingCategories,
+      }, SetOptions(merge: true));
+    } catch (e) {
+      print("Errore aggiornamento categorie: $e");
+    }
+  }
 }

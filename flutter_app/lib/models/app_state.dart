@@ -150,6 +150,7 @@ class AppState extends ChangeNotifier {
 
   FirebaseService? _firebaseService;
   StreamSubscription<List<ItemModel>>? _itemsSubscription;
+  StreamSubscription<DocumentSnapshot>? _groupSubscription;
 
   bool isLoading = false;
 
@@ -194,6 +195,7 @@ class AppState extends ChangeNotifier {
 
     // Cancella eventuali sottoscrizioni precedenti
     await _itemsSubscription?.cancel();
+    await _groupSubscription?.cancel();
 
     // Sottoscrizione allo stream degli articoli
     _itemsSubscription = _firebaseService!.getItemsStream().listen(
@@ -208,6 +210,21 @@ class AppState extends ChangeNotifier {
         notifyListeners();
       },
     );
+
+    _groupSubscription = _firebaseService!.getGroupStream().listen((doc) {
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>? ?? {};
+        if (data.containsKey('pantryCategories')) {
+          final List<dynamic> loaded = data['pantryCategories'];
+          pantryCategories = loaded.map((e) => e.toString()).toList();
+        }
+        if (data.containsKey('shoppingCategories')) {
+          final List<dynamic> loaded = data['shoppingCategories'];
+          shoppingCategories = loaded.map((e) => e.toString()).toList();
+        }
+        notifyListeners();
+      }
+    });
   }
 
   /// Rimuove un gruppo specifico dalla cronologia locale
@@ -243,6 +260,8 @@ class AppState extends ChangeNotifier {
     } catch (_) {}
     await _itemsSubscription?.cancel();
     _itemsSubscription = null;
+    await _groupSubscription?.cancel();
+    _groupSubscription = null;
     _isPredictiveBannerClosed = false;
 
     // Ripristina le liste di default per permettere l'ingresso pulito in un altro gruppo
@@ -255,6 +274,7 @@ class AppState extends ChangeNotifier {
   @override
   void dispose() {
     _itemsSubscription?.cancel();
+    _groupSubscription?.cancel();
     super.dispose();
   }
 
@@ -314,7 +334,10 @@ class AppState extends ChangeNotifier {
       shoppingCategories.add(newCategory);
       selectedShoppingCategory = newCategory;
     }
-    notifyListeners();
+    if (updated) {
+      notifyListeners();
+      _firebaseService?.updateCategories(pantryCategories, shoppingCategories);
+    }
   }
 
   Future<void> updateQuantity(String itemId, int delta) async {
