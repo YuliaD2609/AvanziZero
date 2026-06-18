@@ -370,6 +370,28 @@ class _AdminScreenState extends State<AdminScreen> {
               ),
               const SizedBox(height: 28),
 
+              // ==========================================
+              // SEZIONE LOGOUT
+              // ==========================================
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    await widget.state.authService.signOut();
+                    if (!mounted) return;
+                    Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
+                  },
+                  icon: const Icon(Icons.logout_rounded, color: AppColors.error),
+                  label: const Text("Esci dal Profilo (Logout)", style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: const BorderSide(color: AppColors.error),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 28),
+
               // Se non c'è un gruppo attivo, fermati qui
               if (widget.state.groupId == null) const SizedBox.shrink() else ...[
                 // Dati real-time del gruppo

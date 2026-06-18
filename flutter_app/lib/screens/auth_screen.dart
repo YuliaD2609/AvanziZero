@@ -180,10 +180,13 @@ class _AuthScreenState extends State<AuthScreen> {
                       if (_passwordError != null) return _passwordError;
                       if (val == null || val.isEmpty) return "Inserisci la password";
                       if (!_isLogin) {
-                        if (val.length < 6) return "La password deve avere almeno 6 caratteri";
-                        if (!RegExp(r'[A-Z]').hasMatch(val)) return "Deve contenere almeno una lettera maiuscola";
-                        if (!RegExp(r'[a-z]').hasMatch(val)) return "Deve contenere almeno una lettera minuscola";
-                        if (!RegExp(r'[!@#\$&*~_+\-\.\/\\><?\^%]').hasMatch(val)) return "Deve contenere almeno un carattere speciale";
+                        if (val.length < 8 || 
+                            !RegExp(r'[A-Z]').hasMatch(val) || 
+                            !RegExp(r'[a-z]').hasMatch(val) || 
+                            !RegExp(r'[!@#\$&*~_+\-\.\/\\><?\^%]').hasMatch(val) ||
+                            !RegExp(r'[0-9]').hasMatch(val)) {
+                          return "La password deve contenere almeno 8 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale.";
+                        }
                       }
                       return null;
                     },
@@ -196,6 +199,16 @@ class _AuthScreenState extends State<AuthScreen> {
                     },
                     onSaved: (val) => _password = val!,
                   ),
+                  
+                  if (_isLogin)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _showForgotPasswordDialog,
+                        child: const Text("Hai dimenticato la password?", style: TextStyle(color: AppColors.primary, fontSize: 13)),
+                      ),
+                    ),
+                    
                   const SizedBox(height: 32),
 
                   _isLoading
@@ -235,6 +248,68 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _showForgotPasswordDialog() {
+    final TextEditingController emailCtrl = TextEditingController(text: _email);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Recupera Password", style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Inserisci la tua email per ricevere il link di recupero password."),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailCtrl,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: "Email",
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Annulla", style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final email = emailCtrl.text.trim();
+              if (email.isEmpty || !email.contains('@')) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Inserisci una email valida")),
+                );
+                return;
+              }
+              Navigator.pop(ctx);
+              try {
+                await _auth.sendPasswordResetEmail(email);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Abbiamo inviato un link alla tua email per recuperare la password!"),
+                      backgroundColor: AppColors.primary,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Errore: Impossibile inviare l'email di recupero.")),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+            child: const Text("Invia"),
+          ),
+        ],
       ),
     );
   }
