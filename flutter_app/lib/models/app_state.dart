@@ -364,6 +364,15 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  Future<void> updateItem(ItemModel updatedItem) async {
+    final index = allItems.indexWhere((i) => i.id == updatedItem.id);
+    if (index != -1) {
+      allItems[index] = updatedItem;
+      notifyListeners();
+      await _firebaseService?.saveItem(updatedItem);
+    }
+  }
+
   Future<void> moveToShoppingList(ItemModel oldItem) async {
     // Aggiungi alla spesa
     final newItem = ItemModel(
@@ -381,14 +390,24 @@ class AppState extends ChangeNotifier {
     await deleteItem(oldItem.id);
   }
 
+  Future<void> markSelectedShoppingDone(List<String> selectedItemIds) async {
+    for (var item in allItems.where((i) => i.isShopping && selectedItemIds.contains(i.id)).toList()) {
+      item.isShopping = false;
+      item.isPantry = true;
+      item.expireDate = "Data: N/A";
+      await _firebaseService?.saveItem(item);
+    }
+    notifyListeners();
+  }
+
   Future<void> markShoppingDone() async {
     for (var item in allItems.where((i) => i.isShopping).toList()) {
       item.isShopping = false;
       item.isPantry = true;
-      item.expireDate = "Scadenza: Fresco (30 gg)";
+      item.expireDate = "Data: N/A";
+      await _firebaseService?.saveItem(item);
     }
     notifyListeners();
-    await _firebaseService?.markShoppingDone();
   }
 
   Future<void> updateProfileName(String newName) async {

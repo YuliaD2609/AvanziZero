@@ -183,23 +183,27 @@ class _PantryScreenState extends State<PantryScreen> {
     if (item.urgencyLevel == 2) urgencyColor = AppColors.error; // Rosso
     if (item.urgencyLevel == 1) urgencyColor = AppColors.warning; // Giallo
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: InkWell(
+        onTap: () => _showEditItemDialog(context, item),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: urgencyColor, width: item.urgencyLevel > 0 ? 1.5 : 1),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowMedium,
-            blurRadius: 10,
-            offset: Offset(0, 2),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: urgencyColor, width: item.urgencyLevel > 0 ? 1.5 : 1),
+            boxShadow: const [
+              BoxShadow(
+                color: AppColors.shadowMedium,
+                blurRadius: 10,
+                offset: Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -345,7 +349,7 @@ class _PantryScreenState extends State<PantryScreen> {
           ),
         ],
       ),
-    );
+    )));
   }
 
   // Finestra di dialogo per aggiungere una nuova categoria
@@ -493,6 +497,148 @@ class _PantryScreenState extends State<PantryScreen> {
               },
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
               child: const Text("Inserisci", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditItemDialog(BuildContext context, ItemModel item) {
+    final TextEditingController nameController = TextEditingController(text: item.name);
+    final TextEditingController quantityController = TextEditingController(text: item.quantity.toString());
+    bool nameError = false;
+    
+    DateTime? selectedDate;
+    final cleanText = item.expireDate.replaceAll("In scadenza: ", "").replaceAll("Scadenza: ", "").trim();
+    if (cleanText.contains('/')) {
+      final parts = cleanText.split('/');
+      if (parts.length == 3) {
+        final d = int.tryParse(parts[0]);
+        final m = int.tryParse(parts[1]);
+        final y = int.tryParse(parts[2]);
+        if (d != null && m != null && y != null) {
+          selectedDate = DateTime(y, m, d);
+        }
+      }
+    }
+
+    String selectedCat = widget.state.pantryCategories.contains(item.category) 
+        ? item.category 
+        : (widget.state.pantryCategories.length > 1 ? widget.state.pantryCategories[1] : "Altro");
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: Colors.white,
+          title: const Text("Modifica Prodotto", style: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: "Nome Elemento",
+                    errorText: nameError ? "Inserisci il nome dell'elemento" : null,
+                  ),
+                  onChanged: (val) {
+                    if (nameError && val.trim().isNotEmpty) {
+                      setDialogState(() => nameError = false);
+                    }
+                  },
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: selectedCat,
+                  items: widget.state.pantryCategories
+                      .where((c) => c != "Tutti")
+                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                      .toList(),
+                  onChanged: (val) => setDialogState(() => selectedCat = val!),
+                  decoration: const InputDecoration(labelText: "Categoria"),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  readOnly: true,
+                  controller: TextEditingController(
+                    text: selectedDate == null
+                        ? "Data: N/A"
+                        : "${selectedDate!.day.toString().padLeft(2, '0')}/${selectedDate!.month.toString().padLeft(2, '0')}/${selectedDate!.year}",
+                  ),
+                  decoration: InputDecoration(
+                    labelText: "Data Scadenza",
+                    hintText: "Scegli dal calendario",
+                    suffixIcon: selectedDate != null
+                        ? IconButton(
+                            icon: const Icon(Icons.clear_rounded, color: AppColors.textSecondary),
+                            onPressed: () {
+                              setDialogState(() {
+                                selectedDate = null;
+                              });
+                            },
+                          )
+                        : const Icon(Icons.calendar_today_rounded, color: AppColors.primary),
+                  ),
+                  onTap: () async {
+                    final DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: selectedDate ?? DateTime.now(),
+                      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                      lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+                      builder: (context, child) {
+                        return Theme(
+                          data: Theme.of(context).copyWith(
+                            colorScheme: const ColorScheme.light(
+                              primary: AppColors.primary,
+                              onPrimary: Colors.white,
+                              onSurface: AppColors.textPrimary,
+                            ),
+                          ),
+                          child: child!,
+                        );
+                      },
+                    );
+                    if (picked != null) {
+                      setDialogState(() {
+                        selectedDate = picked;
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: quantityController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: "Quantità"),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annulla")),
+            ElevatedButton(
+              onPressed: () {
+                if (nameController.text.trim().isNotEmpty) {
+                  int q = int.tryParse(quantityController.text) ?? item.quantity;
+                  if (q < 1) q = 1;
+
+                  item.name = nameController.text.trim();
+                  item.category = selectedCat;
+                  item.quantity = q;
+                  item.expireDate = selectedDate == null
+                      ? "Data: N/A"
+                      : "${selectedDate!.day.toString().padLeft(2, '0')}/${selectedDate!.month.toString().padLeft(2, '0')}/${selectedDate!.year}";
+                  
+                  widget.state.updateItem(item);
+                  Navigator.pop(context);
+                } else {
+                  setDialogState(() => nameError = true);
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              child: const Text("Salva", style: TextStyle(color: Colors.white)),
             ),
           ],
         ),

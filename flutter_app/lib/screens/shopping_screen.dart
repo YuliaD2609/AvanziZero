@@ -22,6 +22,7 @@ class ShoppingScreen extends StatefulWidget {
 class _ShoppingScreenState extends State<ShoppingScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = "";
+  final Set<String> _checkedItems = {};
 
   @override
   Widget build(BuildContext context) {
@@ -173,10 +174,19 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                           alignment: Alignment.centerRight,
                           child: ElevatedButton(
                             onPressed: () {
-                              widget.state.markShoppingDone();
+                              if (_checkedItems.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text("Seleziona almeno un prodotto per completare la spesa!")),
+                                );
+                                return;
+                              }
+                              widget.state.markSelectedShoppingDone(_checkedItems.toList());
+                              setState(() {
+                                _checkedItems.clear();
+                              });
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text("Spesa Fatta! Prodotti trasferiti in Dispensa con successo."),
+                                  content: Text("Spesa Fatta! Prodotti selezionati trasferiti in Dispensa con successo."),
                                   backgroundColor: AppColors.primary,
                                   duration: Duration(seconds: 3),
                                 ),
@@ -260,20 +270,25 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
           // Checkbox di selezione
           InkWell(
             onTap: () {
-              // Rimuovi o sposta istantaneamente
               setState(() {
-                item.isShopping = false;
-                item.isPantry = true;
-                item.expireDate = "Scadenza: Fresco";
+                if (_checkedItems.contains(item.id)) {
+                  _checkedItems.remove(item.id);
+                } else {
+                  _checkedItems.add(item.id);
+                }
               });
             },
             child: Container(
-              width: 22,
-              height: 22,
+              width: 24,
+              height: 24,
               decoration: BoxDecoration(
+                color: _checkedItems.contains(item.id) ? AppColors.primary : Colors.transparent,
                 border: Border.all(color: AppColors.primary, width: 2),
                 borderRadius: BorderRadius.circular(6),
               ),
+              child: _checkedItems.contains(item.id)
+                  ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
+                  : null,
             ),
           ),
           const SizedBox(width: 12),
