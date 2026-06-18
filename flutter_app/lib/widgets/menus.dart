@@ -5,6 +5,7 @@ class HorizontalHeaderMenu extends StatelessWidget {
   final VoidCallback onHomePressed;
   final VoidCallback onCartPressed;
   final bool showHome;
+  final Widget? leftAction;
 
   const HorizontalHeaderMenu({
     super.key,
@@ -12,6 +13,7 @@ class HorizontalHeaderMenu extends StatelessWidget {
     required this.onHomePressed,
     required this.onCartPressed,
     this.showHome = true,
+    this.leftAction,
   });
 
   @override
@@ -38,14 +40,16 @@ class HorizontalHeaderMenu extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Pulsante Home a sinistra come da layout nativo
-            showHome
-                ? IconButton(
-                    icon: const Icon(Icons.home_rounded, color: Colors.white, size: 30),
-                    onPressed: onHomePressed,
-                    tooltip: 'Torna alla Home',
-                  )
-                : const SizedBox(width: 48),
+            // Pulsante Home o leftAction a sinistra come da layout nativo
+            leftAction != null
+                ? leftAction!
+                : (showHome
+                    ? IconButton(
+                        icon: const Icon(Icons.home_rounded, color: Colors.white, size: 30),
+                        onPressed: onHomePressed,
+                        tooltip: 'Torna alla Home',
+                      )
+                    : const SizedBox(width: 48)),
             
             // Titolo della sezione al centro
             Expanded(
@@ -165,7 +169,7 @@ class VerticalCategoryMenu extends StatelessWidget {
               height: 50,
               width: double.infinity,
               decoration: const BoxDecoration(
-                color: Color(0xFFFFB088), // Accento Pesca Pastello
+                color: Color(0xFF056C3F), // Accento Verde Scuro/Teal
                 borderRadius: BorderRadius.only(topRight: Radius.circular(12)),
               ),
               child: const Center(
@@ -175,7 +179,7 @@ class VerticalCategoryMenu extends StatelessWidget {
                     fontFamily: 'Outfit',
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1C3D32), // Alto contrasto
+                    color: Colors.white, // Alto contrasto
                   ),
                 ),
               ),

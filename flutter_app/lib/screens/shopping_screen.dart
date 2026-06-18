@@ -208,7 +208,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                           child: ElevatedButton(
                             onPressed: () => _showAddItemDialog(context),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFFB088), // Accento Pesca Pastello
+                              backgroundColor: const Color(0xFF056C3F), // Accento Verde Scuro/Teal
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                               elevation: 1,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -219,7 +219,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                 fontFamily: 'Outfit',
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1C3D32),
+                                color: Colors.white,
                               ),
                             ),
                           ),
@@ -360,6 +360,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
 
   void _showAddItemDialog(BuildContext context) {
     final TextEditingController nameController = TextEditingController();
+    bool nameError = false;
     String selectedCat = widget.state.selectedShoppingCategory == "Tutti"
         ? widget.state.shoppingCategories[1]
         : widget.state.selectedShoppingCategory;
@@ -375,7 +376,15 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
             children: [
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(labelText: "Nome Elemento"),
+                decoration: InputDecoration(
+                  labelText: "Nome Elemento",
+                  errorText: nameError ? "Inserisci il nome dell'elemento" : null,
+                ),
+                onChanged: (val) {
+                  if (nameError && val.trim().isNotEmpty) {
+                    setDialogState(() => nameError = false);
+                  }
+                },
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
@@ -393,16 +402,18 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
             TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annulla")),
             ElevatedButton(
               onPressed: () {
-                if (nameController.text.isNotEmpty) {
+                if (nameController.text.trim().isNotEmpty) {
                   widget.state.addItem(ItemModel(
                     id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    name: nameController.text,
+                    name: nameController.text.trim(),
                     expireDate: "-",
                     quantity: 1,
                     category: selectedCat,
                     isShopping: true,
                   ));
                   Navigator.pop(context);
+                } else {
+                  setDialogState(() => nameError = true);
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5A9E87)),

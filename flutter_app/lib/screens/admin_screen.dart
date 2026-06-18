@@ -17,6 +17,8 @@ class _AdminScreenState extends State<AdminScreen> {
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
+  
+  bool _notificationsEnabled = true;
 
   @override
   void initState() {
@@ -41,7 +43,7 @@ class _AdminScreenState extends State<AdminScreen> {
     // Funzionalità mockata per il profilo personale (da implementare in futuro)
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text("✨ Profilo aggiornato con successo!"),
+        content: Text("Profilo aggiornato con successo!"),
         backgroundColor: Color(0xFF5A9E87),
       ),
     );
@@ -62,7 +64,7 @@ class _AdminScreenState extends State<AdminScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("🗑️ Membro rimosso dal gruppo."), backgroundColor: Color(0xFFEF4444)),
+          const SnackBar(content: Text("Membro rimosso dal gruppo."), backgroundColor: Color(0xFFEF4444)),
         );
       }
     } catch (e) {
@@ -79,7 +81,7 @@ class _AdminScreenState extends State<AdminScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("👑 Membro promosso ad Admin!"), backgroundColor: Color(0xFF5A9E87)),
+          const SnackBar(content: Text("Membro promosso ad Admin!"), backgroundColor: Color(0xFF5A9E87)),
         );
       }
     } catch (e) {
@@ -105,7 +107,7 @@ class _AdminScreenState extends State<AdminScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("✅ Richiesta accettata!"), backgroundColor: Color(0xFF5A9E87)),
+          const SnackBar(content: Text("Richiesta accettata!"), backgroundColor: Color(0xFF5A9E87)),
         );
       }
     } catch (e) {
@@ -124,7 +126,7 @@ class _AdminScreenState extends State<AdminScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("❌ Richiesta rifiutata."), backgroundColor: Color(0xFFEF4444)),
+          const SnackBar(content: Text("Richiesta rifiutata."), backgroundColor: Color(0xFFEF4444)),
         );
       }
     } catch (e) {
@@ -147,7 +149,7 @@ class _AdminScreenState extends State<AdminScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "Area Admin & Profilo",
+          "Gruppo & Profilo",
           style: TextStyle(
             fontFamily: 'Outfit',
             fontSize: 20,
@@ -204,6 +206,24 @@ class _AdminScreenState extends State<AdminScreen> {
                           fillColor: const Color(0xFFFBFBF9),
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          labelText: "Nuova Password",
+                          prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF5A9E87)),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          filled: true,
+                          fillColor: const Color(0xFFFBFBF9),
+                        ),
+                        validator: (val) {
+                          if (val != null && val.isNotEmpty && val.length < 6) {
+                            return "La password deve avere almeno 6 caratteri";
+                          }
+                          return null;
+                        },
+                      ),
                       const SizedBox(height: 20),
                       SizedBox(
                         width: double.infinity,
@@ -221,6 +241,39 @@ class _AdminScreenState extends State<AdminScreen> {
                       ),
                     ],
                   ),
+                ),
+              ),
+              const SizedBox(height: 28),
+
+              // ==========================================
+              // SEZIONE 1.5: NOTIFICHE
+              // ==========================================
+              _buildSectionTitle("Impostazioni Notifiche"),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0x051C3D32), blurRadius: 15, offset: Offset(0, 4)),
+                  ],
+                  border: Border.all(color: const Color(0xFF5A9E87).withOpacity(0.15)),
+                ),
+                child: SwitchListTile(
+                  title: const Text(
+                    "Ricevi notifiche",
+                    style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, color: Color(0xFF1C3D32)),
+                  ),
+                  subtitle: const Text(
+                    "Avvisi per scadenze e attività di gruppo",
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  activeColor: const Color(0xFF5A9E87),
+                  value: _notificationsEnabled,
+                  onChanged: (val) {
+                    setState(() {
+                      _notificationsEnabled = val;
+                    });
+                  },
                 ),
               ),
               const SizedBox(height: 28),

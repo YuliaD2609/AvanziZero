@@ -69,7 +69,7 @@ class _FarFromHomeAppState extends State<FarFromHomeApp> {
             colorScheme: ColorScheme.fromSeed(
               seedColor: const Color(0xFF5A9E87),
               primary: const Color(0xFF5A9E87),
-              secondary: const Color(0xFFFFB088), // Pesca Pastello
+              secondary: const Color(0xFF056C3F), // Verde Scuro/Teal
               surface: Colors.white,
               onSurface: const Color(0xFF1C3D32), // Verde Foresta Scuro
             ),
@@ -118,6 +118,7 @@ class _MainNavigatorState extends State<MainNavigator> {
       HomeScreen(
         state: widget.state,
         onNavigate: _navigate,
+        onCartPressed: () => _showNearbySupermarketsModal(context),
       ),
       PantryScreen(
         state: widget.state,
@@ -230,7 +231,7 @@ class _MainNavigatorState extends State<MainNavigator> {
                   children: [
                     const Row(
                       children: [
-                        Icon(Icons.storefront_rounded, color: Color(0xFFFFB088), size: 28),
+                        Icon(Icons.storefront_rounded, color: Color(0xFF056C3F), size: 28),
                         SizedBox(width: 10),
                         Text(
                           "Supermercati Vicini",
@@ -377,8 +378,8 @@ class _MainNavigatorState extends State<MainNavigator> {
                     style: TextStyle(fontFamily: 'Outfit', fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFB088), // Accento Pesca
-                    foregroundColor: const Color(0xFF1C3D32),
+                    backgroundColor: const Color(0xFF056C3F), // Accento Verde Scuro/Teal
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: 0,

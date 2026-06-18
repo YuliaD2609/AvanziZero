@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_state.dart';
 import '../main.dart'; // Per accedere a MainNavigator
+import 'admin_screen.dart';
 
 /// Schermata iniziale ordinata ed elegante per la configurazione del gruppo casa.
 /// Permette di avviare un nuovo ambiente di co-living generando un codice univoco,
@@ -73,7 +74,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
         duration: const Duration(seconds: 8),
         action: SnackBarAction(
           label: 'OK',
-          textColor: const Color(0xFFFFB088),
+          textColor: const Color(0xFF056C3F),
           onPressed: () {},
         ),
       ),
@@ -206,7 +207,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                     height: 300,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFFFFB088).withOpacity(0.2),
+                      color: const Color(0xFF056C3F).withOpacity(0.2),
                     ),
                   ),
                 ),
@@ -242,12 +243,29 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                               )
                             else
                               const SizedBox.shrink(),
-                            IconButton(
-                              onPressed: () async {
-                                await widget.state.authService.signOut();
-                              },
-                              icon: const Icon(Icons.logout_rounded, color: Color(0xFFEF4444), size: 28),
-                              tooltip: "Logout",
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => AdminScreen(state: widget.state),
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.person_outline_rounded, color: Color(0xFF5A9E87), size: 28),
+                                  tooltip: "Profilo",
+                                ),
+                                IconButton(
+                                  onPressed: () async {
+                                    await widget.state.authService.signOut();
+                                  },
+                                  icon: const Icon(Icons.logout_rounded, color: Color(0xFFEF4444), size: 28),
+                                  tooltip: "Logout",
+                                ),
+                              ],
                             ),
                           ],
                         ),
