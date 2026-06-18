@@ -86,6 +86,7 @@ class VerticalCategoryMenu extends StatelessWidget {
   final List<String> categories;
   final String selectedCategory;
   final Function(String) onCategorySelected;
+  final Function(String)? onCategoryLongPressed;
   final VoidCallback onAddCategoryPressed;
 
   const VerticalCategoryMenu({
@@ -93,6 +94,7 @@ class VerticalCategoryMenu extends StatelessWidget {
     required this.categories,
     required this.selectedCategory,
     required this.onCategorySelected,
+    this.onCategoryLongPressed,
     required this.onAddCategoryPressed,
   });
 
@@ -127,6 +129,7 @@ class VerticalCategoryMenu extends StatelessWidget {
 
                 return InkWell(
                   onTap: () => onCategorySelected(category),
+                  onLongPress: onCategoryLongPressed != null ? () => onCategoryLongPressed!(category) : null,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),

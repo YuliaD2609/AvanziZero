@@ -99,9 +99,6 @@ class HomeScreen extends StatelessWidget {
                                 MaterialPageRoute(builder: (context) => GroupSetupScreen(state: state)),
                                 (route) => false,
                               );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Sei uscito dal gruppo appartamento.")),
-                              );
                             },
                             icon: const Icon(Icons.logout_rounded, size: 16, color: AppColors.error),
                             label: const Text(
@@ -153,7 +150,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "Gestione Casa e Dispensa Fuorisede",
+                      "Tutto quello che serve dalla A alla Z.",
                       style: TextStyle(
                         fontFamily: 'Outfit',
                         fontSize: 13,
