@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'models/app_state.dart';
 import 'services/supermarkets_service.dart';
+import 'services/notification_service.dart';
 import 'screens/group_setup_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/pantry_screen.dart';
@@ -13,15 +14,22 @@ import 'screens/shopping_screen.dart';
 import 'screens/auth_screen.dart';
 import 'theme/app_colors.dart';
 
+final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
+
 void main() async {
   // Garantisce che il binding nativo di Flutter sia pronto prima dell'inizializzazione cloud
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  // Inizializza il motore delle notifiche locali
+  await NotificationService().init();
+
   // Caricamento variabili d'ambiente
   try {
     await dotenv.load(fileName: ".env");
   } catch (e) {
-    print("Avviso: File .env non trovato. Le funzionalità API potrebbero non funzionare.");
+    print(
+        "Avviso: File .env non trovato. Le funzionalità API potrebbero non funzionare.");
   }
 
   try {
@@ -29,7 +37,7 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    
+
     // Abilita la persistenza offline e il caching per consentire il merge locale delle modifiche
     FirebaseFirestore.instance.settings = const Settings(
       persistenceEnabled: true,
@@ -38,7 +46,8 @@ void main() async {
 
     print("Firebase inizializzato con successo!");
   } catch (e) {
-    print("Avviso: Firebase non configurato nativamente ($e). Avvio in fallback locale per test UI.");
+    print(
+        "Avviso: Firebase non configurato nativamente ($e). Avvio in fallback locale per test UI.");
   }
 
   runApp(const AvanziZeroApp());
@@ -60,6 +69,8 @@ class _AvanziZeroAppState extends State<AvanziZeroApp> {
     super.initState();
     // Carica la cronologia dei gruppi salvati all'avvio dell'app
     _appState.loadSavedGroups();
+    // Carica preferenze notifiche
+    _appState.loadNotificationPreferences();
   }
 
   @override
@@ -74,9 +85,10 @@ class _AvanziZeroAppState extends State<AvanziZeroApp> {
       animation: _appState,
       builder: (context, child) {
         return MaterialApp(
+          scaffoldMessengerKey: rootScaffoldMessengerKey,
           title: 'AvanziZero',
           debugShowCheckedModeBanner: false,
-          
+
           // Tema globale basato sui token Pastel Sage & Soft Mint
           theme: ThemeData(
             useMaterial3: true,
@@ -98,27 +110,29 @@ class _AvanziZeroAppState extends State<AvanziZeroApp> {
               },
             ),
           ),
-          
+
           // Routing dinamico basato sull'autenticazione e sul Codice Gruppo
           home: _appState.currentUserAuth == null
-              ? AuthScreen()
+              ? const AuthScreen()
               : _appState.isInitializingUser
                   ? Scaffold(
                       backgroundColor: AppColors.background,
                       body: Center(
-                        child: CircularProgressIndicator(color: AppColors.primary),
+                        child:
+                            CircularProgressIndicator(color: AppColors.primary),
                       ),
                     )
                   : _appState.groupId == null
                       ? GroupSetupScreen(state: _appState)
                       : _appState.isLoading
-                      ? Scaffold(
-                          backgroundColor: AppColors.background,
-                          body: Center(
-                            child: CircularProgressIndicator(color: AppColors.primary),
-                          ),
-                        )
-                      : MainNavigator(state: _appState),
+                          ? Scaffold(
+                              backgroundColor: AppColors.background,
+                              body: Center(
+                                child: CircularProgressIndicator(
+                                    color: AppColors.primary),
+                              ),
+                            )
+                          : MainNavigator(state: _appState),
         );
       },
     );
@@ -153,85 +167,96 @@ class _MainNavigatorState extends State<MainNavigator> {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => GroupSetupScreen(state: widget.state)),
+                MaterialPageRoute(
+                    builder: (context) =>
+                        GroupSetupScreen(state: widget.state)),
                 (Route<dynamic> route) => false,
               );
             }
           });
-          return Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.primary)));
+          return Scaffold(
+              body: Center(
+                  child: CircularProgressIndicator(color: AppColors.primary)));
         }
 
         // Array delle 3 schermate principali con i riferimenti incrociati di navigazione
         final List<Widget> screens = [
-      HomeScreen(
-        state: widget.state,
-        onNavigate: _navigate,
-        onCartPressed: () => _showNearbySupermarketsModal(context),
-      ),
-      PantryScreen(
-        state: widget.state,
-        onHomePressed: () => _navigate(0),
-        onCartPressed: () => _showNearbySupermarketsModal(context),
-      ),
-      ShoppingScreen(
-        state: widget.state,
-        onHomePressed: () => _navigate(0),
-        onCartPressed: () => _showNearbySupermarketsModal(context),
-      ),
-    ];
-
-    return WillPopScope(
-      onWillPop: () async {
-        // Se non siamo nella Dashboard, torna alla Dashboard invece di chiudere l'app
-        if (_currentIndex != 0) {
-          _navigate(0);
-          return false;
-        }
-        // Se siamo nella Dashboard, chiudi l'app normalmente
-        return true;
-      },
-      child: Scaffold(
-        body: screens[_currentIndex],
-        
-        // Barra di navigazione inferiore fluida e moderna
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.shadowNavbar,
-                blurRadius: 10,
-                offset: Offset(0, -2),
-              ),
-            ],
+          HomeScreen(
+            state: widget.state,
+            onNavigate: _navigate,
+            onCartPressed: () => _showNearbySupermarketsModal(context),
           ),
-        child: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: _navigate,
-          backgroundColor: AppColors.surfaceLight,
-          indicatorColor: AppColors.primaryLight, // Menta Chiaro per tab attiva
-          elevation: 0,
-          height: 65,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          destinations: [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined, color: AppColors.textSecondary),
-              selectedIcon: Icon(Icons.home_rounded, color: AppColors.primary),
-              label: 'Home',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.kitchen_outlined, color: AppColors.textSecondary),
-              selectedIcon: Icon(Icons.kitchen_rounded, color: AppColors.primary),
-              label: 'Dispensa',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.receipt_long_outlined, color: AppColors.textSecondary),
-              selectedIcon: Icon(Icons.receipt_long_rounded, color: AppColors.primary),
-              label: 'Spesa',
-            ),
-          ],
-        ),
-      ),
-    ));
+          PantryScreen(
+            state: widget.state,
+            onHomePressed: () => _navigate(0),
+            onCartPressed: () => _showNearbySupermarketsModal(context),
+          ),
+          ShoppingScreen(
+            state: widget.state,
+            onHomePressed: () => _navigate(0),
+            onCartPressed: () => _showNearbySupermarketsModal(context),
+          ),
+        ];
+
+        return WillPopScope(
+            onWillPop: () async {
+              // Se non siamo nella Dashboard, torna alla Dashboard invece di chiudere l'app
+              if (_currentIndex != 0) {
+                _navigate(0);
+                return false;
+              }
+              // Se siamo nella Dashboard, chiudi l'app normalmente
+              return true;
+            },
+            child: Scaffold(
+              body: screens[_currentIndex],
+
+              // Barra di navigazione inferiore fluida e moderna
+              bottomNavigationBar: Container(
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.shadowNavbar,
+                      blurRadius: 10,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: NavigationBar(
+                  selectedIndex: _currentIndex,
+                  onDestinationSelected: _navigate,
+                  backgroundColor: AppColors.surfaceLight,
+                  indicatorColor:
+                      AppColors.primaryLight, // Menta Chiaro per tab attiva
+                  elevation: 0,
+                  height: 65,
+                  labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                  destinations: [
+                    NavigationDestination(
+                      icon: Icon(Icons.home_outlined,
+                          color: AppColors.textSecondary),
+                      selectedIcon:
+                          Icon(Icons.home_rounded, color: AppColors.primary),
+                      label: 'Home',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.kitchen_outlined,
+                          color: AppColors.textSecondary),
+                      selectedIcon:
+                          Icon(Icons.kitchen_rounded, color: AppColors.primary),
+                      label: 'Dispensa',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.receipt_long_outlined,
+                          color: AppColors.textSecondary),
+                      selectedIcon: Icon(Icons.receipt_long_rounded,
+                          color: AppColors.primary),
+                      label: 'Spesa',
+                    ),
+                  ],
+                ),
+              ),
+            ));
       },
     );
   }
@@ -281,8 +306,9 @@ class _MainNavigatorState extends State<MainNavigator> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   CircularProgressIndicator(color: AppColors.primary),
-                  SizedBox(height: 16),
-                  Text("Ricerca supermercati nel raggio di 5km...", style: TextStyle(color: AppColors.textSecondary)),
+                  const SizedBox(height: 16),
+                  Text("Ricerca supermercati nel raggio di 5km...",
+                      style: TextStyle(color: AppColors.textSecondary)),
                 ],
               ),
             );
@@ -291,24 +317,36 @@ class _MainNavigatorState extends State<MainNavigator> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.location_off_rounded, size: 40, color: AppColors.error),
-                  SizedBox(height: 12),
-                  Text("Attiva la posizione per vedere i supermercati nelle vicinanze", textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSecondary)),
-                  SizedBox(height: 16),
+                  Icon(Icons.location_off_rounded,
+                      size: 40, color: AppColors.error),
+                  const SizedBox(height: 12),
+                  Text(
+                      "Attiva la posizione per vedere i supermercati nelle vicinanze",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.textSecondary)),
+                  const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () => fetchSupermarkets(setModalState),
-                    icon: Icon(Icons.refresh_rounded, color: Colors.white),
-                    label: Text("Riprova", style: TextStyle(color: AppColors.surfaceLight, fontFamily: 'Outfit', fontWeight: FontWeight.bold)),
+                    icon:
+                        const Icon(Icons.refresh_rounded, color: Colors.white),
+                    label: Text("Riprova",
+                        style: TextStyle(
+                            color: AppColors.surfaceLight,
+                            fontFamily: 'Outfit',
+                            fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                   )
                 ],
               ),
             );
           } else if (widget.state.nearbySupermarkets.isEmpty) {
-            contentWidget = Center(child: Text("Nessun supermercato trovato nei paraggi.", style: TextStyle(color: AppColors.textSecondary)));
+            contentWidget = Center(
+                child: Text("Nessun supermercato trovato nei paraggi.",
+                    style: TextStyle(color: AppColors.textSecondary)));
           } else {
             contentWidget = ListView.builder(
               shrinkWrap: true,
@@ -327,24 +365,30 @@ class _MainNavigatorState extends State<MainNavigator> {
                     },
                     borderRadius: BorderRadius.circular(12),
                     child: AnimatedContainer(
-                      duration: Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primaryLight : AppColors.background,
+                        color: isSelected
+                            ? AppColors.primaryLight
+                            : AppColors.background,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isSelected ? AppColors.primary : AppColors.border,
+                          color:
+                              isSelected ? AppColors.primary : AppColors.border,
                           width: isSelected ? 1.5 : 1,
                         ),
                       ),
                       child: Row(
                         children: [
                           Icon(
-                            isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_unchecked_rounded,
+                            isSelected
+                                ? Icons.radio_button_checked_rounded
+                                : Icons.radio_button_unchecked_rounded,
                             color: AppColors.primary,
                             size: 20,
                           ),
-                          SizedBox(width: 12),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,26 +399,37 @@ class _MainNavigatorState extends State<MainNavigator> {
                                     fontFamily: 'Outfit',
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14,
-                                    color: isSelected ? AppColors.textPrimary : AppColors.textPrimary.withOpacity(0.8),
+                                    color: isSelected
+                                        ? AppColors.textPrimary
+                                        : AppColors.textPrimary
+                                            .withOpacity(0.8),
                                   ),
                                 ),
-                                SizedBox(height: 2),
+                                const SizedBox(height: 2),
                                 Text(
                                   s.address,
-                                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary),
                                 ),
                               ],
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: isSelected ? Colors.white : AppColors.border.withOpacity(0.5),
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppColors.border.withOpacity(0.5),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               s.distance,
-                              style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 12),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                  fontSize: 12),
                             ),
                           ),
                         ],
@@ -388,12 +443,14 @@ class _MainNavigatorState extends State<MainNavigator> {
 
           return Container(
             constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.85, // Lascia un margine superiore visibile
+              maxHeight: MediaQuery.of(context).size.height *
+                  0.85, // Lascia un margine superiore visibile
             ),
-            padding: EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: AppColors.surfaceLight,
-              borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+              borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24), topRight: Radius.circular(24)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -405,8 +462,9 @@ class _MainNavigatorState extends State<MainNavigator> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.storefront_rounded, color: AppColors.primaryDark, size: 28),
-                        SizedBox(width: 10),
+                        Icon(Icons.storefront_rounded,
+                            color: AppColors.primaryDark, size: 28),
+                        const SizedBox(width: 10),
                         Text(
                           "Supermercati Vicini",
                           style: TextStyle(
@@ -419,63 +477,78 @@ class _MainNavigatorState extends State<MainNavigator> {
                       ],
                     ),
                     IconButton(
-                      icon: Icon(Icons.close_rounded, color: AppColors.textSecondary),
+                      icon: Icon(Icons.close_rounded,
+                          color: AppColors.textSecondary),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),
                 Divider(color: AppColors.border),
                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: 4),
+                  padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(
                     "Seleziona il supermercato desiderato per avviare la navigazione in Google Maps:",
-                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                    style:
+                        TextStyle(fontSize: 13, color: AppColors.textSecondary),
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
 
                 // Lista scrollabile o Errore
                 Expanded(child: contentWidget),
-                
-                SizedBox(height: 12),
+
+                const SizedBox(height: 12),
 
                 // Pulsante di avvio in Maps
                 ElevatedButton.icon(
                   onPressed: () async {
                     String query;
-                    if (selectedIndex == -1 || widget.state.nearbySupermarkets.isEmpty) {
+                    if (selectedIndex == -1 ||
+                        widget.state.nearbySupermarkets.isEmpty) {
                       query = "supermercati";
                     } else {
-                      final selectedSupermarket = widget.state.nearbySupermarkets[selectedIndex];
-                      query = "${selectedSupermarket.name} ${selectedSupermarket.address}";
+                      final selectedSupermarket =
+                          widget.state.nearbySupermarkets[selectedIndex];
+                      query =
+                          "${selectedSupermarket.name} ${selectedSupermarket.address}";
                     }
-                    
+
                     final encodedQuery = Uri.encodeComponent(query);
-                    final mapsUrl = Uri.parse("https://www.google.com/maps/search/?api=1&query=$encodedQuery");
+                    final mapsUrl = Uri.parse(
+                        "https://www.google.com/maps/search/?api=1&query=$encodedQuery");
 
                     Navigator.pop(context);
 
                     try {
-                      await launchUrl(mapsUrl, mode: LaunchMode.externalApplication);
+                      await launchUrl(mapsUrl,
+                          mode: LaunchMode.externalApplication);
                     } catch (e) {
                       print("Impossibile aprire Google Maps: $e");
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Impossibile avviare Google Maps. Verifica la connessione o l'app installata.")),
+                          const SnackBar(
+                              content: Text(
+                                  "Impossibile avviare Google Maps. Verifica la connessione o l'app installata.")),
                         );
                       }
                     }
                   },
-                  icon: Icon(Icons.map_rounded, size: 20),
-                  label: Text(
+                  icon: const Icon(Icons.map_rounded, size: 20),
+                  label: const Text(
                     "Apri in Google Maps",
-                    style: TextStyle(fontFamily: 'Outfit', fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        fontFamily: 'Outfit',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryDark, // Accento Verde Scuro/Teal
-                    foregroundColor: globalIsDarkMode ? Colors.black : Colors.white,
+                    backgroundColor:
+                        AppColors.primaryDark, // Accento Verde Scuro/Teal
+                    foregroundColor:
+                        globalIsDarkMode ? Colors.black : Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     elevation: 0,
                   ),
                 ),

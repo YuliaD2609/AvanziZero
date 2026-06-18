@@ -11,8 +11,8 @@ class FirebaseService {
   FirebaseService({required this.groupId});
 
   // Riferimenti alle sotto-collezioni del gruppo corrente
-  CollectionReference get _itemsRef => _db.collection('groups').doc(groupId).collection('items');
-
+  CollectionReference get _itemsRef =>
+      _db.collection('groups').doc(groupId).collection('items');
 
   // ===========================================================================
   // STREAM IN TEMPO REALE (REAL-TIME READS)
@@ -45,7 +45,8 @@ class FirebaseService {
   Future<void> saveItem(ItemModel item) async {
     try {
       // Se l'id generato localmente è utilizzabile, lo usiamo come document ID
-      final docRef = item.id.isNotEmpty ? _itemsRef.doc(item.id) : _itemsRef.doc();
+      final docRef =
+          item.id.isNotEmpty ? _itemsRef.doc(item.id) : _itemsRef.doc();
       await docRef.set({
         'name': item.name,
         'expireDate': item.expireDate,
@@ -82,13 +83,12 @@ class FirebaseService {
     }
   }
 
-
-
   /// Sposta tutti gli articoli della Lista della Spesa in Dispensa (Spesa Fatta)
   /// utilizzando un'operazione batch atomica.
   Future<void> markShoppingDone() async {
     try {
-      final snapshot = await _itemsRef.where('isShopping', isEqualTo: true).get();
+      final snapshot =
+          await _itemsRef.where('isShopping', isEqualTo: true).get();
       final batch = _db.batch();
 
       for (var doc in snapshot.docs) {
@@ -107,7 +107,8 @@ class FirebaseService {
   }
 
   /// Inizializza un nuovo gruppo con dati demo se vuoto
-  Future<void> seedInitialDataIfNeeded(List<ItemModel> initialItems, {String? uid}) async {
+  Future<void> seedInitialDataIfNeeded(List<ItemModel> initialItems,
+      {String? uid}) async {
     try {
       // Assicura che il documento del gruppo esista per poterlo vedere chiaramente nel db
       final groupDoc = await _db.collection('groups').doc(groupId).get();
@@ -139,6 +140,7 @@ class FirebaseService {
       print("Errore nel seeding iniziale: $e");
     }
   }
+
   Stream<DocumentSnapshot> getGroupStream() {
     return _db.collection('groups').doc(groupId).snapshots();
   }
@@ -175,7 +177,11 @@ class FirebaseService {
   /// Registra il consumo di un prodotto nello storico leggero
   Future<void> logConsumption(String itemName, int quantityConsumed) async {
     try {
-      final docRef = _db.collection('groups').doc(groupId).collection('consumption_history').doc();
+      final docRef = _db
+          .collection('groups')
+          .doc(groupId)
+          .collection('consumption_history')
+          .doc();
       await docRef.set({
         'name': itemName,
         'quantity': quantityConsumed,
@@ -189,10 +195,12 @@ class FirebaseService {
   /// Recupera gli ultimi log di consumo
   Future<List<Map<String, dynamic>>> getConsumptionHistory() async {
     try {
-      final snap = await _db.collection('groups').doc(groupId)
+      final snap = await _db
+          .collection('groups')
+          .doc(groupId)
           .collection('consumption_history')
           .get();
-      
+
       // Ordiniamo in locale per non perdere i log pending (dove timestamp potrebbe essere null localmente)
       final docs = snap.docs.map((d) => d.data()).toList();
       return docs;

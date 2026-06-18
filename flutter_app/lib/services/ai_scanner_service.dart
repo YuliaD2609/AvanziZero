@@ -6,11 +6,10 @@ import '../models/app_state.dart';
 import '../services/local_ai_model.dart';
 
 class AIScannerService {
-
   static Future<List<ItemModel>> scanReceipt(XFile imageFile) async {
     // Leggiamo la chiave dal file .env segreto e non caricato su GitHub
     final apiKey = dotenv.env['GEMINI_API_KEY'] ?? "";
-    
+
     if (apiKey.isEmpty || apiKey == "INSERISCI_QUI_LA_TUA_NUOVA_CHIAVE") {
       throw Exception(
           "API Key mancante! Inserisci la tua chiave nel file .env alla radice del progetto.");
@@ -76,10 +75,10 @@ Restituisci ESATTAMENTE e SOLO un array JSON in questo formato (nessun blocco ma
       List<ItemModel> shoppingItems,
       List<Map<String, dynamic>> consumptionHistory,
       int groupSize) async {
-    
     await Future.delayed(const Duration(milliseconds: 800));
-    
+
     // Manteniamo la fantastica intelligenza statistica in locale
-    return LocalPredictiveModel.predict(pantryItems, shoppingItems, consumptionHistory, groupSize);
+    return LocalPredictiveModel.predict(
+        pantryItems, shoppingItems, consumptionHistory, groupSize);
   }
 }

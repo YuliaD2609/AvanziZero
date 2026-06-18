@@ -21,7 +21,8 @@ class HorizontalHeaderMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     // Implementa il layout di horizontal_menu.xml con stile Pastel Sage
     return Container(
-      height: 85, // Altezza proporzionata per il mobile (leggermente ingrandito)
+      height:
+          85, // Altezza proporzionata per il mobile (leggermente ingrandito)
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [AppColors.primary, AppColors.primaryGradientEnd],
@@ -32,7 +33,7 @@ class HorizontalHeaderMenu extends StatelessWidget {
           BoxShadow(
             color: AppColors.shadowDark,
             blurRadius: 8,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -46,12 +47,13 @@ class HorizontalHeaderMenu extends StatelessWidget {
                 ? leftAction!
                 : (showHome
                     ? IconButton(
-                        icon: Icon(Icons.home_rounded, color: AppColors.surfaceLight, size: 30),
+                        icon: Icon(Icons.home_rounded,
+                            color: AppColors.surfaceLight, size: 30),
                         onPressed: onHomePressed,
                         tooltip: 'Torna alla Home',
                       )
-                    : SizedBox(width: 48)),
-            
+                    : const SizedBox(width: 48)),
+
             // Titolo della sezione al centro
             Expanded(
               child: Text(
@@ -71,7 +73,8 @@ class HorizontalHeaderMenu extends StatelessWidget {
 
             // Pulsante Supermercati Vicini a destra
             IconButton(
-              icon: Icon(Icons.storefront_rounded, color: AppColors.surfaceLight, size: 28),
+              icon: Icon(Icons.storefront_rounded,
+                  color: AppColors.surfaceLight, size: 28),
               onPressed: onCartPressed,
               tooltip: 'Supermercati nelle vicinanze',
             ),
@@ -112,7 +115,7 @@ class VerticalCategoryMenu extends StatelessWidget {
           BoxShadow(
             color: AppColors.shadowLight,
             blurRadius: 4,
-            offset: Offset(2, 0),
+            offset: const Offset(2, 0),
           )
         ],
       ),
@@ -129,16 +132,22 @@ class VerticalCategoryMenu extends StatelessWidget {
 
                 return InkWell(
                   onTap: () => onCategorySelected(category),
-                  onLongPress: onCategoryLongPressed != null ? () => onCategoryLongPressed!(category) : null,
+                  onLongPress: onCategoryLongPressed != null
+                      ? () => onCategoryLongPressed!(category)
+                      : null,
                   child: AnimatedContainer(
-                    duration: Duration(milliseconds: 200),
-                    margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
-                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                    duration: const Duration(milliseconds: 200),
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primary : Colors.transparent,
+                      color:
+                          isSelected ? AppColors.primary : Colors.transparent,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: isSelected ? AppColors.primary : AppColors.border,
+                        color:
+                            isSelected ? AppColors.primary : AppColors.border,
                         width: 1,
                       ),
                     ),
@@ -152,8 +161,12 @@ class VerticalCategoryMenu extends StatelessWidget {
                           style: TextStyle(
                             fontFamily: 'Outfit',
                             fontSize: 11,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            color: isSelected ? Colors.white : AppColors.textPrimary,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: isSelected
+                                ? Colors.white
+                                : AppColors.textPrimary,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -174,7 +187,8 @@ class VerticalCategoryMenu extends StatelessWidget {
               width: double.infinity,
               decoration: BoxDecoration(
                 color: AppColors.primaryDark, // Accento Verde Scuro/Teal
-                borderRadius: BorderRadius.only(topRight: Radius.circular(12)),
+                borderRadius:
+                    const BorderRadius.only(topRight: Radius.circular(12)),
               ),
               child: Center(
                 child: Text(

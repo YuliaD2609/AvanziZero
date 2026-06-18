@@ -65,7 +65,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
       height: MediaQuery.of(context).size.height * 0.78,
       decoration: BoxDecoration(
         color: AppColors.surfaceLight,
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
@@ -91,8 +91,9 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.document_scanner_rounded, color: AppColors.primary, size: 28),
-                    SizedBox(width: 10),
+                    Icon(Icons.document_scanner_rounded,
+                        color: AppColors.primary, size: 28),
+                    const SizedBox(width: 10),
                     Text(
                       "IA Scanning Scontrini",
                       style: TextStyle(
@@ -105,7 +106,8 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                   ],
                 ),
                 IconButton(
-                  icon: Icon(Icons.close_rounded, color: AppColors.textSecondary),
+                  icon:
+                      Icon(Icons.close_rounded, color: AppColors.textSecondary),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -129,7 +131,9 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                       color: AppColors.background, // Avorio soft
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: _capturedImage != null ? AppColors.primary : AppColors.border,
+                        color: _capturedImage != null
+                            ? AppColors.primary
+                            : AppColors.border,
                         width: 2,
                       ),
                     ),
@@ -148,10 +152,12 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                   Container(
                                     color: Colors.black.withOpacity(0.6),
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
-                                        CircularProgressIndicator(color: AppColors.primary),
-                                        SizedBox(height: 16),
+                                        CircularProgressIndicator(
+                                            color: AppColors.primary),
+                                        const SizedBox(height: 16),
                                         Text(
                                           "Estrazione OCR ed Elaborazione LLM...",
                                           style: TextStyle(
@@ -168,8 +174,9 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                           : Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.add_a_photo_rounded, color: AppColors.textSecondary, size: 54),
-                                SizedBox(height: 12),
+                                Icon(Icons.add_a_photo_rounded,
+                                    color: AppColors.textSecondary, size: 54),
+                                const SizedBox(height: 12),
                                 Text(
                                   "Nessuno scontrino inquadrato",
                                   style: TextStyle(
@@ -179,7 +186,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                     color: AppColors.textSecondary,
                                   ),
                                 ),
-                                SizedBox(height: 4),
+                                const SizedBox(height: 4),
                                 Text(
                                   "Usa i pulsanti in basso per scattare",
                                   style: TextStyle(
@@ -192,7 +199,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                             ),
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   // Descrizione e coerenza con il feedback utente sul modello
                   Container(
@@ -203,8 +210,9 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.auto_awesome_rounded, color: AppColors.textPrimary, size: 24),
-                        SizedBox(width: 12),
+                        Icon(Icons.auto_awesome_rounded,
+                            color: AppColors.textPrimary, size: 24),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             "L'immagine acquisita permetterà di riconoscere gli elementi acquistati e inserirli automaticamente in dispensa.",
@@ -228,33 +236,45 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () => _captureImage(ImageSource.gallery),
-                            icon: Icon(Icons.photo_library_rounded, color: AppColors.primary),
+                            icon: Icon(Icons.photo_library_rounded,
+                                color: AppColors.primary),
                             label: Text(
                               "Galleria",
-                              style: TextStyle(fontFamily: 'Outfit', color: AppColors.primary, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontFamily: 'Outfit',
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold),
                             ),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              side: BorderSide(color: AppColors.primary, width: 1.5),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              side: BorderSide(
+                                  color: AppColors.primary, width: 1.5),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
                         ),
-                        SizedBox(width: 16),
+                        const SizedBox(width: 16),
                         Expanded(
                           flex: 2,
                           child: ElevatedButton.icon(
                             onPressed: () => _captureImage(ImageSource.camera),
-                            icon: Icon(Icons.camera_rounded, color: Colors.white),
+                            icon: const Icon(Icons.camera_rounded,
+                                color: Colors.white),
                             label: Text(
                               "Scatta Foto",
-                              style: TextStyle(fontFamily: 'Outfit', color: AppColors.surfaceLight, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontFamily: 'Outfit',
+                                  color: AppColors.surfaceLight,
+                                  fontWeight: FontWeight.bold),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary, // Verde Salvia Intenso
+                              backgroundColor:
+                                  AppColors.primary, // Verde Salvia Intenso
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               elevation: 2,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
                         ),
@@ -271,7 +291,8 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                     _capturedImage = null;
                                   });
                                 },
-                          icon: Icon(Icons.delete_outline_rounded, color: AppColors.error),
+                          icon: Icon(Icons.delete_outline_rounded,
+                              color: AppColors.error),
                           style: IconButton.styleFrom(
                             padding: const EdgeInsets.all(14),
                             shape: RoundedRectangleBorder(
@@ -280,7 +301,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                             ),
                           ),
                         ),
-                        SizedBox(width: 12),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: ElevatedButton(
                             onPressed: _isAnalyzing
@@ -290,7 +311,9 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                       _isAnalyzing = true;
                                     });
                                     try {
-                                      final items = await AIScannerService.scanReceipt(XFile(_capturedImage!.path));
+                                      final items =
+                                          await AIScannerService.scanReceipt(
+                                              XFile(_capturedImage!.path));
                                       if (context.mounted) {
                                         // Passiamo la lista di prodotti indietro al chiamante
                                         Navigator.pop(context, items);
@@ -300,21 +323,25 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                         setState(() {
                                           _isAnalyzing = false;
                                         });
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
                                           SnackBar(
                                             content: Text("Errore: $e"),
                                             backgroundColor: AppColors.error,
-                                            duration: const Duration(seconds: 5),
+                                            duration:
+                                                const Duration(seconds: 5),
                                           ),
                                         );
                                       }
                                     }
                                   },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primaryDark, // Accento Verde Scuro/Teal
+                              backgroundColor: AppColors
+                                  .primaryDark, // Accento Verde Scuro/Teal
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
                             ),
                             child: Text(
                               "Inserisci elementi dallo scontrino",

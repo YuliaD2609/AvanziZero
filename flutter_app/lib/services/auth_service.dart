@@ -7,7 +7,7 @@ class AuthService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   AuthService() {
-    // Workaround per gli emulatori: disabilita il controllo Play Integrity / reCAPTCHA 
+    // Workaround per gli emulatori: disabilita il controllo Play Integrity / reCAPTCHA
     // che causa l'errore CONFIGURATION_NOT_FOUND in locale.
     _auth.setSettings(appVerificationDisabledForTesting: true);
   }
@@ -23,12 +23,14 @@ class AuthService {
   }
 
   // Registrazione con Email e Password
-  Future<UserModel?> registerWithEmailAndPassword(String email, String password, String name) async {
+  Future<UserModel?> registerWithEmailAndPassword(
+      String email, String password, String name) async {
     try {
       await _disableRecaptcha();
-      UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      UserCredential result = await _auth.createUserWithEmailAndPassword(
+          email: email, password: password);
       User? user = result.user;
-      
+
       if (user != null) {
         // Creazione del documento utente in Firestore
         UserModel newUser = UserModel(
@@ -37,7 +39,7 @@ class AuthService {
           name: name,
           groupIds: [], // Nessun gruppo alla registrazione
         );
-        
+
         await _db.collection('users').doc(user.uid).set(newUser.toMap());
         return newUser;
       }
@@ -49,12 +51,14 @@ class AuthService {
   }
 
   // Login con Email e Password
-  Future<UserModel?> signInWithEmailAndPassword(String email, String password) async {
+  Future<UserModel?> signInWithEmailAndPassword(
+      String email, String password) async {
     try {
       await _disableRecaptcha();
-      UserCredential result = await _auth.signInWithEmailAndPassword(email: email, password: password);
+      UserCredential result = await _auth.signInWithEmailAndPassword(
+          email: email, password: password);
       User? user = result.user;
-      
+
       if (user != null) {
         return await getUserData(user.uid);
       }
@@ -92,14 +96,20 @@ class AuthService {
   }
 
   // Invia richiesta di accesso
-  Future<void> sendJoinRequest(String uid, String groupId, String name, String email) async {
+  Future<void> sendJoinRequest(
+      String uid, String groupId, String name, String email) async {
     try {
       // 1. Aggiungi il gruppo nei pendingGroupIds dell'utente
       await _db.collection('users').doc(uid).update({
         'pendingGroupIds': FieldValue.arrayUnion([groupId])
       });
       // 2. Crea il documento richiesta
-      await _db.collection('groups').doc(groupId).collection('requests').doc(uid).set({
+      await _db
+          .collection('groups')
+          .doc(groupId)
+          .collection('requests')
+          .doc(uid)
+          .set({
         'id': uid,
         'name': name,
         'email': email,
@@ -117,7 +127,7 @@ class AuthService {
       return await _auth.signOut();
     } catch (e) {
       print("Errore durante il logout: $e");
-      return null;
+      return;
     }
   }
 

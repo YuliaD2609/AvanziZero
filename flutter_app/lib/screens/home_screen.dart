@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/app_state.dart';
-import '../widgets/ocr_scanner_modal.dart';
 import '../widgets/menus.dart';
 import 'admin_screen.dart';
 import 'group_setup_screen.dart';
@@ -21,7 +20,8 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Identifica i prodotti in scadenza per il warningLayout
-    final expiringItems = state.allItems.where((i) => i.isPantry && i.urgencyLevel > 0).toList();
+    final expiringItems =
+        state.allItems.where((i) => i.isPantry && i.urgencyLevel > 0).toList();
     expiringItems.sort((a, b) {
       if (a.parsedExpireDate == null && b.parsedExpireDate == null) return 0;
       if (a.parsedExpireDate == null) return 1;
@@ -31,13 +31,15 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background, // Avorio soft
-      
+
       // Rimosso FAB come richiesto, l'IA scanner è stato spostato in Dispensa
 
       body: Column(
         children: [
           HorizontalHeaderMenu(
-            title: state.groupName?.isNotEmpty == true ? state.groupName! : "AvanziZero",
+            title: state.groupName?.isNotEmpty == true
+                ? state.groupName!
+                : "AvanziZero",
             onHomePressed: () {},
             onCartPressed: onCartPressed,
             showHome: false,
@@ -45,7 +47,8 @@ class HomeScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: Icon(Icons.person_outline_rounded, color: AppColors.surfaceLight, size: 28),
+                  icon: Icon(Icons.person_outline_rounded,
+                      color: AppColors.surfaceLight, size: 28),
                   tooltip: "Area Admin",
                   onPressed: () {
                     Navigator.push(
@@ -61,257 +64,296 @@ class HomeScreen extends StatelessWidget {
           ),
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Banner premium del Gruppo Casa Attivo con opzione di Uscita
-              if (state.groupId != null)
-                Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryLight, // Menta Chiaro
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.primary.withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
+                  if (state.groupId != null)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight, // Menta Chiaro
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: AppColors.primary.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Icon(Icons.maps_home_work_rounded, color: AppColors.primary, size: 20),
-                          SizedBox(width: 8),
-                          Text(
-                            "Codice: ${state.groupId}",
+                          Row(
+                            children: [
+                              Icon(Icons.maps_home_work_rounded,
+                                  color: AppColors.primary, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                "Codice: ${state.groupId}",
+                                style: TextStyle(
+                                  fontFamily: 'Outfit',
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextButton.icon(
+                                onPressed: () {
+                                  state.leaveGroup();
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            GroupSetupScreen(state: state)),
+                                    (route) => false,
+                                  );
+                                },
+                                icon: Icon(Icons.logout_rounded,
+                                    size: 16, color: AppColors.error),
+                                label: Text(
+                                  "Esci",
+                                  style: TextStyle(
+                                    fontFamily: 'Outfit',
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.error,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  // Logo / Titolo (Sostituisce l'ImageView logo_text in modo premium)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Column(
+                      children: [
+                        Transform.scale(
+                          scale: 1.1,
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            height: 80,
+                            width: 80,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          "AvanziZero",
+                          style: TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 36,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.primary, // Verde Salvia Intenso
+                            letterSpacing: -0.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Tutto quello che serve dalla A alla Z.",
+                          style: TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 13,
+                            color: AppColors.textPrimary.withOpacity(0.7),
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ===============================================================
+                  // PULSANTI PRINCIPALI (Lasciati esattamente con le scritte originali)
+                  // ===============================================================
+
+                  // 1. Lista della spesa
+                  _buildMainNavigationButton(
+                    title: "Lista della spesa",
+                    iconData: Icons.receipt_long_rounded,
+                    onTap: () => onNavigate(2),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // 2. Dispensa
+                  _buildMainNavigationButton(
+                    title: "Dispensa",
+                    iconData: Icons.kitchen_rounded,
+                    onTap: () => onNavigate(1),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // ===============================================================
+                  // SEZIONE WARNING: PRODOTTI IN SCADENZA (warningLayout)
+                  // ===============================================================
+                  Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceLight,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                          color: AppColors.error.withOpacity(0.4), width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                            color: AppColors.shadowLight,
+                            blurRadius: 10,
+                            offset: const Offset(0, 4)),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // Intestazione con la scritta esatta nativa "Prodotti in scadenza"
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: AppColors.errorLight, // Sfondo rosso chiaro
+                            borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(18),
+                                topRight: Radius.circular(18)),
+                          ),
+                          child: Text(
+                            "Prodotti in scadenza",
+                            textAlign: TextAlign.center,
                             style: TextStyle(
                               fontFamily: 'Outfit',
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                              fontSize: 14,
+                              color: AppColors.error,
                             ),
                           ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextButton.icon(
-                            onPressed: () {
-                              state.leaveGroup();
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(builder: (context) => GroupSetupScreen(state: state)),
-                                (route) => false,
-                              );
-                            },
-                            icon: Icon(Icons.logout_rounded, size: 16, color: AppColors.error),
-                            label: Text(
-                              "Esci",
-                              style: TextStyle(
-                                fontFamily: 'Outfit',
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.error,
-                                fontSize: 13,
-                              ),
-                            ),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-              // Logo / Titolo (Sostituisce l'ImageView logo_text in modo premium)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Column(
-                  children: [
-                    Transform.scale(
-                      scale: 1.1,
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        height: 80,
-                        width: 80,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    SizedBox(height: 12),
-                    Text(
-                      "AvanziZero",
-                      style: TextStyle(
-                        fontFamily: 'Outfit',
-                        fontSize: 36,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primary, // Verde Salvia Intenso
-                        letterSpacing: -0.5,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      "Tutto quello che serve dalla A alla Z.",
-                      style: TextStyle(
-                        fontFamily: 'Outfit',
-                        fontSize: 13,
-                        color: AppColors.textPrimary.withOpacity(0.7),
-                        fontWeight: FontWeight.w500,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 16),
-
-              // ===============================================================
-              // PULSANTI PRINCIPALI (Lasciati esattamente con le scritte originali)
-              // ===============================================================
-              
-              // 1. Lista della spesa
-              _buildMainNavigationButton(
-                title: "Lista della spesa",
-                iconData: Icons.receipt_long_rounded,
-                onTap: () => onNavigate(2),
-              ),
-              SizedBox(height: 16),
-
-              // 2. Dispensa
-              _buildMainNavigationButton(
-                title: "Dispensa",
-                iconData: Icons.kitchen_rounded,
-                onTap: () => onNavigate(1),
-              ),
-              SizedBox(height: 20),
-
-              // ===============================================================
-              // SEZIONE WARNING: PRODOTTI IN SCADENZA (warningLayout)
-              // ===============================================================
-              Container(
-                height: 200,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceLight,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.error.withOpacity(0.4), width: 1.5),
-                  boxShadow: [
-                    BoxShadow(color: AppColors.shadowLight, blurRadius: 10, offset: Offset(0, 4)),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    // Intestazione con la scritta esatta nativa "Prodotti in scadenza"
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: AppColors.errorLight, // Sfondo rosso chiaro
-                        borderRadius: BorderRadius.only(topLeft: Radius.circular(18), topRight: Radius.circular(18)),
-                      ),
-                      child: Text(
-                        "Prodotti in scadenza",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontFamily: 'Outfit',
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.error,
                         ),
-                      ),
-                    ),
-                    
-                    // Contenitore lista in scadenza (warningContainer)
-                    Expanded(
-                      child: expiringItems.isEmpty
-                          ? Center(
-                              child: Text(
-                                "Nessun prodotto in scadenza!",
-                                style: TextStyle(fontFamily: 'Outfit', color: AppColors.primary, fontWeight: FontWeight.bold),
-                              ),
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.all(12),
-                              itemCount: expiringItems.length,
-                              itemBuilder: (context, index) {
-                                final item = expiringItems[index];
-                                
-                                bool expired = false;
-                                if (item.parsedExpireDate != null) {
-                                  final today = DateTime.now();
-                                  final todayStart = DateTime(today.year, today.month, today.day);
-                                  final expireStart = DateTime(item.parsedExpireDate!.year, item.parsedExpireDate!.month, item.parsedExpireDate!.day);
-                                  if (expireStart.isBefore(todayStart)) {
-                                    expired = true;
-                                  }
-                                }
 
-                                final nameColor = expired ? AppColors.error : AppColors.textPrimary;
-                                final datePrefix = expired ? "Scaduto " : "";
-
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 4),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "• ${item.name}",
-                                        style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.w600, color: nameColor),
-                                      ),
-                                      Text(
-                                        "$datePrefix${_formatExpireDate(item.expireDate)}",
-                                        style: TextStyle(
-                                          fontFamily: 'Outfit',
-                                          color: expired || item.urgencyLevel == 2 ? AppColors.error : AppColors.textSecondary,
-                                          fontWeight: item.urgencyLevel > 0 ? FontWeight.bold : FontWeight.normal,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
+                        // Contenitore lista in scadenza (warningContainer)
+                        Expanded(
+                          child: expiringItems.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    "Nessun prodotto in scadenza!",
+                                    style: TextStyle(
+                                        fontFamily: 'Outfit',
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.bold),
                                   ),
-                                );
-                              },
-                            ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 24),
+                                )
+                              : ListView.builder(
+                                  padding: const EdgeInsets.all(12),
+                                  itemCount: expiringItems.length,
+                                  itemBuilder: (context, index) {
+                                    final item = expiringItems[index];
 
-              // Nota informativa di orientamento (i supermercati sono spostati nel carrello in alto a destra)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline_rounded, color: AppColors.textSecondary, size: 18),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        "I supermercati nelle vicinanze sono consultabili in qualsiasi momento dall'icona negozio in alto a destra.",
-                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.3),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                                    bool expired = false;
+                                    if (item.parsedExpireDate != null) {
+                                      final today = DateTime.now();
+                                      final todayStart = DateTime(
+                                          today.year, today.month, today.day);
+                                      final expireStart = DateTime(
+                                          item.parsedExpireDate!.year,
+                                          item.parsedExpireDate!.month,
+                                          item.parsedExpireDate!.day);
+                                      if (expireStart.isBefore(todayStart)) {
+                                        expired = true;
+                                      }
+                                    }
 
-              // Spazio per il FAB
-              SizedBox(height: 80),
-            ],
+                                    final nameColor = expired
+                                        ? AppColors.error
+                                        : AppColors.textPrimary;
+                                    final datePrefix =
+                                        expired ? "Scaduto " : "";
+
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 4),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            "• ${item.name}",
+                                            style: TextStyle(
+                                                fontFamily: 'Outfit',
+                                                fontWeight: FontWeight.w600,
+                                                color: nameColor),
+                                          ),
+                                          Text(
+                                            "$datePrefix${_formatExpireDate(item.expireDate)}",
+                                            style: TextStyle(
+                                              fontFamily: 'Outfit',
+                                              color: expired ||
+                                                      item.urgencyLevel == 2
+                                                  ? AppColors.error
+                                                  : AppColors.textSecondary,
+                                              fontWeight: item.urgencyLevel > 0
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Nota informativa di orientamento (i supermercati sono spostati nel carrello in alto a destra)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline_rounded,
+                            color: AppColors.textSecondary, size: 18),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            "I supermercati nelle vicinanze sono consultabili in qualsiasi momento dall'icona negozio in alto a destra.",
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                                height: 1.3),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Spazio per il FAB
+                  const SizedBox(height: 80),
+                ],
+              ),
+            ),
           ),
-        ),
+        ],
       ),
-    ],
-  ),
-);
+    );
   }
 
   // Costruisce i bottoni principali replicando il design con i bordi e l'icona a sinistra
@@ -330,7 +372,10 @@ class HomeScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppColors.primary, width: 1.5),
           boxShadow: [
-            BoxShadow(color: AppColors.shadowMedium, blurRadius: 8, offset: Offset(0, 2)),
+            BoxShadow(
+                color: AppColors.shadowMedium,
+                blurRadius: 8,
+                offset: const Offset(0, 2)),
           ],
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -345,8 +390,7 @@ class HomeScreen extends StatelessWidget {
               ),
               child: Icon(iconData, color: AppColors.primary, size: 26),
             ),
-            SizedBox(width: 16),
-
+            const SizedBox(width: 16),
             Expanded(
               child: Text(
                 title,
@@ -358,8 +402,8 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
             ),
-
-            Icon(Icons.chevron_right_rounded, color: AppColors.primary, size: 28),
+            Icon(Icons.chevron_right_rounded,
+                color: AppColors.primary, size: 28),
           ],
         ),
       ),
@@ -368,7 +412,10 @@ class HomeScreen extends StatelessWidget {
 
   // Formatta la data di scadenza calcolando la data effettiva se indicata come "tra X giorni"
   String _formatExpireDate(String text) {
-    String cleanText = text.replaceAll("In scadenza: ", "").replaceAll("Scadenza: ", "").trim();
+    String cleanText = text
+        .replaceAll("In scadenza: ", "")
+        .replaceAll("Scadenza: ", "")
+        .trim();
     if (cleanText == "-" || cleanText.isEmpty) {
       return "-";
     }
@@ -384,7 +431,7 @@ class HomeScreen extends StatelessWidget {
         final now = DateTime.now();
         final today = DateTime(now.year, now.month, now.day);
         final difference = expDate.difference(today).inDays;
-        
+
         if (difference == 0) return 'Oggi';
         if (difference == 1) return 'Domani';
         return cleanText;
@@ -393,17 +440,17 @@ class HomeScreen extends StatelessWidget {
 
     if (cleanText.toLowerCase().contains('oggi')) return 'Oggi';
     if (cleanText.toLowerCase().contains('domani')) return 'Domani';
-    
+
     final match = RegExp(r'tra (\d+) giorn[io]').firstMatch(cleanText);
     if (match != null) {
       final days = int.parse(match.group(1)!);
       if (days == 0) return 'Oggi';
       if (days == 1) return 'Domani';
-      
+
       final date = DateTime.now().add(Duration(days: days));
       return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
     }
-    
+
     return cleanText;
   }
 }

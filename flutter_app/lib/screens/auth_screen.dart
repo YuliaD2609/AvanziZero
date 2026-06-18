@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
@@ -37,9 +36,11 @@ class _AuthScreenState extends State<AuthScreen> {
 
       try {
         if (_isLogin) {
-          await _auth.signInWithEmailAndPassword(_email.trim(), _password.trim());
+          await _auth.signInWithEmailAndPassword(
+              _email.trim(), _password.trim());
         } else {
-          await _auth.registerWithEmailAndPassword(_email.trim(), _password.trim(), _name.trim());
+          await _auth.registerWithEmailAndPassword(
+              _email.trim(), _password.trim(), _name.trim());
         }
       } on FirebaseAuthException catch (e) {
         if (mounted) {
@@ -77,7 +78,9 @@ class _AuthScreenState extends State<AuthScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString().replaceAll(RegExp(r'\[.*?\]'), '').trim())),
+            SnackBar(
+                content: Text(
+                    e.toString().replaceAll(RegExp(r'\[.*?\]'), '').trim())),
           );
         }
       } finally {
@@ -93,7 +96,7 @@ class _AuthScreenState extends State<AuthScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(24.0),
             child: Form(
               key: _formKey,
               child: Column(
@@ -106,7 +109,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     width: 180,
                     fit: BoxFit.contain,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
                     "AvanziZero",
                     textAlign: TextAlign.center,
@@ -117,43 +120,48 @@ class _AuthScreenState extends State<AuthScreen> {
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
-                    _isLogin ? "Bentornato! Accedi per continuare." : "Crea un account per iniziare.",
+                    _isLogin
+                        ? "Bentornato! Accedi per continuare."
+                        : "Crea un account per iniziare.",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  SizedBox(height: 40),
-
+                  const SizedBox(height: 40),
                   if (!_isLogin)
                     TextFormField(
                       decoration: InputDecoration(
                         labelText: "Nome",
-                        prefixIcon: Icon(Icons.person_outline),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        prefixIcon: const Icon(Icons.person_outline),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12)),
                         filled: true,
                         fillColor: Colors.white,
                       ),
-                      validator: (val) => val == null || val.isEmpty ? "Inserisci il tuo nome" : null,
+                      validator: (val) => val == null || val.isEmpty
+                          ? "Inserisci il tuo nome"
+                          : null,
                       onSaved: (val) => _name = val!,
                     ),
-                  if (!_isLogin) SizedBox(height: 16),
-
+                  if (!_isLogin) const SizedBox(height: 16),
                   TextFormField(
                     decoration: InputDecoration(
                       labelText: "Email",
-                      prefixIcon: Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       filled: true,
                       fillColor: Colors.white,
                     ),
                     keyboardType: TextInputType.emailAddress,
                     validator: (val) {
                       if (_emailError != null) return _emailError;
-                      if (val == null || !val.contains('@')) return "Inserisci una email valida";
+                      if (val == null || !val.contains('@'))
+                        return "Inserisci una email valida";
                       return null;
                     },
                     onChanged: (val) {
@@ -165,25 +173,27 @@ class _AuthScreenState extends State<AuthScreen> {
                     },
                     onSaved: (val) => _email = val!,
                   ),
-                  SizedBox(height: 16),
-
+                  const SizedBox(height: 16),
                   TextFormField(
                     decoration: InputDecoration(
                       labelText: "Password",
-                      prefixIcon: Icon(Icons.lock_outline),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       filled: true,
                       fillColor: Colors.white,
                     ),
                     obscureText: true,
                     validator: (val) {
                       if (_passwordError != null) return _passwordError;
-                      if (val == null || val.isEmpty) return "Inserisci la password";
+                      if (val == null || val.isEmpty)
+                        return "Inserisci la password";
                       if (!_isLogin) {
-                        if (val.length < 8 || 
-                            !RegExp(r'[A-Z]').hasMatch(val) || 
-                            !RegExp(r'[a-z]').hasMatch(val) || 
-                            !RegExp(r'[!@#\$&*~_+\-\.\/\\><?\^%]').hasMatch(val) ||
+                        if (val.length < 8 ||
+                            !RegExp(r'[A-Z]').hasMatch(val) ||
+                            !RegExp(r'[a-z]').hasMatch(val) ||
+                            !RegExp(r'[!@#\$&*~_+\-\.\/\\><?\^%]')
+                                .hasMatch(val) ||
                             !RegExp(r'[0-9]').hasMatch(val)) {
                           return "La password deve contenere almeno 8 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale.";
                         }
@@ -199,35 +209,37 @@ class _AuthScreenState extends State<AuthScreen> {
                     },
                     onSaved: (val) => _password = val!,
                   ),
-                  
                   if (_isLogin)
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: _showForgotPasswordDialog,
-                        child: Text("Hai dimenticato la password?", style: TextStyle(color: AppColors.primary, fontSize: 13)),
+                        child: Text("Hai dimenticato la password?",
+                            style: TextStyle(
+                                color: AppColors.primary, fontSize: 13)),
                       ),
                     ),
-                    
-                  SizedBox(height: 32),
-
+                  const SizedBox(height: 32),
                   _isLoading
-                      ? Center(child: CircularProgressIndicator(color: AppColors.primary))
+                      ? Center(
+                          child: CircularProgressIndicator(
+                              color: AppColors.primary))
                       : ElevatedButton(
                           onPressed: _submit,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
                           child: Text(
                             _isLogin ? "Accedi" : "Registrati",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ),
-                  SizedBox(height: 16),
-
+                  const SizedBox(height: 16),
                   TextButton(
                     onPressed: () {
                       setState(() {
@@ -239,8 +251,12 @@ class _AuthScreenState extends State<AuthScreen> {
                       });
                     },
                     child: Text(
-                      _isLogin ? "Non hai un account? Registrati" : "Hai già un account? Accedi",
-                      style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                      _isLogin
+                          ? "Non hai un account? Registrati"
+                          : "Hai già un account? Accedi",
+                      style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -257,12 +273,14 @@ class _AuthScreenState extends State<AuthScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text("Recupera Password", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text("Recupera Password",
+            style: TextStyle(fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text("Inserisci la tua email per ricevere il link di recupero password."),
-            SizedBox(height: 16),
+            const Text(
+                "Inserisci la tua email per ricevere il link di recupero password."),
+            const SizedBox(height: 16),
             TextField(
               controller: emailCtrl,
               keyboardType: TextInputType.emailAddress,
@@ -276,14 +294,15 @@ class _AuthScreenState extends State<AuthScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text("Annulla", style: TextStyle(color: AppColors.textSecondary)),
+            child: Text("Annulla",
+                style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () async {
               final email = emailCtrl.text.trim();
               if (email.isEmpty || !email.contains('@')) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Inserisci una email valida")),
+                  const SnackBar(content: Text("Inserisci una email valida")),
                 );
                 return;
               }
@@ -293,7 +312,8 @@ class _AuthScreenState extends State<AuthScreen> {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text("Abbiamo inviato un link alla tua email per recuperare la password!"),
+                      content: const Text(
+                          "Abbiamo inviato un link alla tua email per recuperare la password!"),
                       backgroundColor: AppColors.primary,
                     ),
                   );
@@ -301,13 +321,17 @@ class _AuthScreenState extends State<AuthScreen> {
               } catch (e) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Errore: Impossibile inviare l'email di recupero.")),
+                    const SnackBar(
+                        content: Text(
+                            "Errore: Impossibile inviare l'email di recupero.")),
                   );
                 }
               }
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-            child: Text("Invia"),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white),
+            child: const Text("Invia"),
           ),
         ],
       ),

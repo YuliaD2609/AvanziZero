@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firebase_service.dart';
 import '../services/auth_service.dart';
+import '../services/notification_service.dart';
+import '../main.dart';
 import 'user_model.dart';
 
 bool globalIsDarkMode = false;
@@ -33,7 +34,10 @@ class ItemModel {
   });
 
   DateTime? get parsedExpireDate {
-    String cleanText = expireDate.replaceAll("In scadenza: ", "").replaceAll("Scadenza: ", "").trim();
+    String cleanText = expireDate
+        .replaceAll("In scadenza: ", "")
+        .replaceAll("Scadenza: ", "")
+        .trim();
     if (cleanText == "-" || cleanText.isEmpty) return null;
     final dateParts = cleanText.split('/');
     if (dateParts.length == 3) {
@@ -49,7 +53,10 @@ class ItemModel {
 
   // Livello di urgenza "Zero Spreco"
   int get urgencyLevel {
-    String cleanText = expireDate.replaceAll("In scadenza: ", "").replaceAll("Scadenza: ", "").trim();
+    String cleanText = expireDate
+        .replaceAll("In scadenza: ", "")
+        .replaceAll("Scadenza: ", "")
+        .trim();
     if (cleanText == "-" || cleanText.isEmpty) return 0;
 
     // Se è nel formato gg/mm/aaaa
@@ -63,14 +70,15 @@ class ItemModel {
         final now = DateTime.now();
         final today = DateTime(now.year, now.month, now.day);
         final difference = expDate.difference(today).inDays;
-        
+
         if (difference <= 1) return 2; // Oggi, Domani, o già scaduto (Rosso)
         if (difference <= 7) return 1; // Tra 2 e 7 giorni (Giallo)
         return 0; // Verde / Fresco
       }
     }
 
-    if (cleanText.toLowerCase().contains('oggi') || cleanText.toLowerCase().contains('domani')) return 2; // Rosso
+    if (cleanText.toLowerCase().contains('oggi') ||
+        cleanText.toLowerCase().contains('domani')) return 2; // Rosso
     if (cleanText.toLowerCase().contains('giorni')) {
       final match = RegExp(r'tra (\d+) giorn[io]').firstMatch(cleanText);
       if (match != null) {
@@ -89,7 +97,8 @@ class SupermarketModel {
   final String distance;
   final String address;
 
-  SupermarketModel({required this.name, required this.distance, required this.address});
+  SupermarketModel(
+      {required this.name, required this.distance, required this.address});
 }
 
 class AppState extends ChangeNotifier {
@@ -107,9 +116,18 @@ class AppState extends ChangeNotifier {
   Color getMemberColor(String uid) {
     if (groupId == null) return Colors.grey;
     final List<Color> palette = [
-      Colors.red, Colors.blue, Colors.green, Colors.orange, 
-      Colors.purple, Colors.teal, Colors.pink, Colors.indigo,
-      Colors.brown, Colors.cyan, Colors.amber, Colors.deepOrange
+      Colors.red,
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+      Colors.teal,
+      Colors.pink,
+      Colors.indigo,
+      Colors.brown,
+      Colors.cyan,
+      Colors.amber,
+      Colors.deepOrange
     ];
     int hash = (uid + groupId!).hashCode;
     return palette[hash.abs() % palette.length];
@@ -144,6 +162,56 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  bool _notificationsEnabled = true;
+  bool get notificationsEnabled => _notificationsEnabled;
+
+  TimeOfDay _notificationTime = const TimeOfDay(hour: 9, minute: 0);
+  TimeOfDay get notificationTime => _notificationTime;
+
+  Future<void> loadNotificationPreferences() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
+      int hour = prefs.getInt('notificationHour') ?? 9;
+      int minute = prefs.getInt('notificationMinute') ?? 0;
+      _notificationTime = TimeOfDay(hour: hour, minute: minute);
+      _scheduleNotifications();
+      notifyListeners();
+    } catch (e) {
+      print("Errore caricamento notifiche: $e");
+    }
+  }
+
+  Future<void> setNotificationsEnabled(bool enabled) async {
+    _notificationsEnabled = enabled;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('notificationsEnabled', enabled);
+      _scheduleNotifications();
+    } catch (e) {}
+  }
+
+  Future<void> setNotificationTime(TimeOfDay time) async {
+    _notificationTime = time;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('notificationHour', time.hour);
+      await prefs.setInt('notificationMinute', time.minute);
+      _scheduleNotifications();
+    } catch (e) {}
+  }
+
+  void _scheduleNotifications() {
+    if (_notificationsEnabled) {
+      NotificationService()
+          .scheduleDailyPantryCheck(_notificationTime, allItems);
+    } else {
+      NotificationService().cancelNotifications();
+    }
+  }
+
   bool _categoryDeleteHintShown = false;
   bool get categoryDeleteHintShown => _categoryDeleteHintShown;
 
@@ -157,7 +225,8 @@ class AppState extends ChangeNotifier {
     }
     try {
       final prefs = await SharedPreferences.getInstance();
-      _categoryDeleteHintShown = prefs.getBool('category_delete_hint_shown_${userId}_$group') ?? false;
+      _categoryDeleteHintShown =
+          prefs.getBool('category_delete_hint_shown_${userId}_$group') ?? false;
       notifyListeners();
     } catch (e) {
       print("Errore caricamento stato hint categoria: $e");
@@ -189,7 +258,8 @@ class AppState extends ChangeNotifier {
     }
     try {
       final prefs = await SharedPreferences.getInstance();
-      _isPredictiveBannerClosed = prefs.getBool('predictive_banner_closed_${userId}_$group') ?? false;
+      _isPredictiveBannerClosed =
+          prefs.getBool('predictive_banner_closed_${userId}_$group') ?? false;
       notifyListeners();
     } catch (e) {
       print("Errore caricamento stato banner: $e");
@@ -200,10 +270,10 @@ class AppState extends ChangeNotifier {
     final userId = currentUserAuth?.uid;
     final group = groupId;
     if (userId == null || group == null) return;
-    
+
     _isPredictiveBannerClosed = true;
     notifyListeners();
-    
+
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('predictive_banner_closed_${userId}_$group', true);
@@ -218,26 +288,33 @@ class AppState extends ChangeNotifier {
     authService.authStateChanges.listen((User? user) async {
       isInitializingUser = true;
       notifyListeners();
-      
+
       currentUserAuth = user;
       if (user != null) {
         _userDocSubscription?.cancel();
-        _userDocSubscription = FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots().listen((doc) async {
+        _userDocSubscription = FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .snapshots()
+            .listen((doc) async {
           if (doc.exists) {
-            currentUserData = UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
-            
+            currentUserData =
+                UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+
             // Carica la cronologia specifica dell'utente appena loggato
             await loadSavedGroups();
 
             // AUTO-LOGIN AL GRUPPO
             try {
               final prefs = await SharedPreferences.getInstance();
-              final lastActive = prefs.getString('lastActiveGroupId_${user.uid}');
-              if (lastActive != null && currentUserData!.groupIds.contains(lastActive)) {
+              final lastActive =
+                  prefs.getString('lastActiveGroupId_${user.uid}');
+              if (lastActive != null &&
+                  currentUserData!.groupIds.contains(lastActive)) {
                 if (groupId != lastActive) setGroupId(lastActive); // Background
               }
             } catch (_) {}
-            
+
             isInitializingUser = false;
             notifyListeners();
           }
@@ -262,7 +339,8 @@ class AppState extends ChangeNotifier {
   StreamSubscription<DocumentSnapshot>? _groupSubscription;
   StreamSubscription<DocumentSnapshot>? _userDocSubscription;
 
-  bool isInitializingUser = true; // Mostra loader all'avvio finché non carichiamo i dati utente
+  bool isInitializingUser =
+      true; // Mostra loader all'avvio finché non carichiamo i dati utente
   bool isLoading = false;
   bool groupWasDeleted = false; // Aggiunto per il flag di eliminazione gruppo
   bool userWasKicked = false; // Aggiunto per il flag di rimozione dal gruppo
@@ -279,7 +357,8 @@ class AppState extends ChangeNotifier {
       if (groupNamesJson != null) {
         try {
           final Map<String, dynamic> decoded = jsonDecode(groupNamesJson);
-          savedGroupNames = decoded.map((key, value) => MapEntry(key, value.toString()));
+          savedGroupNames =
+              decoded.map((key, value) => MapEntry(key, value.toString()));
         } catch (_) {}
       }
       notifyListeners();
@@ -291,7 +370,7 @@ class AppState extends ChangeNotifier {
   /// Imposta il codice del gruppo (Casa), avvia la sincronizzazione e lo salva nella cronologia.
   Future<void> setGroupId(String newGroupId) async {
     if (newGroupId.trim().isEmpty) return;
-    
+
     final code = newGroupId.trim().toUpperCase();
     groupId = code;
     isLoading = true;
@@ -309,7 +388,8 @@ class AppState extends ChangeNotifier {
       savedGroups.insert(0, code);
       final key = 'savedGroups_${currentUserAuth?.uid ?? ''}';
       await prefs.setStringList(key, savedGroups);
-      await prefs.setString('lastActiveGroupId_${currentUserAuth?.uid ?? ''}', code);
+      await prefs.setString(
+          'lastActiveGroupId_${currentUserAuth?.uid ?? ''}', code);
     } catch (e) {
       print("Errore salvataggio SharedPreferences: $e");
     }
@@ -318,7 +398,8 @@ class AppState extends ChangeNotifier {
 
     // Esegue il seeding aspettando il completamento per evitare race condition con lo stream
     // (altrimenti lo stream leggerebbe "non esiste" e scatenerebbe leaveGroup)
-    await _firebaseService!.seedInitialDataIfNeeded(_initialDemoItems, uid: currentUserAuth?.uid);
+    await _firebaseService!
+        .seedInitialDataIfNeeded(_initialDemoItems, uid: currentUserAuth?.uid);
 
     // Cancella eventuali sottoscrizioni precedenti
     await _itemsSubscription?.cancel();
@@ -330,6 +411,7 @@ class AppState extends ChangeNotifier {
         allItems = itemsFromCloud;
         isLoading = false;
         notifyListeners();
+        _scheduleNotifications();
       },
       onError: (error) {
         print("Errore stream articoli: $error");
@@ -343,7 +425,7 @@ class AppState extends ChangeNotifier {
       if (doc.exists) {
         groupDidExist = true;
         final data = doc.data() as Map<String, dynamic>? ?? {};
-        
+
         groupName = data['name'];
         if (groupName != null && groupName!.isNotEmpty && groupId != null) {
           savedGroupNames[groupId!] = groupName!;
@@ -357,15 +439,25 @@ class AppState extends ChangeNotifier {
           categories = loaded.map((e) => e.toString()).toList();
         } else {
           // Migrazione dalle vecchie liste separate
-          Set<String> merged = {"Tutti", "Altro", "Frutta & Verdura", "Latticini", "Carne", "Bevande", "Snack"};
+          Set<String> merged = {
+            "Tutti",
+            "Altro",
+            "Frutta & Verdura",
+            "Latticini",
+            "Carne",
+            "Bevande",
+            "Snack"
+          };
           if (data.containsKey('pantryCategories')) {
-            merged.addAll((data['pantryCategories'] as List).map((e) => e.toString()));
+            merged.addAll(
+                (data['pantryCategories'] as List).map((e) => e.toString()));
           }
           if (data.containsKey('shoppingCategories')) {
-            merged.addAll((data['shoppingCategories'] as List).map((e) => e.toString()));
+            merged.addAll(
+                (data['shoppingCategories'] as List).map((e) => e.toString()));
           }
           categories = merged.toList();
-          
+
           // Salva la lista unificata su Firebase per sincronizzarla con tutti
           if (groupDidExist && _firebaseService != null) {
             _firebaseService!.updateCategories(categories);
@@ -374,12 +466,13 @@ class AppState extends ChangeNotifier {
         if (data.containsKey('members')) {
           final List<dynamic> loadedMembers = data['members'];
           final memberStrings = loadedMembers.map((e) => e.toString()).toList();
-          
-          if (currentUserAuth != null && !memberStrings.contains(currentUserAuth!.uid)) {
+
+          if (currentUserAuth != null &&
+              !memberStrings.contains(currentUserAuth!.uid)) {
             leaveGroup(kicked: true);
             return;
           }
-          
+
           _fetchGroupMembers(memberStrings);
         }
         notifyListeners();
@@ -388,16 +481,17 @@ class AppState extends ChangeNotifier {
         leaveGroup(deleted: true);
       }
     });
-
   }
 
   Future<void> _fetchGroupMembers(List<String> uids) async {
     List<UserModel> members = [];
     for (String uid in uids) {
       try {
-        final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+        final doc =
+            await FirebaseFirestore.instance.collection('users').doc(uid).get();
         if (doc.exists) {
-          members.add(UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id));
+          members.add(
+              UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id));
         }
       } catch (e) {
         print("Errore caricamento membro $uid: $e");
@@ -419,7 +513,7 @@ class AppState extends ChangeNotifier {
     } catch (e) {
       print("Errore rimozione gruppo da SharedPreferences: $e");
     }
-    
+
     // Se elimino il gruppo in cui mi trovo attualmente, esco dal gruppo
     if (groupId == code) {
       await leaveGroup();
@@ -434,7 +528,10 @@ class AppState extends ChangeNotifier {
 
   Future<void> updateGroupName(String newName) async {
     if (groupId != null) {
-      await FirebaseFirestore.instance.collection('groups').doc(groupId).update({
+      await FirebaseFirestore.instance
+          .collection('groups')
+          .doc(groupId)
+          .update({
         'name': newName.trim(),
       });
     }
@@ -455,18 +552,21 @@ class AppState extends ChangeNotifier {
           await prefs.setStringList(key, savedGroups);
           await prefs.setString('savedGroupNames', jsonEncode(savedGroupNames));
         } catch (_) {}
-        
+
         if (currentUserData != null) {
           currentUserData!.groupIds.remove(groupId);
         }
       }
     }
-    
+
     // Aspetta che tutte le scritture pendenti su Firestore vengano completate
     try {
-      await FirebaseFirestore.instance.waitForPendingWrites().timeout(const Duration(seconds: 3));
+      await FirebaseFirestore.instance
+          .waitForPendingWrites()
+          .timeout(const Duration(seconds: 3));
     } catch (e) {
-      print("Errore o timeout nel salvataggio dei dati pendenti su Firebase: $e");
+      print(
+          "Errore o timeout nel salvataggio dei dati pendenti su Firebase: $e");
     }
 
     groupId = null;
@@ -528,7 +628,7 @@ class AppState extends ChangeNotifier {
   // ===========================================================================
   // LOGICA E AZIONI SINCRO
   // ===========================================================================
-  
+
   void selectCategory(String category, String section) {
     if (section == 'pantry') selectedPantryCategory = category;
     if (section == 'shopping') selectedShoppingCategory = category;
@@ -538,7 +638,7 @@ class AppState extends ChangeNotifier {
   void addCustomCategory(String newCategory, String section) {
     if (newCategory.trim().isEmpty) return;
     bool updated = false;
-    
+
     if (!categories.contains(newCategory)) {
       categories.add(newCategory);
       updated = true;
@@ -554,7 +654,8 @@ class AppState extends ChangeNotifier {
   }
 
   void removeCustomCategory(String categoryToRemove, String section) {
-    if (categoryToRemove == "Tutti") return; // "Tutti" non può mai essere eliminato
+    if (categoryToRemove == "Tutti")
+      return; // "Tutti" non può mai essere eliminato
 
     bool removed = categories.remove(categoryToRemove);
 
@@ -578,22 +679,66 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  Future<void> _checkAndAutoAddShopping(ItemModel item) async {
+    final history = await _firebaseService?.getConsumptionHistory() ?? [];
+    int consumedCount = 0;
+    String targetName = item.name.toLowerCase().trim();
+
+    for (var log in history) {
+      if ((log['name'] ?? '').toString().toLowerCase().trim() == targetName) {
+        consumedCount += (log['quantity'] ?? 1) as int;
+      }
+    }
+
+    if (consumedCount >= 3) {
+      bool alreadyInShopping = allItems.any(
+          (i) => i.isShopping && i.name.toLowerCase().trim() == targetName);
+      if (!alreadyInShopping) {
+        ItemModel newItem = ItemModel(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          name: item.name,
+          expireDate: "-",
+          quantity: 1,
+          category: item.category,
+          isShopping: true,
+        );
+        newItem.isPantry = false;
+        allItems.add(newItem);
+        notifyListeners();
+        await _firebaseService?.saveItem(newItem);
+
+        rootScaffoldMessengerKey.currentState?.showSnackBar(
+          SnackBar(
+            content: Text(
+                "IA: ${item.name} sta finendo ed è stato aggiunto alla Spesa automatica!"),
+            backgroundColor: const Color(0xFF4A7C59),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> updateQuantity(String itemId, int delta) async {
     try {
       final item = allItems.firstWhere((i) => i.id == itemId);
       item.quantity += delta;
-      
+
       if (delta < 0 && item.isPantry) {
         _firebaseService?.logConsumption(item.name, -delta);
       }
-      
+
       if (item.quantity <= 0) {
         allItems.remove(item);
         notifyListeners();
         await _firebaseService?.deleteItem(itemId);
+        if (item.isPantry) _checkAndAutoAddShopping(item);
       } else {
         notifyListeners();
         await _firebaseService?.updateItemQuantity(itemId, item.quantity);
+        if (item.quantity == 1 && item.isPantry && delta < 0) {
+          _checkAndAutoAddShopping(item);
+        }
       }
     } catch (e) {
       print("Prodotto non trovato localmente: $e");
@@ -606,7 +751,7 @@ class AppState extends ChangeNotifier {
       if (item.isPantry) {
         _firebaseService?.logConsumption(item.name, item.quantity);
       }
-      
+
       allItems.removeWhere((i) => i.id == itemId);
       notifyListeners();
       await _firebaseService?.deleteItem(itemId);
@@ -619,11 +764,12 @@ class AppState extends ChangeNotifier {
     try {
       // Cerca un prodotto identico (nome uguale case-insensitive) nella stessa sezione
       final existingItem = allItems.firstWhere(
-        (i) => i.name.trim().toLowerCase() == newItem.name.trim().toLowerCase() &&
-               i.isPantry == newItem.isPantry &&
-               i.isShopping == newItem.isShopping,
+        (i) =>
+            i.name.trim().toLowerCase() == newItem.name.trim().toLowerCase() &&
+            i.isPantry == newItem.isPantry &&
+            i.isShopping == newItem.isShopping,
       );
-      
+
       // Se esiste, aggiorna solo la quantità
       await updateQuantity(existingItem.id, newItem.quantity);
     } catch (e) {
@@ -655,13 +801,15 @@ class AppState extends ChangeNotifier {
       isShopping: true,
     );
     await addItem(newItem);
-    
+
     // Rimuovi dalla dispensa
     await deleteItem(oldItem.id);
   }
 
   Future<void> markSelectedShoppingDone(List<String> selectedItemIds) async {
-    for (var item in allItems.where((i) => i.isShopping && selectedItemIds.contains(i.id)).toList()) {
+    for (var item in allItems
+        .where((i) => i.isShopping && selectedItemIds.contains(i.id))
+        .toList()) {
       item.isShopping = false;
       item.isPantry = true;
       item.expireDate = "Data: N/A";
@@ -684,7 +832,10 @@ class AppState extends ChangeNotifier {
     try {
       final user = currentUserAuth;
       if (user != null) {
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .update({
           'name': newName,
         });
         currentUserData = UserModel(

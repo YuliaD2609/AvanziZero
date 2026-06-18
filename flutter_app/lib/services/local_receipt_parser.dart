@@ -75,7 +75,10 @@ class LocalReceiptParser {
     'caffe': {'name': 'Caffè', 'category': 'Secco & Pasta'},
     'nutella': {'name': 'Nutella', 'category': 'Secco & Pasta'},
     'marmellata': {'name': 'Marmellata', 'category': 'Secco & Pasta'},
-    'fette biscottate': {'name': 'Fette Biscottate', 'category': 'Secco & Pasta'},
+    'fette biscottate': {
+      'name': 'Fette Biscottate',
+      'category': 'Secco & Pasta'
+    },
     'crackers': {'name': 'Crackers', 'category': 'Secco & Pasta'},
     'passata': {'name': 'Passata di Pomodoro', 'category': 'Secco & Pasta'},
     'pesto': {'name': 'Pesto', 'category': 'Secco & Pasta'},
@@ -111,9 +114,30 @@ class LocalReceiptParser {
 
   // Parole spazzatura OCR da cui rifuggire
   static final List<String> _garbageKeywords = [
-    'totale', 'resto', 'contanti', 'bancomat', 'carta', 'euro', 'iva', 'scontrino', 
-    'reparto', 'sconto', 'pagamento', 'importo', 'sacchetto', 'eur', 'piva', 'via',
-    'telefono', 'tel', 'grazie', 'arrivederci', 'cassa', 'resto', 'pos', 'transazione'
+    'totale',
+    'resto',
+    'contanti',
+    'bancomat',
+    'carta',
+    'euro',
+    'iva',
+    'scontrino',
+    'reparto',
+    'sconto',
+    'pagamento',
+    'importo',
+    'sacchetto',
+    'eur',
+    'piva',
+    'via',
+    'telefono',
+    'tel',
+    'grazie',
+    'arrivederci',
+    'cassa',
+    'resto',
+    'pos',
+    'transazione'
   ];
 
   /// Calcola la distanza di Levenshtein tra due stringhe (algoritmo matematico puro)
@@ -174,16 +198,21 @@ class LocalReceiptParser {
       int quantity = _extractQuantity(cleanLine);
 
       // 3. Pulizia Prezzi e Quantità dal testo puro
-      String textWithoutPrice = cleanLine.replaceAll(RegExp(r'\s*\d+[,\.]\d{2}\s*(€|eur|e)?\s*$'), '').trim();
-      String productNameRaw = textWithoutPrice.replaceAll(RegExp(r'^(\d+[\s]*[xX]?)?\s*'), '').trim();
-      productNameRaw = productNameRaw.replaceAll(RegExp(r'[^a-z0-9\s]'), '').trim();
+      String textWithoutPrice = cleanLine
+          .replaceAll(RegExp(r'\s*\d+[,\.]\d{2}\s*(€|eur|e)?\s*$'), '')
+          .trim();
+      String productNameRaw = textWithoutPrice
+          .replaceAll(RegExp(r'^(\d+[\s]*[xX]?)?\s*'), '')
+          .trim();
+      productNameRaw =
+          productNameRaw.replaceAll(RegExp(r'[^a-z0-9\s]'), '').trim();
 
       if (productNameRaw.isEmpty || productNameRaw.length < 3) continue;
 
       // 4. Intelligenza Artificiale Matematica (Fuzzy Matching)
       String finalName = productNameRaw;
       String finalCategory = 'Altro';
-      
+
       double bestSimilarity = 0.0;
       String bestMatchKey = '';
 
@@ -207,16 +236,21 @@ class LocalReceiptParser {
         finalCategory = _productDictionary[bestMatchKey]!['category']!;
       } else {
         // Se non trova niente, capitalizza il nome originale senza perderlo
-        finalName = finalName.split(' ').map((w) => w.isNotEmpty ? w[0].toUpperCase() + w.substring(1) : '').join(' ').trim();
+        finalName = finalName
+            .split(' ')
+            .map((w) => w.isNotEmpty ? w[0].toUpperCase() + w.substring(1) : '')
+            .join(' ')
+            .trim();
       }
 
       extractedItems.add(ItemModel(
-        id: DateTime.now().millisecondsSinceEpoch.toString() + finalName.hashCode.toString(),
+        id: DateTime.now().millisecondsSinceEpoch.toString() +
+            finalName.hashCode.toString(),
         name: finalName,
-        expireDate: 'Data: N/A', 
+        expireDate: 'Data: N/A',
         quantity: quantity,
         category: finalCategory,
-        isPantry: true, 
+        isPantry: true,
       ));
     }
 
@@ -226,13 +260,12 @@ class LocalReceiptParser {
       if (groupedItems.containsKey(item.name)) {
         var existing = groupedItems[item.name]!;
         groupedItems[item.name] = ItemModel(
-          id: existing.id,
-          name: existing.name,
-          expireDate: existing.expireDate,
-          quantity: existing.quantity + item.quantity,
-          category: existing.category,
-          isPantry: true
-        );
+            id: existing.id,
+            name: existing.name,
+            expireDate: existing.expireDate,
+            quantity: existing.quantity + item.quantity,
+            category: existing.category,
+            isPantry: true);
       } else {
         groupedItems[item.name] = item;
       }
