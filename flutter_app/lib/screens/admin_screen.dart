@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_state.dart';
 import '../theme/app_colors.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class AdminScreen extends StatefulWidget {
   final AppState state;
@@ -275,27 +274,9 @@ class _AdminScreenState extends State<AdminScreen> {
                       activeColor: AppColors.primary,
                       value: _notificationsEnabled,
                       onChanged: (val) async {
-                        if (val) {
-                          final status = await Permission.notification.request();
-                          if (status.isGranted) {
-                            setState(() {
-                              _notificationsEnabled = true;
-                            });
-                          } else {
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Permesso per le notifiche negato dal sistema.")),
-                              );
-                            }
-                            setState(() {
-                              _notificationsEnabled = false;
-                            });
-                          }
-                        } else {
-                          setState(() {
-                            _notificationsEnabled = false;
-                          });
-                        }
+                        setState(() {
+                          _notificationsEnabled = val;
+                        });
                       },
                     ),
                     if (_notificationsEnabled) ...[
@@ -543,6 +524,23 @@ class _AdminScreenState extends State<AdminScreen> {
                               );
                             }
                           ),
+                          const SizedBox(height: 28),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () => _confirmDeleteGroup(context),
+                              icon: const Icon(Icons.delete_forever_rounded, color: Colors.white),
+                              label: const Text(
+                                "Elimina il gruppo",
+                                style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.error,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                            ),
+                          ),
                         ],
                       ],
                     );
@@ -562,6 +560,40 @@ class _AdminScreenState extends State<AdminScreen> {
       child: Text(
         title,
         style: const TextStyle(fontFamily: 'Outfit', fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+      ),
+    );
+  }
+
+  void _confirmDeleteGroup(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Elimina Gruppo", style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+        content: const Text(
+          "Sei sicuro di voler eliminare definitivamente questo gruppo? "
+          "Questa azione cancellerà tutti i dati al suo interno (lista della spesa, dispensa, categorie personalizzate) "
+          "e disconnetterà tutti gli altri membri. L'azione non è reversibile.",
+          style: TextStyle(fontFamily: 'Outfit'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Annulla", style: TextStyle(color: AppColors.textPrimary)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await widget.state.deleteGroup();
+              if (mounted) {
+                // Dopo l'eliminazione, FirebaseService cancellerà il doc.
+                // Il listener in AppState lo rileverà e forzerà il leaveGroup.
+                Navigator.pop(context); // Torna alla home
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text("Elimina", style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }

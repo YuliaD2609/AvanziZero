@@ -35,6 +35,9 @@ class _PantryScreenState extends State<PantryScreen> {
       return matchesCategory && matchesSearch;
     }).toList();
 
+    // Ordina i prodotti in ordine alfabetico (case insensitive)
+    filteredItems.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
     return Scaffold(
       backgroundColor: AppColors.background, // Avorio soft
       body: Column(
@@ -132,9 +135,9 @@ class _PantryScreenState extends State<PantryScreen> {
                         alignment: Alignment.bottomRight,
                         child: Padding(
                           padding: const EdgeInsets.all(12),
-                          child: Column(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               FloatingActionButton(
                                 heroTag: 'scanner_fab',
@@ -143,7 +146,7 @@ class _PantryScreenState extends State<PantryScreen> {
                                 elevation: 2,
                                 child: const Icon(Icons.document_scanner_rounded, color: AppColors.primary),
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(width: 12),
                               ElevatedButton(
                                 onPressed: () => _showAddItemDialog(context),
                                 style: ElevatedButton.styleFrom(

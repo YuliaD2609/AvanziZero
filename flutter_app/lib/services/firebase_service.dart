@@ -151,4 +151,23 @@ class FirebaseService {
       print("Errore aggiornamento categorie: $e");
     }
   }
+
+  /// Elimina definitivamente il gruppo e tutti i suoi dati (wipe completo)
+  Future<void> deleteGroup() async {
+    try {
+      // 1. Elimina tutti i documenti nella subcollection 'items'
+      final itemsSnap = await _itemsRef.get();
+      final batch = _db.batch();
+      for (var doc in itemsSnap.docs) {
+        batch.delete(doc.reference);
+      }
+      // Esegui il batch per cancellare gli items
+      await batch.commit();
+
+      // 2. Elimina il documento del gruppo
+      await _db.collection('groups').doc(groupId).delete();
+    } catch (e) {
+      print("Errore nell'eliminazione del gruppo: $e");
+    }
+  }
 }
