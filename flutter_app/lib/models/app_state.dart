@@ -368,6 +368,23 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  Future<void> moveToShoppingList(ItemModel oldItem) async {
+    // Aggiungi alla spesa
+    final newItem = ItemModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: oldItem.name,
+      expireDate: "-",
+      quantity: 1,
+      category: oldItem.category,
+      isPantry: false,
+      isShopping: true,
+    );
+    await addItem(newItem);
+    
+    // Rimuovi dalla dispensa
+    await deleteItem(oldItem.id);
+  }
+
   Future<void> markShoppingDone() async {
     for (var item in allItems.where((i) => i.isShopping).toList()) {
       item.isShopping = false;

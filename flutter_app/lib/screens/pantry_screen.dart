@@ -258,7 +258,43 @@ class _PantryScreenState extends State<PantryScreen> {
                   
                   // Pulsante Decremento (-)
                   InkWell(
-                    onTap: () => widget.state.updateQuantity(item.id, -1),
+                    onTap: () {
+                      if (item.quantity == 1) {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            backgroundColor: Colors.white,
+                            title: const Text("Prodotto terminato", style: TextStyle(fontFamily: 'Outfit', color: Color(0xFF1C3D32))),
+                            content: Text("Vuoi aggiungere '${item.name}' alla lista della spesa?", style: const TextStyle(color: Color(0xFF789088))),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  widget.state.updateQuantity(item.id, -1);
+                                },
+                                child: const Text("No, rimuovi"),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  widget.state.moveToShoppingList(item);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text("${item.name} aggiunto alla spesa!"),
+                                      backgroundColor: const Color(0xFF5A9E87),
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5A9E87)),
+                                child: const Text("Sì, aggiungi", style: TextStyle(color: Colors.white)),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else {
+                        widget.state.updateQuantity(item.id, -1);
+                      }
+                    },
                     child: Container(
                       width: 24,
                       height: 24,

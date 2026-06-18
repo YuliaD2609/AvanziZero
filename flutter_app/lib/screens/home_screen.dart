@@ -3,6 +3,7 @@ import '../models/app_state.dart';
 import '../widgets/ocr_scanner_modal.dart';
 import '../widgets/menus.dart';
 import 'admin_screen.dart';
+import 'group_setup_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final AppState state;
@@ -92,6 +93,11 @@ class HomeScreen extends StatelessWidget {
                             onPressed: () {
                               // Uscita istantanea dal gruppo corrente
                               state.leaveGroup();
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(builder: (context) => GroupSetupScreen(state: state)),
+                                (route) => false,
+                              );
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(content: Text("Sei uscito dal gruppo appartamento.")),
                               );
