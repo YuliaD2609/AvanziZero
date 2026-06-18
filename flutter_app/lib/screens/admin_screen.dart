@@ -22,6 +22,7 @@ class _AdminScreenState extends State<AdminScreen> {
   
   bool _notificationsEnabled = true;
   TimeOfDay _notificationTime = const TimeOfDay(hour: 9, minute: 0);
+  bool _isDarkMode = false;
 
   @override
   void initState() {
@@ -45,7 +46,7 @@ class _AdminScreenState extends State<AdminScreen> {
   void _saveProfile() async {
     // Funzionalità mockata per il profilo personale (da implementare in futuro)
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Text("Profilo aggiornato con successo!"),
         backgroundColor: AppColors.primary,
       ),
@@ -58,8 +59,8 @@ class _AdminScreenState extends State<AdminScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("Rimuovi Membro", style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
-        content: const Text(
+        title: Text("Rimuovi Membro", style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+        content: Text(
           "Sei sicuro di voler rimuovere questo utente dal gruppo? Questa azione non è reversibile.",
           style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
         ),
@@ -67,7 +68,7 @@ class _AdminScreenState extends State<AdminScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text("Annulla", style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+            child: Text("Annulla", style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -78,7 +79,7 @@ class _AdminScreenState extends State<AdminScreen> {
               backgroundColor: AppColors.error,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text("Rimuovi", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text("Rimuovi", style: TextStyle(color: AppColors.surfaceLight, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -98,7 +99,7 @@ class _AdminScreenState extends State<AdminScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Membro rimosso dal gruppo."), backgroundColor: AppColors.error),
+          SnackBar(content: Text("Membro rimosso dal gruppo."), backgroundColor: AppColors.error),
         );
       }
     } catch (e) {
@@ -115,7 +116,7 @@ class _AdminScreenState extends State<AdminScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Membro promosso ad Admin!"), backgroundColor: AppColors.primary),
+          SnackBar(content: Text("Membro promosso ad Admin!"), backgroundColor: AppColors.primary),
         );
       }
     } catch (e) {
@@ -141,7 +142,7 @@ class _AdminScreenState extends State<AdminScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Richiesta accettata!"), backgroundColor: AppColors.primary),
+          SnackBar(content: Text("Richiesta accettata!"), backgroundColor: AppColors.primary),
         );
       }
     } catch (e) {
@@ -160,7 +161,7 @@ class _AdminScreenState extends State<AdminScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Richiesta rifiutata."), backgroundColor: AppColors.error),
+          SnackBar(content: Text("Richiesta rifiutata."), backgroundColor: AppColors.error),
         );
       }
     } catch (e) {
@@ -179,11 +180,11 @@ class _AdminScreenState extends State<AdminScreen> {
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          "Gruppo & Profilo",
+        title: Text(
+          activeGroupId == "NESSUN GRUPPO" ? "Profilo" : "Gruppo & Profilo",
           style: TextStyle(
             fontFamily: 'Outfit',
             fontSize: 20,
@@ -192,10 +193,21 @@ class _AdminScreenState extends State<AdminScreen> {
           ),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(
+              widget.state.isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+              color: AppColors.textPrimary,
+            ),
+            onPressed: () {
+              widget.state.toggleDarkMode();
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -206,9 +218,9 @@ class _AdminScreenState extends State<AdminScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.surfaceLight,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: const [
+                  boxShadow: [
                     BoxShadow(color: AppColors.shadowLight, blurRadius: 15, offset: Offset(0, 4)),
                   ],
                   border: Border.all(color: AppColors.primary.withOpacity(0.15)),
@@ -221,32 +233,32 @@ class _AdminScreenState extends State<AdminScreen> {
                         controller: _nameController,
                         decoration: InputDecoration(
                           labelText: "Nome",
-                          prefixIcon: const Icon(Icons.person_outline, color: AppColors.primary),
+                          prefixIcon: Icon(Icons.person_outline, color: AppColors.primary),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           filled: true,
                           fillColor: AppColors.background,
                         ),
                         validator: (val) => val == null || val.isEmpty ? "Inserisci il tuo nome" : null,
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       TextFormField(
                         controller: _emailController,
                         readOnly: true,
                         decoration: InputDecoration(
                           labelText: "Email",
-                          prefixIcon: const Icon(Icons.email_outlined, color: AppColors.primary),
+                          prefixIcon: Icon(Icons.email_outlined, color: AppColors.primary),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           filled: true,
                           fillColor: AppColors.background,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       TextFormField(
                         controller: _passwordController,
                         obscureText: true,
                         decoration: InputDecoration(
                           labelText: "Nuova Password",
-                          prefixIcon: const Icon(Icons.lock_outline, color: AppColors.primary),
+                          prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           filled: true,
                           fillColor: AppColors.background,
@@ -258,7 +270,7 @@ class _AdminScreenState extends State<AdminScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -270,14 +282,14 @@ class _AdminScreenState extends State<AdminScreen> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             elevation: 0,
                           ),
-                          child: const Text("Salva Modifiche", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          child: Text("Salva Modifiche", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 28),
+              SizedBox(height: 28),
 
               // ==========================================
               // SEZIONE 1.5: NOTIFICHE
@@ -285,9 +297,9 @@ class _AdminScreenState extends State<AdminScreen> {
               _buildSectionTitle("Impostazioni Notifiche"),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.surfaceLight,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: const [
+                  boxShadow: [
                     BoxShadow(color: AppColors.shadowLight, blurRadius: 15, offset: Offset(0, 4)),
                   ],
                   border: Border.all(color: AppColors.primary.withOpacity(0.15)),
@@ -295,11 +307,11 @@ class _AdminScreenState extends State<AdminScreen> {
                 child: Column(
                   children: [
                     SwitchListTile(
-                      title: const Text(
+                      title: Text(
                         "Ricevi notifiche",
                         style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                       ),
-                      subtitle: const Text(
+                      subtitle: Text(
                         "Avvisi per scadenze e attività di gruppo",
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                       ),
@@ -312,14 +324,14 @@ class _AdminScreenState extends State<AdminScreen> {
                       },
                     ),
                     if (_notificationsEnabled) ...[
-                      const Divider(height: 1, color: AppColors.surfaceLight),
+                      Divider(height: 1, color: AppColors.surfaceLight),
                       ListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        title: const Text(
+                        title: Text(
                           "Orario Notifiche",
                           style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                         ),
-                        subtitle: const Text(
+                        subtitle: Text(
                           "Scegli l'orario per i promemoria giornalieri",
                           style: TextStyle(fontSize: 12, color: Colors.grey),
                         ),
@@ -331,7 +343,7 @@ class _AdminScreenState extends State<AdminScreen> {
                           ),
                           child: Text(
                             _notificationTime.format(context),
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryDarker),
+                            style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryDarker),
                           ),
                         ),
                         onTap: () async {
@@ -341,11 +353,19 @@ class _AdminScreenState extends State<AdminScreen> {
                             builder: (context, child) {
                               return Theme(
                                 data: Theme.of(context).copyWith(
-                                  colorScheme: const ColorScheme.light(
-                                    primary: AppColors.primary,
-                                    onPrimary: Colors.white,
-                                    onSurface: AppColors.textPrimary,
-                                  ),
+                                  colorScheme: widget.state.isDarkMode
+                                      ? ColorScheme.dark(
+                                          primary: AppColors.primary,
+                                          onPrimary: Colors.black,
+                                          onSurface: AppColors.textPrimary,
+                                          surface: AppColors.background,
+                                        )
+                                      : ColorScheme.light(
+                                          primary: AppColors.primary,
+                                          onPrimary: Colors.white,
+                                          onSurface: AppColors.textPrimary,
+                                          surface: AppColors.background,
+                                        ),
                                 ),
                                 child: child!,
                               );
@@ -368,7 +388,7 @@ class _AdminScreenState extends State<AdminScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 28),
+              SizedBox(height: 28),
 
               // ==========================================
               // SEZIONE LOGOUT
@@ -381,25 +401,25 @@ class _AdminScreenState extends State<AdminScreen> {
                     if (!mounted) return;
                     Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
                   },
-                  icon: const Icon(Icons.logout_rounded, color: AppColors.error),
-                  label: const Text("Esci dal Profilo (Logout)", style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+                  icon: Icon(Icons.logout_rounded, color: AppColors.error),
+                  label: Text("Logout", style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(color: AppColors.error),
+                    side: BorderSide(color: AppColors.error),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),
-              const SizedBox(height: 28),
+              SizedBox(height: 28),
 
               // Se non c'è un gruppo attivo, fermati qui
-              if (widget.state.groupId == null) const SizedBox.shrink() else ...[
+              if (widget.state.groupId == null) SizedBox.shrink() else ...[
                 // Dati real-time del gruppo
                 StreamBuilder<DocumentSnapshot>(
                   stream: FirebaseFirestore.instance.collection('groups').doc(activeGroupId).snapshots(),
                   builder: (context, groupSnapshot) {
                     if (!groupSnapshot.hasData || !groupSnapshot.data!.exists) {
-                      return const Center(child: CircularProgressIndicator());
+                      return Center(child: CircularProgressIndicator());
                     }
 
                     final groupData = groupSnapshot.data!.data() as Map<String, dynamic>;
@@ -424,7 +444,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   ),
                                   if (isMeAdmin)
                                     IconButton(
-                                      icon: const Icon(Icons.edit_rounded, color: AppColors.primary, size: 20),
+                                      icon: Icon(Icons.edit_rounded, color: AppColors.primary, size: 20),
                                       padding: const EdgeInsets.only(left: 4, bottom: 12),
                                       constraints: const BoxConstraints(),
                                       onPressed: () => _showRenameDialog(context),
@@ -441,7 +461,7 @@ class _AdminScreenState extends State<AdminScreen> {
                               ),
                               child: Text(
                                 "Codice: $activeGroupId",
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primaryDarker),
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primaryDarker),
                               ),
                             ),
                           ],
@@ -454,16 +474,16 @@ class _AdminScreenState extends State<AdminScreen> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.surfaceLight,
                             borderRadius: BorderRadius.circular(20),
-                            boxShadow: const [BoxShadow(color: AppColors.shadowLight, blurRadius: 15, offset: Offset(0, 4))],
+                            boxShadow: [BoxShadow(color: AppColors.shadowLight, blurRadius: 15, offset: Offset(0, 4))],
                             border: Border.all(color: AppColors.primary.withOpacity(0.15)),
                           ),
                           child: ListView.separated(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: membersList.length,
-                            separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.surfaceLight),
+                            separatorBuilder: (context, index) => Divider(height: 1, color: AppColors.surfaceLight),
                             itemBuilder: (context, index) {
                               final memberUid = membersList[index];
                               final isMe = memberUid == myUid;
@@ -478,7 +498,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   }
 
                                   return ListTile(
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 8),
                                     title: Row(
                                       children: [
                                         Container(
@@ -491,14 +511,14 @@ class _AdminScreenState extends State<AdminScreen> {
                                         ),
                                         Text(
                                           isMe ? "$name (Tu)" : name,
-                                          style: const TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),
+                                          style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),
                                         ),
                                         if (isAdmin) ...[
-                                          const SizedBox(width: 8),
+                                          SizedBox(width: 8),
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                             decoration: BoxDecoration(color: AppColors.warningLight, borderRadius: BorderRadius.circular(4)),
-                                            child: const Text("ADMIN", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.warningDark)),
+                                            child: Text("ADMIN", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.warningDark)),
                                           ),
                                         ]
                                       ],
@@ -516,13 +536,13 @@ class _AdminScreenState extends State<AdminScreen> {
                                                     minimumSize: Size.zero,
                                                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                                   ),
-                                                  child: const Text(
+                                                  child: Text(
                                                     "Promuovi admin",
                                                     style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 12),
                                                   ),
                                                 ),
                                               IconButton(
-                                                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+                                                icon: Icon(Icons.delete_outline_rounded, color: AppColors.error),
                                                 tooltip: "Rimuovi Membro",
                                                 onPressed: () => _confirmRemoveMember(memberUid),
                                               ),
@@ -535,31 +555,31 @@ class _AdminScreenState extends State<AdminScreen> {
                             },
                           ),
                         ),
-                        const SizedBox(height: 28),
+                        SizedBox(height: 28),
 
                         // ==========================================
                         // SEZIONE 3: RICHIESTE DI INGRESSO
                         // ==========================================
                         if (isMeAdmin) ...[
                           _buildSectionTitle("Richieste di Ingresso"),
-                          const SizedBox(height: 10),
+                          SizedBox(height: 10),
                           StreamBuilder<QuerySnapshot>(
                             stream: FirebaseFirestore.instance.collection('groups').doc(activeGroupId).collection('requests').snapshots(),
                             builder: (context, requestsSnapshot) {
-                              if (!requestsSnapshot.hasData) return const Center(child: CircularProgressIndicator());
+                              if (!requestsSnapshot.hasData) return Center(child: CircularProgressIndicator());
                               
                               final requests = requestsSnapshot.data!.docs;
 
                               return Container(
-                                padding: const EdgeInsets.all(12),
+                                padding: EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: AppColors.surfaceLight,
                                   borderRadius: BorderRadius.circular(20),
-                                  boxShadow: const [BoxShadow(color: AppColors.shadowLight, blurRadius: 15, offset: Offset(0, 4))],
+                                  boxShadow: [BoxShadow(color: AppColors.shadowLight, blurRadius: 15, offset: Offset(0, 4))],
                                   border: Border.all(color: AppColors.primary.withOpacity(0.15)),
                                 ),
                                 child: requests.isEmpty
-                                    ? const Padding(
+                                    ? Padding(
                                         padding: EdgeInsets.symmetric(vertical: 24),
                                         child: Column(
                                           children: [
@@ -573,29 +593,29 @@ class _AdminScreenState extends State<AdminScreen> {
                                         shrinkWrap: true,
                                         physics: const NeverScrollableScrollPhysics(),
                                         itemCount: requests.length,
-                                        separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.surfaceLight),
+                                        separatorBuilder: (context, index) => Divider(height: 1, color: AppColors.surfaceLight),
                                         itemBuilder: (context, index) {
                                           final reqDoc = requests[index];
                                           final reqData = reqDoc.data() as Map<String, dynamic>;
                                           final reqUid = reqDoc.id;
 
                                           return ListTile(
-                                            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                                            leading: const CircleAvatar(
+                                            contentPadding: EdgeInsets.symmetric(horizontal: 8),
+                                            leading: CircleAvatar(
                                               backgroundColor: AppColors.surfaceLight,
                                               child: Icon(Icons.hourglass_empty_rounded, color: AppColors.textSecondary, size: 18),
                                             ),
-                                            title: Text(reqData['name'] ?? 'Utente', style: const TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary)),
-                                            subtitle: Text(reqData['email'] ?? '', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                            title: Text(reqData['name'] ?? 'Utente', style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary)),
+                                            subtitle: Text(reqData['email'] ?? '', style: TextStyle(fontSize: 12, color: Colors.grey)),
                                             trailing: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 IconButton(
-                                                  icon: const Icon(Icons.check_circle_outline_rounded, color: AppColors.success),
+                                                  icon: Icon(Icons.check_circle_outline_rounded, color: AppColors.success),
                                                   onPressed: () => _acceptRequest(reqUid),
                                                 ),
                                                 IconButton(
-                                                  icon: const Icon(Icons.cancel_outlined, color: AppColors.error),
+                                                  icon: Icon(Icons.cancel_outlined, color: AppColors.error),
                                                   onPressed: () => _rejectRequest(reqUid),
                                                 ),
                                               ],
@@ -608,13 +628,13 @@ class _AdminScreenState extends State<AdminScreen> {
                           ),
                         ],
 
-                        const SizedBox(height: 28),
+                        SizedBox(height: 28),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
                             onPressed: () => _confirmLeaveGroup(context, isMeAdmin, adminIds.length),
-                            icon: const Icon(Icons.exit_to_app_rounded, color: AppColors.textPrimary),
-                            label: const Text(
+                            icon: Icon(Icons.exit_to_app_rounded, color: AppColors.textPrimary),
+                            label: Text(
                               "Esci dal gruppo",
                               style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary),
                             ),
@@ -628,13 +648,13 @@ class _AdminScreenState extends State<AdminScreen> {
                         ),
 
                         if (isMeAdmin) ...[
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
                               onPressed: () => _confirmDeleteGroup(context),
-                              icon: const Icon(Icons.delete_forever_rounded, color: Colors.white),
-                              label: const Text(
+                              icon: Icon(Icons.delete_forever_rounded, color: Colors.white),
+                              label: Text(
                                 "Elimina il gruppo",
                                 style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
                               ),
@@ -660,10 +680,10 @@ class _AdminScreenState extends State<AdminScreen> {
 
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 12),
+      padding: EdgeInsets.only(left: 4, bottom: 12),
       child: Text(
         title,
-        style: const TextStyle(fontFamily: 'Outfit', fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        style: TextStyle(fontFamily: 'Outfit', fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
       ),
     );
   }
@@ -672,8 +692,8 @@ class _AdminScreenState extends State<AdminScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("Elimina Gruppo", style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
-        content: const Text(
+        title: Text("Elimina Gruppo", style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+        content: Text(
           "Sei sicuro di voler eliminare definitivamente questo gruppo? "
           "Questa azione cancellerà tutti i dati al suo interno (lista della spesa, dispensa, categorie personalizzate) "
           "e disconnetterà tutti gli altri membri. L'azione non è reversibile.",
@@ -682,7 +702,7 @@ class _AdminScreenState extends State<AdminScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text("Annulla", style: TextStyle(color: AppColors.textPrimary)),
+            child: Text("Annulla", style: TextStyle(color: AppColors.textPrimary)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -695,7 +715,7 @@ class _AdminScreenState extends State<AdminScreen> {
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text("Elimina", style: TextStyle(color: Colors.white)),
+            child: Text("Elimina", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -707,15 +727,15 @@ class _AdminScreenState extends State<AdminScreen> {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text("Azione non consentita", style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
-          content: const Text(
+          title: Text("Azione non consentita", style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+          content: Text(
             "Sei l'unico amministratore rimasto. Prima di uscire, devi promuovere un altro membro ad amministratore.",
             style: TextStyle(fontFamily: 'Outfit'),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text("Ho capito", style: TextStyle(color: AppColors.textPrimary)),
+              child: Text("Ho capito", style: TextStyle(color: AppColors.textPrimary)),
             ),
           ],
         ),
@@ -726,15 +746,15 @@ class _AdminScreenState extends State<AdminScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("Esci dal Gruppo", style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
-        content: const Text(
+        title: Text("Esci dal Gruppo", style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+        content: Text(
           "Sei sicuro di voler uscire da questo gruppo? L'azione non è reversibile a meno che tu non mandi un'altra richiesta di ingresso.",
           style: TextStyle(fontFamily: 'Outfit'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text("Annulla", style: TextStyle(color: AppColors.textPrimary)),
+            child: Text("Annulla", style: TextStyle(color: AppColors.textPrimary)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -742,7 +762,7 @@ class _AdminScreenState extends State<AdminScreen> {
               await _leaveGroupAction();
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text("Esci", style: TextStyle(color: Colors.white)),
+            child: Text("Esci", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -754,7 +774,7 @@ class _AdminScreenState extends State<AdminScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("Rinomina Gruppo", style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+        title: Text("Rinomina Gruppo", style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
         content: TextField(
           controller: nameController,
           decoration: InputDecoration(
@@ -768,7 +788,7 @@ class _AdminScreenState extends State<AdminScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text("Annulla", style: TextStyle(color: AppColors.textPrimary)),
+            child: Text("Annulla", style: TextStyle(color: AppColors.textPrimary)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -777,12 +797,12 @@ class _AdminScreenState extends State<AdminScreen> {
               await widget.state.updateGroupName(newName);
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Nome del gruppo aggiornato!"), backgroundColor: AppColors.primary),
+                  SnackBar(content: Text("Nome del gruppo aggiornato!"), backgroundColor: AppColors.primary),
                 );
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text("Salva", style: TextStyle(color: Colors.white)),
+            child: Text("Salva", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

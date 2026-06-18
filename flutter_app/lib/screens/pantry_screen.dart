@@ -69,31 +69,31 @@ class _PantryScreenState extends State<PantryScreen> {
                     children: [
                       // Barra di Ricerca (search_bar)
                       Padding(
-                        padding: const EdgeInsets.all(12),
+                        padding: EdgeInsets.all(12),
                         child: Row(
                           children: [
                             Expanded(
                               child: Container(
                                 height: 44,
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: AppColors.surfaceLight,
                                   borderRadius: BorderRadius.circular(22),
                                   border: Border.all(color: AppColors.borderLight),
                                 ),
                                 child: TextField(
                                   controller: _searchController,
                                   onChanged: (val) => setState(() => _searchQuery = val),
-                                  decoration: const InputDecoration(
+                                  decoration: InputDecoration(
                                     hintText: "Cerca un prodotto",
                                     hintStyle: TextStyle(color: AppColors.textHint, fontSize: 14),
                                     border: InputBorder.none,
                                     contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                   ),
-                                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                                  style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Container(
                               height: 44,
                               width: 44,
@@ -101,72 +101,76 @@ class _PantryScreenState extends State<PantryScreen> {
                                 color: AppColors.primaryVariant,
                                 borderRadius: BorderRadius.circular(22),
                               ),
-                              child: const Icon(Icons.search_rounded, color: Colors.white, size: 22),
+                              child: Icon(Icons.search_rounded, color: AppColors.surfaceLight, size: 22),
                             ),
                           ],
                         ),
                       ),
 
-                      // Contenitore Frammento Prodotti (item_fragment_container)
+                      // Area principale: Lista dispensa e Pulsanti sovrapposti
                       Expanded(
-                        child: filteredItems.isEmpty
-                            ? const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 24),
-                                  child: Text(
-                                    "Dispensa vuota per questa categoria.",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                        child: Stack(
+                          children: [
+                            // 1. Lista dispensa scrollabile dietro i pulsanti
+                            Positioned.fill(
+                              child: filteredItems.isEmpty
+                                  ? Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.symmetric(horizontal: 24),
+                                        child: Text(
+                                          "Dispensa vuota per questa categoria.",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                                        ),
+                                      ),
+                                    )
+                                  : ListView.builder(
+                                      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 80), // Padding extra per scrollare oltre i pulsanti
+                                      itemCount: filteredItems.length,
+                                      itemBuilder: (context, index) {
+                                        final item = filteredItems[index];
+                                        return _buildPantryItemCard(item);
+                                      },
+                                    ),
+                            ),
+                            
+                            // 2. Pulsanti flottanti in basso a destra
+                            Positioned(
+                              bottom: 12,
+                              right: 12,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  FloatingActionButton(
+                                    heroTag: 'scanner_fab',
+                                    onPressed: () => _openScannerAndReview(context),
+                                    backgroundColor: AppColors.primaryLight,
+                                    elevation: 2,
+                                    child: Icon(Icons.document_scanner_rounded, color: AppColors.primary),
                                   ),
-                                ),
-                              )
-                            : ListView.builder(
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                itemCount: filteredItems.length,
-                                itemBuilder: (context, index) {
-                                  final item = filteredItems[index];
-                                  return _buildPantryItemCard(item);
-                                },
-                              ),
-                      ),
-
-                      // Pulsanti Aggiungi Elemento e IA Scanner
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              FloatingActionButton(
-                                heroTag: 'scanner_fab',
-                                onPressed: () => _openScannerAndReview(context),
-                                backgroundColor: AppColors.primaryLight,
-                                elevation: 2,
-                                child: const Icon(Icons.document_scanner_rounded, color: AppColors.primary),
-                              ),
-                              const SizedBox(width: 12),
-                              ElevatedButton(
-                                onPressed: () => _showAddItemDialog(context),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primaryDark, // Accento Verde Scuro/Teal
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                  elevation: 2,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                ),
-                                child: const Text(
-                                  "Aggiungi un elemento",
-                                  style: TextStyle(
-                                    fontFamily: 'Outfit',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                  SizedBox(width: 12),
+                                  ElevatedButton(
+                                    onPressed: () => _showAddItemDialog(context),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primaryDark, // Accento Verde Scuro/Teal
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      elevation: 2,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    ),
+                                    child: Text(
+                                      "Aggiungi un elemento",
+                                      style: TextStyle(
+                                        fontFamily: 'Outfit',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.surfaceLight,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -188,7 +192,7 @@ class _PantryScreenState extends State<PantryScreen> {
     if (item.urgencyLevel == 1) urgencyColor = AppColors.warning; // Giallo
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.only(bottom: 10),
       child: InkWell(
         onTap: () => _showEditItemDialog(context, item),
         borderRadius: BorderRadius.circular(14),
@@ -196,10 +200,10 @@ class _PantryScreenState extends State<PantryScreen> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.surfaceLight,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: urgencyColor, width: item.urgencyLevel > 0 ? 1.5 : 1),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
                 color: AppColors.shadowMedium,
                 blurRadius: 10,
@@ -223,12 +227,12 @@ class _PantryScreenState extends State<PantryScreen> {
                   shape: BoxShape.circle,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               // Nome Prodotto (itemName)
               Expanded(
                 child: Text(
                   item.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Outfit',
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
@@ -237,7 +241,7 @@ class _PantryScreenState extends State<PantryScreen> {
                 ),
               ),
               if (item.ownerId != null) ...[
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Container(
                   width: 12, height: 12,
                   decoration: BoxDecoration(
@@ -248,7 +252,7 @@ class _PantryScreenState extends State<PantryScreen> {
               ],
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
 
           // Sezione Scadenza e Quantità
           Row(
@@ -269,11 +273,11 @@ class _PantryScreenState extends State<PantryScreen> {
               // Controlli Quantità (+ / -)
               Row(
                 children: [
-                  const Text(
+                  Text(
                     "Quantità:",
                     style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
                   ),
-                  const SizedBox(width: 6),
+                  SizedBox(width: 6),
                   
                   // Pulsante Decremento (-)
                   InkWell(
@@ -282,16 +286,16 @@ class _PantryScreenState extends State<PantryScreen> {
                         showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
-                            backgroundColor: Colors.white,
-                            title: const Text("Prodotto terminato", style: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
-                            content: Text("Vuoi aggiungere '${item.name}' alla lista della spesa?", style: const TextStyle(color: AppColors.textSecondary)),
+                            backgroundColor: AppColors.surfaceLight,
+                            title: Text("Prodotto terminato", style: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
+                            content: Text("Vuoi aggiungere '${item.name}' alla lista della spesa?", style: TextStyle(color: AppColors.textSecondary)),
                             actions: [
                               TextButton(
                                 onPressed: () {
                                   Navigator.pop(context);
                                   widget.state.updateQuantity(item.id, -1);
                                 },
-                                child: const Text("No, rimuovi"),
+                                child: Text("No, rimuovi"),
                               ),
                               ElevatedButton(
                                 onPressed: () {
@@ -305,7 +309,7 @@ class _PantryScreenState extends State<PantryScreen> {
                                   );
                                 },
                                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-                                child: const Text("Sì, aggiungi", style: TextStyle(color: Colors.white)),
+                                child: Text("Sì, aggiungi", style: TextStyle(color: Colors.white)),
                               ),
                             ],
                           ),
@@ -322,7 +326,7 @@ class _PantryScreenState extends State<PantryScreen> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppColors.border),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text("-", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                       ),
                     ),
@@ -333,7 +337,7 @@ class _PantryScreenState extends State<PantryScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: Text(
                       "${item.quantity}",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Outfit',
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
@@ -352,7 +356,7 @@ class _PantryScreenState extends State<PantryScreen> {
                         color: AppColors.primary,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text("+", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                       ),
                     ),
@@ -372,14 +376,14 @@ class _PantryScreenState extends State<PantryScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Text("Nuova Categoria Dispensa", style: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
+        backgroundColor: AppColors.surfaceLight,
+        title: Text("Nuova Categoria Dispensa", style: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
         content: TextField(
           controller: catController,
-          decoration: const InputDecoration(hintText: "Nome categoria (es. Dolci)"),
+          decoration: InputDecoration(hintText: "Nome categoria (es. Dolci)"),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text("Annulla")),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text("Annulla")),
           ElevatedButton(
             onPressed: () {
               widget.state.addCustomCategory(catController.text, 'pantry');
@@ -389,16 +393,16 @@ class _PantryScreenState extends State<PantryScreen> {
                 showDialog(
                   context: context, // Usiamo il context esterno (sicuro)
                   builder: (context) => AlertDialog(
-                    backgroundColor: Colors.white,
+                    backgroundColor: AppColors.surfaceLight,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    title: const Row(
+                    title: Row(
                       children: [
                         Icon(Icons.info_outline_rounded, color: AppColors.primary),
                         SizedBox(width: 8),
                         Text("Suggerimento", style: TextStyle(fontFamily: 'Outfit', color: AppColors.primary)),
                       ],
                     ),
-                    content: const Text(
+                    content: Text(
                       "Tieni premuto su una categoria per eliminarla.",
                       style: TextStyle(fontFamily: 'Outfit', fontSize: 16, color: AppColors.textPrimary),
                     ),
@@ -409,7 +413,7 @@ class _PantryScreenState extends State<PantryScreen> {
                           backgroundColor: AppColors.primary,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        child: const Text("Ho capito", style: TextStyle(color: Colors.white, fontFamily: 'Outfit')),
+                        child: Text("Ho capito", style: TextStyle(color: AppColors.surfaceLight, fontFamily: 'Outfit')),
                       ),
                     ],
                   ),
@@ -417,7 +421,7 @@ class _PantryScreenState extends State<PantryScreen> {
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text("Aggiungi", style: TextStyle(color: Colors.white)),
+            child: Text("Aggiungi", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -431,18 +435,18 @@ class _PantryScreenState extends State<PantryScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Text("Elimina Categoria", style: TextStyle(fontFamily: 'Outfit', color: AppColors.error)),
+        backgroundColor: AppColors.surfaceLight,
+        title: Text("Elimina Categoria", style: TextStyle(fontFamily: 'Outfit', color: AppColors.error)),
         content: Text("Sei sicuro di voler eliminare la categoria '$category'?"),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annulla")),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text("Annulla")),
           ElevatedButton(
             onPressed: () {
               widget.state.removeCustomCategory(category, section);
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text("Elimina", style: TextStyle(color: Colors.white)),
+            child: Text("Elimina", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -463,8 +467,8 @@ class _PantryScreenState extends State<PantryScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: Colors.white,
-          title: const Text("Aggiungi Elemento Dispensa", style: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
+          backgroundColor: AppColors.surfaceLight,
+          title: Text("Aggiungi Elemento Dispensa", style: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -480,7 +484,7 @@ class _PantryScreenState extends State<PantryScreen> {
                   }
                 },
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               TextFormField(
                 readOnly: true,
                 controller: TextEditingController(
@@ -493,14 +497,14 @@ class _PantryScreenState extends State<PantryScreen> {
                   hintText: "Scegli dal calendario",
                   suffixIcon: selectedDate != null
                       ? IconButton(
-                          icon: const Icon(Icons.clear_rounded, color: AppColors.textSecondary),
+                          icon: Icon(Icons.clear_rounded, color: AppColors.textSecondary),
                           onPressed: () {
                             setDialogState(() {
                               selectedDate = null;
                             });
                           },
                         )
-                      : const Icon(Icons.calendar_today_rounded, color: AppColors.primary),
+                      : Icon(Icons.calendar_today_rounded, color: AppColors.primary),
                 ),
                 onTap: () async {
                   final DateTime? picked = await showDatePicker(
@@ -511,11 +515,19 @@ class _PantryScreenState extends State<PantryScreen> {
                     builder: (context, child) {
                       return Theme(
                         data: Theme.of(context).copyWith(
-                          colorScheme: const ColorScheme.light(
-                            primary: AppColors.primary,
-                            onPrimary: Colors.white,
-                            onSurface: AppColors.textPrimary,
-                          ),
+                          colorScheme: widget.state.isDarkMode
+                              ? ColorScheme.dark(
+                                  primary: AppColors.primary,
+                                  onPrimary: Colors.black,
+                                  onSurface: AppColors.textPrimary,
+                                  surface: AppColors.background,
+                                )
+                              : ColorScheme.light(
+                                  primary: AppColors.primary,
+                                  onPrimary: Colors.white,
+                                  onSurface: AppColors.textPrimary,
+                                  surface: AppColors.background,
+                                ),
                           textButtonTheme: TextButtonThemeData(
                             style: TextButton.styleFrom(
                               foregroundColor: AppColors.primary,
@@ -533,7 +545,7 @@ class _PantryScreenState extends State<PantryScreen> {
                   }
                 },
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: selectedCat,
                 items: widget.state.categories
@@ -541,9 +553,9 @@ class _PantryScreenState extends State<PantryScreen> {
                     .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                     .toList(),
                 onChanged: (val) => setDialogState(() => selectedCat = val!),
-                decoration: const InputDecoration(labelText: "Categoria"),
+                decoration: InputDecoration(labelText: "Categoria"),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               DropdownButtonFormField<String?>(
                 value: selectedOwnerId,
                 items: [
@@ -562,12 +574,12 @@ class _PantryScreenState extends State<PantryScreen> {
                       ))
                 ],
                 onChanged: (val) => setDialogState(() => selectedOwnerId = val),
-                decoration: const InputDecoration(labelText: "Proprietà di"),
+                decoration: InputDecoration(labelText: "Proprietà di"),
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annulla")),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text("Annulla")),
             ElevatedButton(
               onPressed: () {
                 if (nameController.text.trim().isNotEmpty) {
@@ -589,7 +601,7 @@ class _PantryScreenState extends State<PantryScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              child: const Text("Inserisci", style: TextStyle(color: Colors.white)),
+              child: Text("Inserisci", style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -625,8 +637,8 @@ class _PantryScreenState extends State<PantryScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: Colors.white,
-          title: const Text("Modifica Prodotto", style: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
+          backgroundColor: AppColors.surfaceLight,
+          title: Text("Modifica Prodotto", style: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -643,7 +655,7 @@ class _PantryScreenState extends State<PantryScreen> {
                     }
                   },
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   value: selectedCat,
                   items: widget.state.categories
@@ -651,9 +663,9 @@ class _PantryScreenState extends State<PantryScreen> {
                       .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                       .toList(),
                   onChanged: (val) => setDialogState(() => selectedCat = val!),
-                  decoration: const InputDecoration(labelText: "Categoria"),
+                  decoration: InputDecoration(labelText: "Categoria"),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 TextFormField(
                   readOnly: true,
                   controller: TextEditingController(
@@ -666,14 +678,14 @@ class _PantryScreenState extends State<PantryScreen> {
                     hintText: "Scegli dal calendario",
                     suffixIcon: selectedDate != null
                         ? IconButton(
-                            icon: const Icon(Icons.clear_rounded, color: AppColors.textSecondary),
+                            icon: Icon(Icons.clear_rounded, color: AppColors.textSecondary),
                             onPressed: () {
                               setDialogState(() {
                                 selectedDate = null;
                               });
                             },
                           )
-                        : const Icon(Icons.calendar_today_rounded, color: AppColors.primary),
+                        : Icon(Icons.calendar_today_rounded, color: AppColors.primary),
                   ),
                   onTap: () async {
                     final DateTime? picked = await showDatePicker(
@@ -684,7 +696,7 @@ class _PantryScreenState extends State<PantryScreen> {
                       builder: (context, child) {
                         return Theme(
                           data: Theme.of(context).copyWith(
-                            colorScheme: const ColorScheme.light(
+                            colorScheme: ColorScheme.light(
                               primary: AppColors.primary,
                               onPrimary: Colors.white,
                               onSurface: AppColors.textPrimary,
@@ -701,13 +713,13 @@ class _PantryScreenState extends State<PantryScreen> {
                     }
                   },
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 TextField(
                   controller: quantityController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: "Quantità"),
+                  decoration: InputDecoration(labelText: "Quantità"),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 DropdownButtonFormField<String?>(
                   value: selectedOwnerId,
                   items: [
@@ -726,13 +738,13 @@ class _PantryScreenState extends State<PantryScreen> {
                         ))
                   ],
                   onChanged: (val) => setDialogState(() => selectedOwnerId = val),
-                  decoration: const InputDecoration(labelText: "Proprietà di"),
+                  decoration: InputDecoration(labelText: "Proprietà di"),
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annulla")),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text("Annulla")),
             ElevatedButton(
               onPressed: () {
                 if (nameController.text.trim().isNotEmpty) {
@@ -754,7 +766,7 @@ class _PantryScreenState extends State<PantryScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              child: const Text("Salva", style: TextStyle(color: Colors.white)),
+              child: Text("Salva", style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -787,9 +799,9 @@ class _PantryScreenState extends State<PantryScreen> {
             return AlertDialog(
               backgroundColor: AppColors.background,
               surfaceTintColor: Colors.transparent,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-              title: const Row(
+              title: Row(
                 children: [
                   Icon(Icons.auto_awesome_rounded, color: AppColors.primary),
                   SizedBox(width: 10),
@@ -810,11 +822,11 @@ class _PantryScreenState extends State<PantryScreen> {
                           // Uso ObjectKey per forzare il refresh corretto quando elimino un elemento!
                           return Card(
                             key: ObjectKey(item),
-                            color: Colors.white,
-                            margin: const EdgeInsets.only(bottom: 16),
+                            color: AppColors.surfaceLight,
+                            margin: EdgeInsets.only(bottom: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
-                              side: const BorderSide(color: AppColors.border, width: 1),
+                              side: BorderSide(color: AppColors.border, width: 1),
                             ),
                             elevation: 0,
                             child: Padding(
@@ -827,7 +839,7 @@ class _PantryScreenState extends State<PantryScreen> {
                                       Expanded(
                                         child: TextFormField(
                                           initialValue: item.name,
-                                          style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                                          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                                           decoration: InputDecoration(
                                             labelText: "Nome Prodotto",
                                             filled: true,
@@ -838,9 +850,9 @@ class _PantryScreenState extends State<PantryScreen> {
                                           onChanged: (val) => item.name = val,
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
+                                      SizedBox(width: 8),
                                       IconButton(
-                                        icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+                                        icon: Icon(Icons.delete_outline_rounded, color: AppColors.error),
                                         onPressed: () {
                                           setDialogState(() {
                                             items.removeAt(index);
@@ -849,7 +861,7 @@ class _PantryScreenState extends State<PantryScreen> {
                                       )
                                     ],
                                   ),
-                                  const SizedBox(height: 12),
+                                  SizedBox(height: 12),
                                   
                                   // Riga 2: Quantità, Scadenza
                                   Row(
@@ -861,7 +873,7 @@ class _PantryScreenState extends State<PantryScreen> {
                                           initialValue: item.quantity.toString(),
                                           keyboardType: TextInputType.number,
                                           textAlign: TextAlign.center,
-                                          style: const TextStyle(fontWeight: FontWeight.bold),
+                                          style: TextStyle(fontWeight: FontWeight.bold),
                                           decoration: InputDecoration(
                                             labelText: "Qt.",
                                             filled: true,
@@ -872,13 +884,13 @@ class _PantryScreenState extends State<PantryScreen> {
                                           onChanged: (val) => item.quantity = int.tryParse(val) ?? 1,
                                         ),
                                       ),
-                                      const SizedBox(width: 12),
+                                      SizedBox(width: 12),
                                       
                                       // Scadenza
                                       Expanded(
                                         child: TextFormField(
                                           initialValue: item.expireDate,
-                                          style: const TextStyle(fontSize: 13),
+                                          style: TextStyle(fontSize: 13),
                                           decoration: InputDecoration(
                                             labelText: "Scadenza",
                                             filled: true,
@@ -891,17 +903,17 @@ class _PantryScreenState extends State<PantryScreen> {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 12),
+                                  SizedBox(height: 12),
                                   
                                   // Riga 3: Categoria
                                   DropdownButtonFormField<String>(
                                     value: widget.state.categories.contains(item.category) ? item.category : 'Altro',
                                     isExpanded: true,
-                                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
+                                    icon: Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
                                     items: widget.state.categories.where((c) => c != "Tutti").map((c) {
                                       return DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis));
                                     }).toList()
-                                      ..add(const DropdownMenuItem(value: 'Altro', child: Text('Altro'))),
+                                      ..add(DropdownMenuItem(value: 'Altro', child: Text('Altro'))),
                                     onChanged: (val) => item.category = val ?? 'Altro',
                                     decoration: InputDecoration(
                                       labelText: "Categoria",
@@ -918,7 +930,7 @@ class _PantryScreenState extends State<PantryScreen> {
                         },
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     // Bottone "+" per aggiungere riga vuota
                     TextButton.icon(
                       onPressed: () {
@@ -933,8 +945,8 @@ class _PantryScreenState extends State<PantryScreen> {
                           ));
                         });
                       },
-                      icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.primary),
-                      label: const Text("Aggiungi prodotto manualmente", style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                      icon: Icon(Icons.add_circle_outline_rounded, color: AppColors.primary),
+                      label: Text("Aggiungi prodotto manualmente", style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -942,7 +954,7 @@ class _PantryScreenState extends State<PantryScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Annulla", style: TextStyle(color: AppColors.textSecondary)),
+                  child: Text("Annulla", style: TextStyle(color: AppColors.textSecondary)),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -964,7 +976,7 @@ class _PantryScreenState extends State<PantryScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text("Conferma Tutti", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: Text("Conferma Tutti", style: TextStyle(color: AppColors.surfaceLight, fontWeight: FontWeight.bold)),
                 ),
               ],
             );

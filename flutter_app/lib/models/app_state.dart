@@ -9,6 +9,8 @@ import '../services/firebase_service.dart';
 import '../services/auth_service.dart';
 import 'user_model.dart';
 
+bool globalIsDarkMode = false;
+
 class ItemModel {
   final String id;
   String name;
@@ -116,6 +118,32 @@ class AppState extends ChangeNotifier {
   bool _isPredictiveBannerClosed = false;
   bool get isPredictiveBannerClosed => _isPredictiveBannerClosed;
 
+  bool _isDarkMode = false;
+  bool get isDarkMode => _isDarkMode;
+
+  Future<void> _loadThemePreference() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _isDarkMode = prefs.getBool('isDarkMode') ?? false;
+      globalIsDarkMode = _isDarkMode;
+      notifyListeners();
+    } catch (e) {
+      print("Errore caricamento tema: $e");
+    }
+  }
+
+  Future<void> toggleDarkMode() async {
+    _isDarkMode = !_isDarkMode;
+    globalIsDarkMode = _isDarkMode;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isDarkMode', _isDarkMode);
+    } catch (e) {
+      print("Errore salvataggio tema: $e");
+    }
+  }
+
   bool _categoryDeleteHintShown = false;
   bool get categoryDeleteHintShown => _categoryDeleteHintShown;
 
@@ -185,6 +213,7 @@ class AppState extends ChangeNotifier {
   }
 
   AppState() {
+    _loadThemePreference();
     _checkCategoryDeleteHint();
     authService.authStateChanges.listen((User? user) async {
       isInitializingUser = true;
@@ -228,6 +257,7 @@ class AppState extends ChangeNotifier {
   }
 
   FirebaseService? _firebaseService;
+  FirebaseService? get firebaseService => _firebaseService;
   StreamSubscription<List<ItemModel>>? _itemsSubscription;
   StreamSubscription<DocumentSnapshot>? _groupSubscription;
   StreamSubscription<DocumentSnapshot>? _userDocSubscription;

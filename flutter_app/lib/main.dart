@@ -79,8 +79,9 @@ class _AvanziZeroAppState extends State<AvanziZeroApp> {
               seedColor: AppColors.primary,
               primary: AppColors.primary,
               secondary: AppColors.primaryDark, // Verde Scuro/Teal
-              surface: Colors.white,
+              surface: AppColors.background,
               onSurface: AppColors.textPrimary, // Verde Foresta Scuro
+              brightness: globalIsDarkMode ? Brightness.dark : Brightness.light,
             ),
             pageTransitionsTheme: const PageTransitionsTheme(
               builders: {
@@ -92,9 +93,9 @@ class _AvanziZeroAppState extends State<AvanziZeroApp> {
           
           // Routing dinamico basato sull'autenticazione e sul Codice Gruppo
           home: _appState.currentUserAuth == null
-              ? const AuthScreen()
+              ? AuthScreen()
               : _appState.isInitializingUser
-                  ? const Scaffold(
+                  ? Scaffold(
                       backgroundColor: AppColors.background,
                       body: Center(
                         child: CircularProgressIndicator(color: AppColors.primary),
@@ -103,7 +104,7 @@ class _AvanziZeroAppState extends State<AvanziZeroApp> {
                   : _appState.groupId == null
                       ? GroupSetupScreen(state: _appState)
                       : _appState.isLoading
-                      ? const Scaffold(
+                      ? Scaffold(
                           backgroundColor: AppColors.background,
                           body: Center(
                             child: CircularProgressIndicator(color: AppColors.primary),
@@ -149,7 +150,7 @@ class _MainNavigatorState extends State<MainNavigator> {
               );
             }
           });
-          return const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.primary)));
+          return Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.primary)));
         }
 
         // Array delle 3 schermate principali con i riferimenti incrociati di navigazione
@@ -186,7 +187,7 @@ class _MainNavigatorState extends State<MainNavigator> {
         
         // Barra di navigazione inferiore fluida e moderna
         bottomNavigationBar: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             boxShadow: [
               BoxShadow(
                 color: AppColors.shadowNavbar,
@@ -198,12 +199,12 @@ class _MainNavigatorState extends State<MainNavigator> {
         child: NavigationBar(
           selectedIndex: _currentIndex,
           onDestinationSelected: _navigate,
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.surfaceLight,
           indicatorColor: AppColors.primaryLight, // Menta Chiaro per tab attiva
           elevation: 0,
           height: 65,
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          destinations: const [
+          destinations: [
             NavigationDestination(
               icon: Icon(Icons.home_outlined, color: AppColors.textSecondary),
               selectedIcon: Icon(Icons.home_rounded, color: AppColors.primary),
@@ -267,7 +268,7 @@ class _MainNavigatorState extends State<MainNavigator> {
 
           Widget contentWidget;
           if (isLoading) {
-            contentWidget = const Center(
+            contentWidget = Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -282,14 +283,14 @@ class _MainNavigatorState extends State<MainNavigator> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.location_off_rounded, size: 40, color: AppColors.error),
-                  const SizedBox(height: 12),
-                  const Text("Attiva la posizione per vedere i supermercati nelle vicinanze", textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSecondary)),
-                  const SizedBox(height: 16),
+                  Icon(Icons.location_off_rounded, size: 40, color: AppColors.error),
+                  SizedBox(height: 12),
+                  Text("Attiva la posizione per vedere i supermercati nelle vicinanze", textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSecondary)),
+                  SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () => fetchSupermarkets(setModalState),
-                    icon: const Icon(Icons.refresh_rounded, color: Colors.white),
-                    label: const Text("Riprova", style: TextStyle(color: Colors.white, fontFamily: 'Outfit', fontWeight: FontWeight.bold)),
+                    icon: Icon(Icons.refresh_rounded, color: Colors.white),
+                    label: Text("Riprova", style: TextStyle(color: AppColors.surfaceLight, fontFamily: 'Outfit', fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -299,7 +300,7 @@ class _MainNavigatorState extends State<MainNavigator> {
               ),
             );
           } else if (widget.state.nearbySupermarkets.isEmpty) {
-            contentWidget = const Center(child: Text("Nessun supermercato trovato nei paraggi.", style: TextStyle(color: AppColors.textSecondary)));
+            contentWidget = Center(child: Text("Nessun supermercato trovato nei paraggi.", style: TextStyle(color: AppColors.textSecondary)));
           } else {
             contentWidget = ListView.builder(
               shrinkWrap: true,
@@ -318,7 +319,7 @@ class _MainNavigatorState extends State<MainNavigator> {
                     },
                     borderRadius: BorderRadius.circular(12),
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
+                      duration: Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       decoration: BoxDecoration(
                         color: isSelected ? AppColors.primaryLight : AppColors.background,
@@ -335,7 +336,7 @@ class _MainNavigatorState extends State<MainNavigator> {
                             color: AppColors.primary,
                             size: 20,
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,10 +350,10 @@ class _MainNavigatorState extends State<MainNavigator> {
                                     color: isSelected ? AppColors.textPrimary : AppColors.textPrimary.withOpacity(0.8),
                                   ),
                                 ),
-                                const SizedBox(height: 2),
+                                SizedBox(height: 2),
                                 Text(
                                   s.address,
-                                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                                 ),
                               ],
                             ),
@@ -365,7 +366,7 @@ class _MainNavigatorState extends State<MainNavigator> {
                             ),
                             child: Text(
                               s.distance,
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 12),
+                              style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 12),
                             ),
                           ),
                         ],
@@ -381,9 +382,9 @@ class _MainNavigatorState extends State<MainNavigator> {
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.85, // Lascia un margine superiore visibile
             ),
-            padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            padding: EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceLight,
               borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
             ),
             child: Column(
@@ -394,7 +395,7 @@ class _MainNavigatorState extends State<MainNavigator> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
+                    Row(
                       children: [
                         Icon(Icons.storefront_rounded, color: AppColors.primaryDark, size: 28),
                         SizedBox(width: 10),
@@ -410,25 +411,25 @@ class _MainNavigatorState extends State<MainNavigator> {
                       ],
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
+                      icon: Icon(Icons.close_rounded, color: AppColors.textSecondary),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),
-                const Divider(color: AppColors.border),
-                const Padding(
+                Divider(color: AppColors.border),
+                Padding(
                   padding: EdgeInsets.symmetric(vertical: 4),
                   child: Text(
                     "Seleziona il supermercato desiderato per avviare la navigazione in Google Maps:",
                     style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
 
                 // Lista scrollabile o Errore
                 Expanded(child: contentWidget),
                 
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
 
                 // Pulsante di avvio in Maps
                 ElevatedButton.icon(
@@ -452,19 +453,19 @@ class _MainNavigatorState extends State<MainNavigator> {
                       print("Impossibile aprire Google Maps: $e");
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Impossibile avviare Google Maps. Verifica la connessione o l'app installata.")),
+                          SnackBar(content: Text("Impossibile avviare Google Maps. Verifica la connessione o l'app installata.")),
                         );
                       }
                     }
                   },
-                  icon: const Icon(Icons.map_rounded, size: 20),
-                  label: const Text(
+                  icon: Icon(Icons.map_rounded, size: 20),
+                  label: Text(
                     "Apri in Google Maps",
                     style: TextStyle(fontFamily: 'Outfit', fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryDark, // Accento Verde Scuro/Teal
-                    foregroundColor: Colors.white,
+                    foregroundColor: globalIsDarkMode ? Colors.black : Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: 0,

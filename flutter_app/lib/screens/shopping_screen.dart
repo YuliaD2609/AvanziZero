@@ -67,31 +67,31 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                     children: [
                       // Barra di Ricerca (search_bar)
                       Padding(
-                        padding: const EdgeInsets.all(12),
+                        padding: EdgeInsets.all(12),
                         child: Row(
                           children: [
                             Expanded(
                               child: Container(
                                 height: 44,
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: AppColors.surfaceLight,
                                   borderRadius: BorderRadius.circular(22),
                                   border: Border.all(color: AppColors.borderLight),
                                 ),
                                 child: TextField(
                                   controller: _searchController,
                                   onChanged: (val) => setState(() => _searchQuery = val),
-                                  decoration: const InputDecoration(
+                                  decoration: InputDecoration(
                                     hintText: "Cerca un prodotto",
                                     hintStyle: TextStyle(color: AppColors.textHint, fontSize: 14),
                                     border: InputBorder.none,
                                     contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                   ),
-                                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                                  style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Container(
                               height: 44,
                               width: 44,
@@ -99,7 +99,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                 color: AppColors.primaryVariant,
                                 borderRadius: BorderRadius.circular(22),
                               ),
-                              child: const Icon(Icons.search_rounded, color: Colors.white, size: 22),
+                              child: Icon(Icons.search_rounded, color: AppColors.surfaceLight, size: 22),
                             ),
                           ],
                         ),
@@ -114,7 +114,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                             // 1. Lista della spesa scrollabile dietro i pulsanti
                             Positioned.fill(
                               child: filteredItems.isEmpty
-                                  ? const Center(
+                                  ? Center(
                                       child: Padding(
                                         padding: EdgeInsets.symmetric(horizontal: 24),
                                         child: Text(
@@ -147,7 +147,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                     onPressed: () {
                                       if (_checkedItems.isEmpty) {
                                         ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text("Seleziona almeno un prodotto per completare la spesa!")),
+                                          SnackBar(content: Text("Seleziona almeno un prodotto per completare la spesa!")),
                                         );
                                         return;
                                       }
@@ -156,7 +156,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                         _checkedItems.clear();
                                       });
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
+                                        SnackBar(
                                           content: Text("Spesa Fatta! Prodotti selezionati trasferiti in Dispensa con successo."),
                                           backgroundColor: AppColors.primary,
                                           duration: Duration(seconds: 3),
@@ -165,11 +165,11 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.primaryLight, // Menta Chiaro
-                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                                       elevation: 2,
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                     ),
-                                    child: const Text(
+                                    child: Text(
                                       "Spesa fatta",
                                       style: TextStyle(
                                         fontFamily: 'Outfit',
@@ -180,7 +180,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                     ),
                                   ),
                                   
-                                  const SizedBox(height: 12),
+                                  SizedBox(height: 12),
                                   
                                   // Pulsanti flottanti in basso a destra
                                   Row(
@@ -190,11 +190,12 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                       FloatingActionButton(
                                         heroTag: "predictive_btn",
                                         onPressed: () => _showPredictiveShoppingModal(context),
-                                        backgroundColor: AppColors.primary,
+                                        backgroundColor: AppColors.primaryLight,
                                         elevation: 2,
-                                        child: const Icon(Icons.auto_awesome_rounded, color: Colors.white),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                        child: Icon(Icons.auto_awesome_rounded, color: AppColors.primary),
                                       ),
-                                      const SizedBox(width: 12),
+                                      SizedBox(width: 12),
                                       // Pulsante Aggiungi un Elemento
                                       ElevatedButton(
                                         onPressed: () => _showAddItemDialog(context),
@@ -204,13 +205,13 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                           elevation: 2,
                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                         ),
-                                        child: const Text(
+                                        child: Text(
                                           "Aggiungi un elemento",
                                           style: TextStyle(
                                             fontFamily: 'Outfit',
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.white,
+                                            color: AppColors.surfaceLight,
                                           ),
                                         ),
                                       ),
@@ -236,14 +237,14 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
   // Costruisce la riga prodotto lista spesa
   Widget _buildShoppingItemCard(ItemModel item) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
+      duration: Duration(milliseconds: 200),
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: AppColors.shadowLight,
             blurRadius: 4,
@@ -273,17 +274,17 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                 borderRadius: BorderRadius.circular(6),
               ),
               child: _checkedItems.contains(item.id)
-                  ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
+                  ? Icon(Icons.check_rounded, color: AppColors.surfaceLight, size: 18)
                   : null,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
 
           // Nome del prodotto
           Expanded(
             child: Text(
               item.name,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Outfit',
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
@@ -305,14 +306,14 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: AppColors.border),
                   ),
-                  child: const Center(child: Text("-", style: TextStyle(fontWeight: FontWeight.bold))),
+                  child: Center(child: Text("-", style: TextStyle(fontWeight: FontWeight.bold))),
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Text(
                   "${item.quantity}",
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                 ),
               ),
               InkWell(
@@ -324,7 +325,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                     color: AppColors.primary,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Center(child: Text("+", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                  child: Center(child: Text("+", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
                 ),
               ),
             ],
@@ -382,16 +383,16 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
           }
 
           return Container(
-            padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            padding: EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceLight,
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
                     Icon(Icons.auto_awesome_rounded, color: AppColors.primary),
                     SizedBox(width: 8),
@@ -401,14 +402,14 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Text(
                   isAILoading ? "L'IA sta analizzando lo storico dei consumi..." : "I suggerimenti intelligenti basati sulle tue abitudini.",
-                  style: const TextStyle(fontFamily: 'Outfit', color: AppColors.textSecondary, fontSize: 14),
+                  style: TextStyle(fontFamily: 'Outfit', color: AppColors.textSecondary, fontSize: 14),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 if (isAILoading)
-                  const Center(
+                  Center(
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 32),
                       child: Column(
@@ -421,7 +422,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                     ),
                   )
                 else if (scarcityItems.isEmpty && expiringItems.isEmpty)
-                  const Center(
+                  Center(
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 32),
                       child: Text("Nessun suggerimento al momento! La tua dispensa è in ottima forma.", textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSecondary)),
@@ -429,18 +430,18 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                   )
                 else ...[
                   if (scarcityItems.isNotEmpty) ...[
-                    const Text("Scarsità prodotti", style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, color: AppColors.primary)),
-                    const SizedBox(height: 12),
+                    Text("Scarsità prodotti", style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, color: AppColors.primary)),
+                    SizedBox(height: 12),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: scarcityItems.map((item) => _buildSuggestionChip(item)).toList(),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                   ],
                   if (expiringItems.isNotEmpty) ...[
-                    const Text("Vicino alla scadenza", style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, color: AppColors.error)),
-                    const SizedBox(height: 12),
+                    Text("Vicino alla scadenza", style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, color: AppColors.error)),
+                    SizedBox(height: 12),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -448,7 +449,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                     ),
                   ],
                 ],
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
               ],
             ),
           );
@@ -460,8 +461,8 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
   Widget _buildSuggestionChip(ItemModel item) {
     return ActionChip(
       backgroundColor: AppColors.background,
-      side: const BorderSide(color: AppColors.primaryLight),
-      label: Text("+ ${item.name}", style: const TextStyle(color: AppColors.primaryDark, fontWeight: FontWeight.bold)),
+      side: BorderSide(color: AppColors.primaryLight),
+      label: Text("+ ${item.name}", style: TextStyle(color: AppColors.primaryDark, fontWeight: FontWeight.bold)),
       onPressed: () {
         final newItemId = DateTime.now().millisecondsSinceEpoch.toString();
         final newItem = ItemModel(
@@ -489,14 +490,14 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Text("Nuova Categoria Spesa", style: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
+        backgroundColor: AppColors.surfaceLight,
+        title: Text("Nuova Categoria Spesa", style: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
         content: TextField(
           controller: catController,
-          decoration: const InputDecoration(hintText: "Nome categoria"),
+          decoration: InputDecoration(hintText: "Nome categoria"),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text("Annulla")),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text("Annulla")),
           ElevatedButton(
             onPressed: () {
               widget.state.addCustomCategory(catController.text, 'shopping');
@@ -506,16 +507,16 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                 showDialog(
                   context: context, // Usiamo il context esterno (sicuro)
                   builder: (context) => AlertDialog(
-                    backgroundColor: Colors.white,
+                    backgroundColor: AppColors.surfaceLight,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    title: const Row(
+                    title: Row(
                       children: [
                         Icon(Icons.info_outline_rounded, color: AppColors.primary),
                         SizedBox(width: 8),
                         Text("Suggerimento", style: TextStyle(fontFamily: 'Outfit', color: AppColors.primary)),
                       ],
                     ),
-                    content: const Text(
+                    content: Text(
                       "Tieni premuto su una categoria per eliminarla.",
                       style: TextStyle(fontFamily: 'Outfit', fontSize: 16, color: AppColors.textPrimary),
                     ),
@@ -526,7 +527,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                           backgroundColor: AppColors.primary,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        child: const Text("Ho capito", style: TextStyle(color: Colors.white, fontFamily: 'Outfit')),
+                        child: Text("Ho capito", style: TextStyle(color: AppColors.surfaceLight, fontFamily: 'Outfit')),
                       ),
                     ],
                   ),
@@ -534,7 +535,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text("Aggiungi", style: TextStyle(color: Colors.white)),
+            child: Text("Aggiungi", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -547,18 +548,18 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Text("Elimina Categoria", style: TextStyle(fontFamily: 'Outfit', color: AppColors.error)),
+        backgroundColor: AppColors.surfaceLight,
+        title: Text("Elimina Categoria", style: TextStyle(fontFamily: 'Outfit', color: AppColors.error)),
         content: Text("Sei sicuro di voler eliminare la categoria '$category'?"),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annulla")),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text("Annulla")),
           ElevatedButton(
             onPressed: () {
               widget.state.removeCustomCategory(category, section);
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text("Elimina", style: TextStyle(color: Colors.white)),
+            child: Text("Elimina", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -576,8 +577,8 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: Colors.white,
-          title: const Text("Aggiungi Elemento Spesa", style: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
+          backgroundColor: AppColors.surfaceLight,
+          title: Text("Aggiungi Elemento Spesa", style: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -593,7 +594,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                   }
                 },
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: selectedCat,
                 items: widget.state.categories
@@ -601,12 +602,12 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                     .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                     .toList(),
                 onChanged: (val) => setDialogState(() => selectedCat = val!),
-                decoration: const InputDecoration(labelText: "Categoria"),
+                decoration: InputDecoration(labelText: "Categoria"),
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annulla")),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text("Annulla")),
             ElevatedButton(
               onPressed: () {
                 if (nameController.text.trim().isNotEmpty) {
@@ -624,7 +625,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              child: const Text("Inserisci", style: TextStyle(color: Colors.white)),
+              child: Text("Inserisci", style: TextStyle(color: Colors.white)),
             ),
           ],
         ),

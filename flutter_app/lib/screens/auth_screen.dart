@@ -93,7 +93,7 @@ class _AuthScreenState extends State<AuthScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
+            padding: EdgeInsets.all(24.0),
             child: Form(
               key: _formKey,
               child: Column(
@@ -106,8 +106,8 @@ class _AuthScreenState extends State<AuthScreen> {
                     width: 180,
                     fit: BoxFit.contain,
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
+                  SizedBox(height: 16),
+                  Text(
                     "AvanziZero",
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -117,7 +117,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Text(
                     _isLogin ? "Bentornato! Accedi per continuare." : "Crea un account per iniziare.",
                     textAlign: TextAlign.center,
@@ -126,13 +126,13 @@ class _AuthScreenState extends State<AuthScreen> {
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  SizedBox(height: 40),
 
                   if (!_isLogin)
                     TextFormField(
                       decoration: InputDecoration(
                         labelText: "Nome",
-                        prefixIcon: const Icon(Icons.person_outline),
+                        prefixIcon: Icon(Icons.person_outline),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         filled: true,
                         fillColor: Colors.white,
@@ -140,12 +140,12 @@ class _AuthScreenState extends State<AuthScreen> {
                       validator: (val) => val == null || val.isEmpty ? "Inserisci il tuo nome" : null,
                       onSaved: (val) => _name = val!,
                     ),
-                  if (!_isLogin) const SizedBox(height: 16),
+                  if (!_isLogin) SizedBox(height: 16),
 
                   TextFormField(
                     decoration: InputDecoration(
                       labelText: "Email",
-                      prefixIcon: const Icon(Icons.email_outlined),
+                      prefixIcon: Icon(Icons.email_outlined),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       filled: true,
                       fillColor: Colors.white,
@@ -165,12 +165,12 @@ class _AuthScreenState extends State<AuthScreen> {
                     },
                     onSaved: (val) => _email = val!,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
 
                   TextFormField(
                     decoration: InputDecoration(
                       labelText: "Password",
-                      prefixIcon: const Icon(Icons.lock_outline),
+                      prefixIcon: Icon(Icons.lock_outline),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       filled: true,
                       fillColor: Colors.white,
@@ -205,14 +205,14 @@ class _AuthScreenState extends State<AuthScreen> {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: _showForgotPasswordDialog,
-                        child: const Text("Hai dimenticato la password?", style: TextStyle(color: AppColors.primary, fontSize: 13)),
+                        child: Text("Hai dimenticato la password?", style: TextStyle(color: AppColors.primary, fontSize: 13)),
                       ),
                     ),
                     
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
 
                   _isLoading
-                      ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                      ? Center(child: CircularProgressIndicator(color: AppColors.primary))
                       : ElevatedButton(
                           onPressed: _submit,
                           style: ElevatedButton.styleFrom(
@@ -223,10 +223,10 @@ class _AuthScreenState extends State<AuthScreen> {
                           ),
                           child: Text(
                             _isLogin ? "Accedi" : "Registrati",
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
 
                   TextButton(
                     onPressed: () {
@@ -240,7 +240,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     },
                     child: Text(
                       _isLogin ? "Non hai un account? Registrati" : "Hai già un account? Accedi",
-                      style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -257,12 +257,12 @@ class _AuthScreenState extends State<AuthScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("Recupera Password", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text("Recupera Password", style: TextStyle(fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text("Inserisci la tua email per ricevere il link di recupero password."),
-            const SizedBox(height: 16),
+            Text("Inserisci la tua email per ricevere il link di recupero password."),
+            SizedBox(height: 16),
             TextField(
               controller: emailCtrl,
               keyboardType: TextInputType.emailAddress,
@@ -276,14 +276,14 @@ class _AuthScreenState extends State<AuthScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text("Annulla", style: TextStyle(color: AppColors.textSecondary)),
+            child: Text("Annulla", style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () async {
               final email = emailCtrl.text.trim();
               if (email.isEmpty || !email.contains('@')) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Inserisci una email valida")),
+                  SnackBar(content: Text("Inserisci una email valida")),
                 );
                 return;
               }
@@ -292,7 +292,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 await _auth.sendPasswordResetEmail(email);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
+                    SnackBar(
                       content: Text("Abbiamo inviato un link alla tua email per recuperare la password!"),
                       backgroundColor: AppColors.primary,
                     ),
@@ -307,7 +307,7 @@ class _AuthScreenState extends State<AuthScreen> {
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-            child: const Text("Invia"),
+            child: Text("Invia"),
           ),
         ],
       ),

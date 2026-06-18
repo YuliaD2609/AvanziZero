@@ -45,7 +45,7 @@ class HomeScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.person_outline_rounded, color: Colors.white, size: 28),
+                  icon: Icon(Icons.person_outline_rounded, color: AppColors.surfaceLight, size: 28),
                   tooltip: "Area Admin",
                   onPressed: () {
                     Navigator.push(
@@ -61,7 +61,7 @@ class HomeScreen extends StatelessWidget {
           ),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -80,11 +80,11 @@ class HomeScreen extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.maps_home_work_rounded, color: AppColors.primary, size: 20),
-                          const SizedBox(width: 8),
+                          Icon(Icons.maps_home_work_rounded, color: AppColors.primary, size: 20),
+                          SizedBox(width: 8),
                           Text(
                             "Codice: ${state.groupId}",
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Outfit',
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
@@ -98,7 +98,6 @@ class HomeScreen extends StatelessWidget {
                         children: [
                           TextButton.icon(
                             onPressed: () {
-                              // Uscita istantanea dal gruppo corrente
                               state.leaveGroup();
                               Navigator.pushAndRemoveUntil(
                                 context,
@@ -106,8 +105,8 @@ class HomeScreen extends StatelessWidget {
                                 (route) => false,
                               );
                             },
-                            icon: const Icon(Icons.logout_rounded, size: 16, color: AppColors.error),
-                            label: const Text(
+                            icon: Icon(Icons.logout_rounded, size: 16, color: AppColors.error),
+                            label: Text(
                               "Esci",
                               style: TextStyle(
                                 fontFamily: 'Outfit',
@@ -142,8 +141,8 @@ class HomeScreen extends StatelessWidget {
                         fit: BoxFit.contain,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    const Text(
+                    SizedBox(height: 12),
+                    Text(
                       "AvanziZero",
                       style: TextStyle(
                         fontFamily: 'Outfit',
@@ -154,7 +153,7 @@ class HomeScreen extends StatelessWidget {
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       "Tutto quello che serve dalla A alla Z.",
                       style: TextStyle(
@@ -168,7 +167,7 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // ===============================================================
               // PULSANTI PRINCIPALI (Lasciati esattamente con le scritte originali)
@@ -180,7 +179,7 @@ class HomeScreen extends StatelessWidget {
                 iconData: Icons.receipt_long_rounded,
                 onTap: () => onNavigate(2),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // 2. Dispensa
               _buildMainNavigationButton(
@@ -188,7 +187,7 @@ class HomeScreen extends StatelessWidget {
                 iconData: Icons.kitchen_rounded,
                 onTap: () => onNavigate(1),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
 
               // ===============================================================
               // SEZIONE WARNING: PRODOTTI IN SCADENZA (warningLayout)
@@ -196,10 +195,10 @@ class HomeScreen extends StatelessWidget {
               Container(
                 height: 200,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.surfaceLight,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: AppColors.error.withOpacity(0.4), width: 1.5),
-                  boxShadow: const [
+                  boxShadow: [
                     BoxShadow(color: AppColors.shadowLight, blurRadius: 10, offset: Offset(0, 4)),
                   ],
                 ),
@@ -209,11 +208,11 @@ class HomeScreen extends StatelessWidget {
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: AppColors.errorLight, // Sfondo rosso chiaro
                         borderRadius: BorderRadius.only(topLeft: Radius.circular(18), topRight: Radius.circular(18)),
                       ),
-                      child: const Text(
+                      child: Text(
                         "Prodotti in scadenza",
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -228,7 +227,7 @@ class HomeScreen extends StatelessWidget {
                     // Contenitore lista in scadenza (warningContainer)
                     Expanded(
                       child: expiringItems.isEmpty
-                          ? const Center(
+                          ? Center(
                               child: Text(
                                 "Nessun prodotto in scadenza!",
                                 style: TextStyle(fontFamily: 'Outfit', color: AppColors.primary, fontWeight: FontWeight.bold),
@@ -280,7 +279,7 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // Nota informativa di orientamento (i supermercati sono spostati nel carrello in alto a destra)
               Container(
@@ -290,7 +289,7 @@ class HomeScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.border),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
                     Icon(Icons.info_outline_rounded, color: AppColors.textSecondary, size: 18),
                     SizedBox(width: 10),
@@ -305,7 +304,7 @@ class HomeScreen extends StatelessWidget {
               ),
 
               // Spazio per il FAB
-              const SizedBox(height: 80),
+              SizedBox(height: 80),
             ],
           ),
         ),
@@ -327,10 +326,10 @@ class HomeScreen extends StatelessWidget {
       child: Container(
         height: 70, // Altezza generosa simile al 60dp nativo
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surfaceLight,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppColors.primary, width: 1.5),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(color: AppColors.shadowMedium, blurRadius: 8, offset: Offset(0, 2)),
           ],
         ),
@@ -346,12 +345,12 @@ class HomeScreen extends StatelessWidget {
               ),
               child: Icon(iconData, color: AppColors.primary, size: 26),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: 16),
 
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Outfit',
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -360,7 +359,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
 
-            const Icon(Icons.chevron_right_rounded, color: AppColors.primary, size: 28),
+            Icon(Icons.chevron_right_rounded, color: AppColors.primary, size: 28),
           ],
         ),
       ),

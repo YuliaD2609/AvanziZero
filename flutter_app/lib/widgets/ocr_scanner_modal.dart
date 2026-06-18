@@ -63,8 +63,8 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.78,
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLight,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
@@ -89,7 +89,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
+                Row(
                   children: [
                     Icon(Icons.document_scanner_rounded, color: AppColors.primary, size: 28),
                     SizedBox(width: 10),
@@ -105,13 +105,13 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                   ],
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
+                  icon: Icon(Icons.close_rounded, color: AppColors.textSecondary),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
           ),
-          const Divider(color: AppColors.border, height: 1),
+          Divider(color: AppColors.border, height: 1),
 
           // Contenuto Principale
           Expanded(
@@ -147,7 +147,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                 if (_isAnalyzing)
                                   Container(
                                     color: Colors.black.withOpacity(0.6),
-                                    child: const Column(
+                                    child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         CircularProgressIndicator(color: AppColors.primary),
@@ -155,7 +155,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                         Text(
                                           "Estrazione OCR ed Elaborazione LLM...",
                                           style: TextStyle(
-                                            color: Colors.white,
+                                            color: AppColors.surfaceLight,
                                             fontWeight: FontWeight.bold,
                                             fontFamily: 'Outfit',
                                           ),
@@ -165,7 +165,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                   ),
                               ],
                             )
-                          : const Column(
+                          : Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.add_a_photo_rounded, color: AppColors.textSecondary, size: 54),
@@ -192,7 +192,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                             ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
 
                   // Descrizione e coerenza con il feedback utente sul modello
                   Container(
@@ -201,7 +201,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                       color: AppColors.primaryLight, // Menta chiaro
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
                         Icon(Icons.auto_awesome_rounded, color: AppColors.textPrimary, size: 24),
                         SizedBox(width: 12),
@@ -228,27 +228,27 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () => _captureImage(ImageSource.gallery),
-                            icon: const Icon(Icons.photo_library_rounded, color: AppColors.primary),
-                            label: const Text(
+                            icon: Icon(Icons.photo_library_rounded, color: AppColors.primary),
+                            label: Text(
                               "Galleria",
                               style: TextStyle(fontFamily: 'Outfit', color: AppColors.primary, fontWeight: FontWeight.bold),
                             ),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              side: const BorderSide(color: AppColors.primary, width: 1.5),
+                              side: BorderSide(color: AppColors.primary, width: 1.5),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: 16),
                         Expanded(
                           flex: 2,
                           child: ElevatedButton.icon(
                             onPressed: () => _captureImage(ImageSource.camera),
-                            icon: const Icon(Icons.camera_rounded, color: Colors.white),
-                            label: const Text(
+                            icon: Icon(Icons.camera_rounded, color: Colors.white),
+                            label: Text(
                               "Scatta Foto",
-                              style: TextStyle(fontFamily: 'Outfit', color: Colors.white, fontWeight: FontWeight.bold),
+                              style: TextStyle(fontFamily: 'Outfit', color: AppColors.surfaceLight, fontWeight: FontWeight.bold),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary, // Verde Salvia Intenso
@@ -271,16 +271,16 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                     _capturedImage = null;
                                   });
                                 },
-                          icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+                          icon: Icon(Icons.delete_outline_rounded, color: AppColors.error),
                           style: IconButton.styleFrom(
                             padding: const EdgeInsets.all(14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
-                              side: const BorderSide(color: AppColors.border),
+                              side: BorderSide(color: AppColors.border),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12),
                         Expanded(
                           child: ElevatedButton(
                             onPressed: _isAnalyzing
@@ -316,13 +316,13 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                               elevation: 0,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
-                            child: const Text(
+                            child: Text(
                               "Inserisci elementi dallo scontrino",
                               style: TextStyle(
                                 fontFamily: 'Outfit',
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: AppColors.surfaceLight,
                               ),
                             ),
                           ),

@@ -22,7 +22,7 @@ class HorizontalHeaderMenu extends StatelessWidget {
     // Implementa il layout di horizontal_menu.xml con stile Pastel Sage
     return Container(
       height: 85, // Altezza proporzionata per il mobile (leggermente ingrandito)
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [AppColors.primary, AppColors.primaryGradientEnd],
           begin: Alignment.topLeft,
@@ -46,22 +46,22 @@ class HorizontalHeaderMenu extends StatelessWidget {
                 ? leftAction!
                 : (showHome
                     ? IconButton(
-                        icon: const Icon(Icons.home_rounded, color: Colors.white, size: 30),
+                        icon: Icon(Icons.home_rounded, color: AppColors.surfaceLight, size: 30),
                         onPressed: onHomePressed,
                         tooltip: 'Torna alla Home',
                       )
-                    : const SizedBox(width: 48)),
+                    : SizedBox(width: 48)),
             
             // Titolo della sezione al centro
             Expanded(
               child: Text(
                 title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Outfit',
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.surfaceLight,
                   letterSpacing: 0.5,
                 ),
                 maxLines: 1,
@@ -71,7 +71,7 @@ class HorizontalHeaderMenu extends StatelessWidget {
 
             // Pulsante Supermercati Vicini a destra
             IconButton(
-              icon: const Icon(Icons.storefront_rounded, color: Colors.white, size: 28),
+              icon: Icon(Icons.storefront_rounded, color: AppColors.surfaceLight, size: 28),
               onPressed: onCartPressed,
               tooltip: 'Supermercati nelle vicinanze',
             ),
@@ -104,11 +104,11 @@ class VerticalCategoryMenu extends StatelessWidget {
     return Container(
       width: 85,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surfaceLight,
         border: Border(
           right: BorderSide(color: AppColors.border, width: 1),
         ),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: AppColors.shadowLight,
             blurRadius: 4,
@@ -131,7 +131,7 @@ class VerticalCategoryMenu extends StatelessWidget {
                   onTap: () => onCategorySelected(category),
                   onLongPress: onCategoryLongPressed != null ? () => onCategoryLongPressed!(category) : null,
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
+                    duration: Duration(milliseconds: 200),
                     margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
                     padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
                     decoration: BoxDecoration(
@@ -172,18 +172,18 @@ class VerticalCategoryMenu extends StatelessWidget {
             child: Container(
               height: 50,
               width: double.infinity,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.primaryDark, // Accento Verde Scuro/Teal
                 borderRadius: BorderRadius.only(topRight: Radius.circular(12)),
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
                   "+",
                   style: TextStyle(
                     fontFamily: 'Outfit',
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white, // Alto contrasto
+                    color: AppColors.surfaceLight, // Alto contrasto
                   ),
                 ),
               ),
