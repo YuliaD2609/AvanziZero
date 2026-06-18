@@ -207,7 +207,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                         SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            "Flusso Dati Reale: L'immagine ad alta risoluzione acquisita dall'hardware nativo viene inoltrata al backend di Computer Vision per la trascrizione e smistata in automatico nelle categorie Firebase corrette.",
+                            "L'immagine acquisita permetterà di riconoscere gli elementi acquistati e inserirli automaticamente in dispensa.",
                             style: TextStyle(
                               fontFamily: 'Outfit',
                               fontSize: 13,
@@ -317,7 +317,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                             child: const Text(
-                              "Invia al Backend OCR",
+                              "Inserisci elementi dallo scontrino",
                               style: TextStyle(
                                 fontFamily: 'Outfit',
                                 fontSize: 16,
