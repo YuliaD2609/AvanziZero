@@ -143,9 +143,9 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text(
-                      state.groupName?.isNotEmpty == true ? state.groupName! : "AvanziZero",
-                      style: const TextStyle(
+                    const Text(
+                      "AvanziZero",
+                      style: TextStyle(
                         fontFamily: 'Outfit',
                         fontSize: 36,
                         fontWeight: FontWeight.w800,
@@ -153,8 +153,6 @@ class HomeScreen extends StatelessWidget {
                         letterSpacing: -0.5,
                       ),
                       textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
