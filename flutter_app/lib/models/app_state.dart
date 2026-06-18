@@ -85,6 +85,41 @@ class AppState extends ChangeNotifier {
   bool _isPredictiveBannerClosed = false;
   bool get isPredictiveBannerClosed => _isPredictiveBannerClosed;
 
+  bool _categoryDeleteHintShown = false;
+  bool get categoryDeleteHintShown => _categoryDeleteHintShown;
+
+  Future<void> _checkCategoryDeleteHint() async {
+    final userId = currentUserAuth?.uid;
+    final group = groupId;
+    if (userId == null || group == null) {
+      _categoryDeleteHintShown = false;
+      notifyListeners();
+      return;
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _categoryDeleteHintShown = prefs.getBool('category_delete_hint_shown_${userId}_$group') ?? false;
+      notifyListeners();
+    } catch (e) {
+      print("Errore caricamento stato hint categoria: $e");
+    }
+  }
+
+  Future<void> markCategoryDeleteHintShown() async {
+    final userId = currentUserAuth?.uid;
+    final group = groupId;
+    if (userId == null || group == null) return;
+
+    _categoryDeleteHintShown = true;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('category_delete_hint_shown_${userId}_$group', true);
+    } catch (e) {
+      print("Errore salvataggio stato hint categoria: $e");
+    }
+  }
+
   Future<void> _checkPredictiveBannerStatus() async {
     final userId = currentUserAuth?.uid;
     final group = groupId;
@@ -119,6 +154,7 @@ class AppState extends ChangeNotifier {
   }
 
   AppState() {
+    _checkCategoryDeleteHint();
     authService.authStateChanges.listen((User? user) async {
       currentUserAuth = user;
       if (user != null) {
@@ -144,6 +180,7 @@ class AppState extends ChangeNotifier {
         await leaveGroup();
       }
       await _checkPredictiveBannerStatus();
+      await _checkCategoryDeleteHint();
       notifyListeners();
     });
   }
@@ -174,6 +211,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
 
     await _checkPredictiveBannerStatus();
+    await _checkCategoryDeleteHint();
 
     // Aggiunge alla cronologia se non presente e salva localmente
     try {
@@ -313,6 +351,23 @@ class AppState extends ChangeNotifier {
     } else if (section == 'shopping' && !shoppingCategories.contains(newCategory)) {
       shoppingCategories.add(newCategory);
       selectedShoppingCategory = newCategory;
+    }
+    notifyListeners();
+  }
+
+  void removeCustomCategory(String categoryToRemove, String section) {
+    if (categoryToRemove == "Tutti") return; // "Tutti" non può mai essere eliminato
+
+    if (section == 'pantry') {
+      pantryCategories.remove(categoryToRemove);
+      if (selectedPantryCategory == categoryToRemove) {
+        selectedPantryCategory = "Tutti";
+      }
+    } else if (section == 'shopping') {
+      shoppingCategories.remove(categoryToRemove);
+      if (selectedShoppingCategory == categoryToRemove) {
+        selectedShoppingCategory = "Tutti";
+      }
     }
     notifyListeners();
   }

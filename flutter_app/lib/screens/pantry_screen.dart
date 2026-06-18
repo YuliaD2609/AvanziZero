@@ -56,6 +56,7 @@ class _PantryScreenState extends State<PantryScreen> {
                   categories: widget.state.pantryCategories,
                   selectedCategory: widget.state.selectedPantryCategory,
                   onCategorySelected: (category) => widget.state.selectCategory(category, 'pantry'),
+                  onCategoryLongPressed: (category) => _showDeleteCategoryDialog(context, category, 'pantry'),
                   onAddCategoryPressed: () => _showAddCategoryDialog(context),
                 ),
 
@@ -357,7 +358,7 @@ class _PantryScreenState extends State<PantryScreen> {
     final TextEditingController catController = TextEditingController();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: Colors.white,
         title: const Text("Nuova Categoria Dispensa", style: TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
         content: TextField(
@@ -365,14 +366,70 @@ class _PantryScreenState extends State<PantryScreen> {
           decoration: const InputDecoration(hintText: "Nome categoria (es. Dolci)"),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annulla")),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text("Annulla")),
           ElevatedButton(
             onPressed: () {
               widget.state.addCustomCategory(catController.text, 'pantry');
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
+              if (!widget.state.categoryDeleteHintShown) {
+                widget.state.markCategoryDeleteHintShown();
+                showDialog(
+                  context: context, // Usiamo il context esterno (sicuro)
+                  builder: (context) => AlertDialog(
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    title: const Row(
+                      children: [
+                        Icon(Icons.info_outline_rounded, color: AppColors.primary),
+                        SizedBox(width: 8),
+                        Text("Suggerimento", style: TextStyle(fontFamily: 'Outfit', color: AppColors.primary)),
+                      ],
+                    ),
+                    content: const Text(
+                      "Tieni premuto su una categoria per eliminarla.",
+                      style: TextStyle(fontFamily: 'Outfit', fontSize: 16, color: AppColors.textPrimary),
+                    ),
+                    actions: [
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text("Ho capito", style: TextStyle(color: Colors.white, fontFamily: 'Outfit')),
+                      ),
+                    ],
+                  ),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             child: const Text("Aggiungi", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Finestra di dialogo per eliminare una categoria personalizzata
+  void _showDeleteCategoryDialog(BuildContext context, String category, String section) {
+    if (category == "Tutti") return; // Non è possibile eliminare "Tutti"
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        title: const Text("Elimina Categoria", style: TextStyle(fontFamily: 'Outfit', color: AppColors.error)),
+        content: Text("Sei sicuro di voler eliminare la categoria '$category'?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annulla")),
+          ElevatedButton(
+            onPressed: () {
+              widget.state.removeCustomCategory(category, section);
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text("Elimina", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
