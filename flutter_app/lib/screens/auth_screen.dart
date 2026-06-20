@@ -160,8 +160,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     keyboardType: TextInputType.emailAddress,
                     validator: (val) {
                       if (_emailError != null) return _emailError;
-                      if (val == null || !val.contains('@'))
+                      if (val == null || !val.contains('@')) {
                         return "Inserisci una email valida";
+                      }
                       return null;
                     },
                     onChanged: (val) {
@@ -186,8 +187,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     obscureText: true,
                     validator: (val) {
                       if (_passwordError != null) return _passwordError;
-                      if (val == null || val.isEmpty)
+                      if (val == null || val.isEmpty) {
                         return "Inserisci la password";
+                      }
                       if (!_isLogin) {
                         if (val.length < 8 ||
                             !RegExp(r'[A-Z]').hasMatch(val) ||
