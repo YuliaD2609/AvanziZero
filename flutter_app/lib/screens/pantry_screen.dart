@@ -292,7 +292,7 @@ class _PantryScreenState extends State<PantryScreen> {
                       // Scadenza testuale nativa (TextExpire + itemExpire)
                       Expanded(
                         child: Text(
-                          _formatExpireDate(item.expireDate),
+                          item.formattedDateForUI,
                           style: TextStyle(
                             fontSize: 13,
                             color: item.urgencyLevel == 2
@@ -713,22 +713,7 @@ class _PantryScreenState extends State<PantryScreen> {
         TextEditingController(text: item.quantity.toString());
     bool nameError = false;
 
-    DateTime? selectedDate;
-    final cleanText = item.expireDate
-        .replaceAll("In scadenza: ", "")
-        .replaceAll("Scadenza: ", "")
-        .trim();
-    if (cleanText.contains('/')) {
-      final parts = cleanText.split('/');
-      if (parts.length == 3) {
-        final d = int.tryParse(parts[0]);
-        final m = int.tryParse(parts[1]);
-        final y = int.tryParse(parts[2]);
-        if (d != null && m != null && y != null) {
-          selectedDate = DateTime(y, m, d);
-        }
-      }
-    }
+    DateTime? selectedDate = item.parsedExpireDate;
 
     String selectedCat = widget.state.categories.contains(item.category)
         ? item.category
@@ -1175,46 +1160,5 @@ class _PantryScreenState extends State<PantryScreen> {
     );
   }
 
-  String _formatExpireDate(String text) {
-    String cleanText = text
-        .replaceAll("In scadenza: ", "")
-        .replaceAll("Scadenza: ", "")
-        .trim();
-    if (cleanText == "-" || cleanText.isEmpty) {
-      return "-";
-    }
 
-    // Controlla se è nel formato gg/mm/aaaa
-    final dateParts = cleanText.split('/');
-    if (dateParts.length == 3) {
-      final day = int.tryParse(dateParts[0]);
-      final month = int.tryParse(dateParts[1]);
-      final year = int.tryParse(dateParts[2]);
-      if (day != null && month != null && year != null) {
-        final expDate = DateTime(year, month, day);
-        final now = DateTime.now();
-        final today = DateTime(now.year, now.month, now.day);
-        final difference = expDate.difference(today).inDays;
-
-        if (difference == 0) return 'Oggi';
-        if (difference == 1) return 'Domani';
-        return cleanText;
-      }
-    }
-
-    if (cleanText.toLowerCase().contains('oggi')) return 'Oggi';
-    if (cleanText.toLowerCase().contains('domani')) return 'Domani';
-
-    final match = RegExp(r'tra (\d+) giorn[io]').firstMatch(cleanText);
-    if (match != null) {
-      final days = int.parse(match.group(1)!);
-      if (days == 0) return 'Oggi';
-      if (days == 1) return 'Domani';
-
-      final date = DateTime.now().add(Duration(days: days));
-      return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
-    }
-
-    return cleanText;
-  }
 }

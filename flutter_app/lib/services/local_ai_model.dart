@@ -23,8 +23,6 @@ class LocalPredictiveModel {
         expiring.add(ItemModel(
           id: '',
           name: item.name,
-          expireDate: 'Data: N/A',
-          quantity: 1,
           category: item.category,
         ));
       }
@@ -92,8 +90,6 @@ class LocalPredictiveModel {
         scarcity.add(ItemModel(
             id: '',
             name: originalName,
-            expireDate: 'Data: N/A',
-            quantity: 1,
             category: category));
       } else {
         double scarcityRatio = score / currentQty;
@@ -108,8 +104,6 @@ class LocalPredictiveModel {
             scarcity.add(ItemModel(
                 id: '',
                 name: originalName,
-                expireDate: 'Data: N/A',
-                quantity: 1,
                 category: category));
           }
         }

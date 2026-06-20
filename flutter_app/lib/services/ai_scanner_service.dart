@@ -56,7 +56,6 @@ Restituisci ESATTAMENTE e SOLO un array JSON in questo formato (nessun blocco ma
           id: DateTime.now().millisecondsSinceEpoch.toString() +
               item['name'].toString().hashCode.toString(),
           name: item['name'],
-          expireDate: 'Data: N/A',
           quantity: item['quantity'],
           category: item['category'],
           isPantry: true,

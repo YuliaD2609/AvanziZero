@@ -247,7 +247,6 @@ class LocalReceiptParser {
         id: DateTime.now().millisecondsSinceEpoch.toString() +
             finalName.hashCode.toString(),
         name: finalName,
-        expireDate: 'Data: N/A',
         quantity: quantity,
         category: finalCategory,
         isPantry: true,

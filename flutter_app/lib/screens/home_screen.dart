@@ -20,14 +20,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Identifica i prodotti in scadenza per il warningLayout
-    final expiringItems =
-        state.allItems.where((i) => i.isPantry && i.urgencyLevel > 0).toList();
-    expiringItems.sort((a, b) {
-      if (a.parsedExpireDate == null && b.parsedExpireDate == null) return 0;
-      if (a.parsedExpireDate == null) return 1;
-      if (b.parsedExpireDate == null) return -1;
-      return a.parsedExpireDate!.compareTo(b.parsedExpireDate!);
-    });
+    final expiringItems = state.expiringItems;
 
     return Scaffold(
       backgroundColor: AppColors.background, // Avorio soft
@@ -259,19 +252,7 @@ class HomeScreen extends StatelessWidget {
                                   itemBuilder: (context, index) {
                                     final item = expiringItems[index];
 
-                                    bool expired = false;
-                                    if (item.parsedExpireDate != null) {
-                                      final today = DateTime.now();
-                                      final todayStart = DateTime(
-                                          today.year, today.month, today.day);
-                                      final expireStart = DateTime(
-                                          item.parsedExpireDate!.year,
-                                          item.parsedExpireDate!.month,
-                                          item.parsedExpireDate!.day);
-                                      if (expireStart.isBefore(todayStart)) {
-                                        expired = true;
-                                      }
-                                    }
+                                    final expired = item.isExpired;
 
                                     final nameColor = expired
                                         ? AppColors.error
@@ -294,7 +275,7 @@ class HomeScreen extends StatelessWidget {
                                                 color: nameColor),
                                           ),
                                           Text(
-                                            "$datePrefix${_formatExpireDate(item.expireDate)}",
+                                            "$datePrefix${item.formattedDateForUI}",
                                             style: TextStyle(
                                               fontFamily: 'Outfit',
                                               color: expired ||
@@ -410,47 +391,5 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Formatta la data di scadenza calcolando la data effettiva se indicata come "tra X giorni"
-  String _formatExpireDate(String text) {
-    String cleanText = text
-        .replaceAll("In scadenza: ", "")
-        .replaceAll("Scadenza: ", "")
-        .trim();
-    if (cleanText == "-" || cleanText.isEmpty) {
-      return "-";
-    }
 
-    // Controlla se è nel formato gg/mm/aaaa
-    final dateParts = cleanText.split('/');
-    if (dateParts.length == 3) {
-      final day = int.tryParse(dateParts[0]);
-      final month = int.tryParse(dateParts[1]);
-      final year = int.tryParse(dateParts[2]);
-      if (day != null && month != null && year != null) {
-        final expDate = DateTime(year, month, day);
-        final now = DateTime.now();
-        final today = DateTime(now.year, now.month, now.day);
-        final difference = expDate.difference(today).inDays;
-
-        if (difference == 0) return 'Oggi';
-        if (difference == 1) return 'Domani';
-        return cleanText;
-      }
-    }
-
-    if (cleanText.toLowerCase().contains('oggi')) return 'Oggi';
-    if (cleanText.toLowerCase().contains('domani')) return 'Domani';
-
-    final match = RegExp(r'tra (\d+) giorn[io]').firstMatch(cleanText);
-    if (match != null) {
-      final days = int.parse(match.group(1)!);
-      if (days == 0) return 'Oggi';
-      if (days == 1) return 'Domani';
-
-      final date = DateTime.now().add(Duration(days: days));
-      return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
-    }
-
-    return cleanText;
-  }
 }

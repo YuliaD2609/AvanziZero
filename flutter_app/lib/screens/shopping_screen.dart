@@ -531,11 +531,8 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
         final newItem = ItemModel(
           id: newItemId,
           name: item.name,
-          expireDate: "Data: N/A", // Default per la spesa
-          quantity: 1,
           category: item.category,
           isShopping: true,
-          isPantry: false,
         );
         widget.state.addItem(newItem);
         Navigator.pop(context); // Chiude il modal
@@ -704,8 +701,6 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                   widget.state.addItem(ItemModel(
                     id: DateTime.now().millisecondsSinceEpoch.toString(),
                     name: nameController.text.trim(),
-                    expireDate: "-",
-                    quantity: 1,
                     category: selectedCat,
                     isShopping: true,
                   ));

@@ -207,33 +207,4 @@ class VerticalCategoryMenu extends StatelessWidget {
       ),
     );
   }
-
-  IconData _getCategoryIcon(String category) {
-    switch (category) {
-      case "Tutti":
-        return Icons.grid_view_rounded;
-      case "Frutta & Verdura":
-        return Icons.apple_rounded;
-      case "Latticini":
-        return Icons.egg_rounded;
-      case "Carne & Pesce":
-        return Icons.set_meal_rounded;
-      case "Secco & Pasta":
-        return Icons.breakfast_dining_rounded;
-      case "Bevande":
-        return Icons.local_drink_rounded;
-      case "Igiene Casa":
-        return Icons.cleaning_services_rounded;
-      case "Vestiti":
-        return Icons.checkroom_rounded;
-      case "Libri & Studio":
-        return Icons.menu_book_rounded;
-      case "Cavi & Tech":
-        return Icons.cable_rounded;
-      case "Beauty & Igiene":
-        return Icons.face_retouching_natural_rounded;
-      default:
-        return Icons.folder_special_rounded;
-    }
-  }
 }

@@ -21,8 +21,6 @@ class _AdminScreenState extends State<AdminScreen> {
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
 
-  final bool _isDarkMode = false;
-
   @override
   void initState() {
     super.initState();

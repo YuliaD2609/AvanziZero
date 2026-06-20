@@ -83,28 +83,7 @@ class FirebaseService {
     }
   }
 
-  /// Sposta tutti gli articoli della Lista della Spesa in Dispensa (Spesa Fatta)
-  /// utilizzando un'operazione batch atomica.
-  Future<void> markShoppingDone() async {
-    try {
-      final snapshot =
-          await _itemsRef.where('isShopping', isEqualTo: true).get();
-      final batch = _db.batch();
 
-      for (var doc in snapshot.docs) {
-        batch.update(doc.reference, {
-          'isShopping': false,
-          'isPantry': true,
-          'expireDate': 'Scadenza: Fresco (30 gg)',
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      }
-
-      await batch.commit();
-    } catch (e) {
-      print("Errore nel completamento della spesa: $e");
-    }
-  }
 
   /// Inizializza un nuovo gruppo con dati demo se vuoto
   Future<void> seedInitialDataIfNeeded(List<ItemModel> initialItems,

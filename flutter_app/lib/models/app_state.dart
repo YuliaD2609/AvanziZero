@@ -25,20 +25,23 @@ class ItemModel {
   ItemModel({
     required this.id,
     required this.name,
-    required this.expireDate,
-    required this.quantity,
+    this.expireDate = "-",
+    this.quantity = 1,
     required this.category,
     this.isPantry = false,
     this.isShopping = false,
     this.ownerId,
   });
 
+  String get _cleanDateText => expireDate
+      .replaceAll("In scadenza: ", "")
+      .replaceAll("Scadenza: ", "")
+      .trim();
+
   DateTime? get parsedExpireDate {
-    String cleanText = expireDate
-        .replaceAll("In scadenza: ", "")
-        .replaceAll("Scadenza: ", "")
-        .trim();
+    final cleanText = _cleanDateText;
     if (cleanText == "-" || cleanText.isEmpty) return null;
+
     final dateParts = cleanText.split('/');
     if (dateParts.length == 3) {
       final day = int.tryParse(dateParts[0]);
@@ -48,47 +51,69 @@ class ItemModel {
         return DateTime(year, month, day);
       }
     }
+    
+    final match = RegExp(r'tra (\d+) giorn[io]').firstMatch(cleanText);
+    if (match != null) {
+      final days = int.parse(match.group(1)!);
+      final now = DateTime.now();
+      return DateTime(now.year, now.month, now.day).add(Duration(days: days));
+    }
+    
+    if (cleanText.toLowerCase().contains('oggi')) {
+      final now = DateTime.now();
+      return DateTime(now.year, now.month, now.day);
+    }
+    if (cleanText.toLowerCase().contains('domani')) {
+      final now = DateTime.now();
+      return DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+    }
+
     return null;
   }
 
-  // Livello di urgenza "Zero Spreco"
+  bool get isExpired {
+    final expDate = parsedExpireDate;
+    if (expDate == null) return false;
+    final today = DateTime.now();
+    final todayStart = DateTime(today.year, today.month, today.day);
+    return expDate.isBefore(todayStart);
+  }
+
   int get urgencyLevel {
-    String cleanText = expireDate
-        .replaceAll("In scadenza: ", "")
-        .replaceAll("Scadenza: ", "")
-        .trim();
+    final cleanText = _cleanDateText;
     if (cleanText == "-" || cleanText.isEmpty) return 0;
 
-    // Se è nel formato gg/mm/aaaa
-    final dateParts = cleanText.split('/');
-    if (dateParts.length == 3) {
-      final day = int.tryParse(dateParts[0]);
-      final month = int.tryParse(dateParts[1]);
-      final year = int.tryParse(dateParts[2]);
-      if (day != null && month != null && year != null) {
-        final expDate = DateTime(year, month, day);
-        final now = DateTime.now();
-        final today = DateTime(now.year, now.month, now.day);
-        final difference = expDate.difference(today).inDays;
+    final expDate = parsedExpireDate;
+    if (expDate != null) {
+      final today = DateTime.now();
+      final todayStart = DateTime(today.year, today.month, today.day);
+      final difference = expDate.difference(todayStart).inDays;
 
-        if (difference <= 1) return 2; // Oggi, Domani, o già scaduto (Rosso)
-        if (difference <= 7) return 1; // Tra 2 e 7 giorni (Giallo)
-        return 0; // Verde / Fresco
-      }
+      if (difference <= 1) return 2;
+      if (difference <= 7) return 1;
+      return 0;
     }
 
-    if (cleanText.toLowerCase().contains('oggi') ||
-        cleanText.toLowerCase().contains('domani')) return 2; // Rosso
-    if (cleanText.toLowerCase().contains('giorni')) {
-      final match = RegExp(r'tra (\d+) giorn[io]').firstMatch(cleanText);
-      if (match != null) {
-        final days = int.parse(match.group(1)!);
-        if (days <= 1) return 2;
-        if (days <= 7) return 1;
-      }
-      return 1; // Giallo
+    return 0;
+  }
+
+  String get formattedDateForUI {
+    final cleanText = _cleanDateText;
+    if (cleanText == "-" || cleanText.isEmpty) return "-";
+
+    final expDate = parsedExpireDate;
+    if (expDate != null) {
+      final today = DateTime.now();
+      final todayStart = DateTime(today.year, today.month, today.day);
+      final difference = expDate.difference(todayStart).inDays;
+
+      if (difference == 0) return 'Oggi';
+      if (difference == 1) return 'Domani';
+      if (difference < 0) return cleanText;
+
+      return "${expDate.day.toString().padLeft(2, '0')}/${expDate.month.toString().padLeft(2, '0')}/${expDate.year}";
     }
-    return 0; // Verde / Fresco
+    return cleanText;
   }
 }
 
@@ -112,6 +137,18 @@ class AppState extends ChangeNotifier {
   String? groupId;
   List<String> savedGroups = []; // Cronologia locale dei codici gruppo visitati
   List<UserModel> groupMembers = []; // Utenti del gruppo attivo
+
+  // Proprietà calcolata per i prodotti in scadenza
+  List<ItemModel> get expiringItems {
+    final items = allItems.where((i) => i.isPantry && i.urgencyLevel > 0).toList();
+    items.sort((a, b) {
+      if (a.parsedExpireDate == null && b.parsedExpireDate == null) return 0;
+      if (a.parsedExpireDate == null) return 1;
+      if (b.parsedExpireDate == null) return -1;
+      return a.parsedExpireDate!.compareTo(b.parsedExpireDate!);
+    });
+    return items;
+  }
 
   Color getMemberColor(String uid) {
     if (groupId == null) return Colors.grey;
@@ -812,7 +849,7 @@ class AppState extends ChangeNotifier {
         .toList()) {
       item.isShopping = false;
       item.isPantry = true;
-      item.expireDate = "Data: N/A";
+      item.expireDate = "-";
       await _firebaseService?.saveItem(item);
     }
     notifyListeners();
@@ -822,7 +859,7 @@ class AppState extends ChangeNotifier {
     for (var item in allItems.where((i) => i.isShopping).toList()) {
       item.isShopping = false;
       item.isPantry = true;
-      item.expireDate = "Data: N/A";
+      item.expireDate = "-";
       await _firebaseService?.saveItem(item);
     }
     notifyListeners();
