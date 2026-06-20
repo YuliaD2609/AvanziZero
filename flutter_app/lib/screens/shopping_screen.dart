@@ -3,6 +3,7 @@ import '../models/app_state.dart';
 import '../widgets/menus.dart';
 import '../theme/app_colors.dart';
 import '../services/ai_scanner_service.dart';
+import '../services/smart_pantry_ai.dart';
 import '../widgets/ocr_scanner_modal.dart';
 import 'dart:math';
 
@@ -363,8 +364,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
 
   void _showPredictiveShoppingModal(BuildContext context) {
     bool isAILoading = true;
-    List<ItemModel> scarcityItems = [];
-    List<ItemModel> expiringItems = [];
+    List<AIPrediction> aiSuggestions = [];
     bool hasFetched = false;
 
     showModalBottomSheet(
@@ -389,7 +389,10 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                     ? widget.state.groupMembers.length
                     : 1;
 
-                final result = await AIScannerService.getPredictiveSuggestions(
+                // Ritardo artificiale per feedback visivo (l'algoritmo puro è istantaneo)
+                await Future.delayed(const Duration(milliseconds: 600));
+
+                final result = SmartPantryAI.predict(
                   pantryItems,
                   shoppingItems,
                   history,
@@ -398,8 +401,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
 
                 if (mounted) {
                   setStateModal(() {
-                    scarcityItems = result["scarcity"] ?? [];
-                    expiringItems = result["expiring"] ?? [];
+                    aiSuggestions = result;
                     isAILoading = false;
                   });
                 }
@@ -416,7 +418,10 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
           }
 
           return Container(
-            padding: const EdgeInsets.all(24),
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.75,
+            ),
+            padding: const EdgeInsets.only(left: 24, right: 24, top: 24, bottom: 8),
             decoration: BoxDecoration(
               color: AppColors.surfaceLight,
               borderRadius:
@@ -467,7 +472,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                       ),
                     ),
                   )
-                else if (scarcityItems.isEmpty && expiringItems.isEmpty)
+                else if (aiSuggestions.isEmpty)
                   Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 32),
@@ -477,40 +482,17 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                           style: TextStyle(color: AppColors.textSecondary)),
                     ),
                   )
-                else ...[
-                  if (scarcityItems.isNotEmpty) ...[
-                    Text("Pochi rimasti",
-                        style: TextStyle(
-                            fontFamily: 'Outfit',
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary)),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: scarcityItems
-                          .map((item) => _buildSuggestionChip(item))
-                          .toList(),
+                else
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          ...aiSuggestions.map((pred) => _buildPredictionCard(pred, context)),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 24),
-                  ],
-                  if (expiringItems.isNotEmpty) ...[
-                    Text("Vicino alla scadenza",
-                        style: TextStyle(
-                            fontFamily: 'Outfit',
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.error)),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: expiringItems
-                          .map((item) => _buildSuggestionChip(item))
-                          .toList(),
-                    ),
-                  ],
-                ],
-                const SizedBox(height: 16),
+                  ),
+                const SizedBox(height: 8),
               ],
             ),
           );
@@ -519,29 +501,59 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
     );
   }
 
-  Widget _buildSuggestionChip(ItemModel item) {
-    return ActionChip(
-      backgroundColor: AppColors.background,
-      side: BorderSide(color: AppColors.primaryLight),
-      label: Text("+ ${item.name}",
-          style: TextStyle(
-              color: AppColors.primaryDark, fontWeight: FontWeight.bold)),
-      onPressed: () {
-        final newItemId = DateTime.now().millisecondsSinceEpoch.toString();
-        final newItem = ItemModel(
-          id: newItemId,
-          name: item.name,
-          category: item.category,
-          isShopping: true,
-        );
-        widget.state.addItem(newItem);
-        Navigator.pop(context); // Chiude il modal
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${item.name} aggiunto alla spesa!"),
-          backgroundColor: AppColors.primary,
-          duration: const Duration(seconds: 2),
-        ));
-      },
+  Widget _buildPredictionCard(AIPrediction pred, BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                pred.nomeProdotto,
+                style: TextStyle(
+                  fontFamily: 'Outfit',
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Text(
+            pred.motivoAggiunta,
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 13, fontStyle: FontStyle.italic),
+          ),
+        ),
+        trailing: IconButton(
+          icon: Icon(Icons.add_circle_rounded, color: AppColors.primary, size: 32),
+          onPressed: () {
+            final newItemId = DateTime.now().millisecondsSinceEpoch.toString();
+            final newItem = ItemModel(
+              id: newItemId,
+              name: pred.nomeProdotto,
+              category: "Altro", // Verrà inferito o sarà default
+              quantity: pred.quantitaSuggerita,
+              isShopping: true,
+            );
+            widget.state.addItem(newItem);
+            Navigator.pop(context); // Chiude il modal
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text("${pred.nomeProdotto} aggiunto alla spesa!"),
+              backgroundColor: AppColors.primary,
+              duration: const Duration(seconds: 2),
+            ));
+          },
+        ),
+      ),
     );
   }
 
