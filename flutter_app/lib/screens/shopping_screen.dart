@@ -58,13 +58,8 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
               children: [
                 // Menu Verticale sinistro (Categorie List lasciate intatte)
                 VerticalCategoryMenu(
-                  categories: widget.state.categories,
-                  selectedCategory: widget.state.selectedShoppingCategory,
-                  onCategorySelected: (category) =>
-                      widget.state.selectCategory(category, 'shopping'),
-                  onCategoryLongPressed: (category) =>
-                      _showDeleteCategoryDialog(context, category, 'shopping'),
-                  onAddCategoryPressed: () => _showAddCategoryDialog(context),
+                  state: widget.state,
+                  section: 'shopping',
                 ),
 
                 // Colonna destra: Barra di ricerca, Predictive badge, Lista Prodotti e Pulsanti
@@ -545,108 +540,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
     );
   }
 
-  void _showAddCategoryDialog(BuildContext context) {
-    final TextEditingController catController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.surfaceLight,
-        title: Text("Nuova Categoria Spesa",
-            style:
-                TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
-        content: TextField(
-          controller: catController,
-          decoration: const InputDecoration(hintText: "Nome categoria"),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text("Annulla")),
-          ElevatedButton(
-            onPressed: () {
-              widget.state.addCustomCategory(catController.text, 'shopping');
-              Navigator.pop(dialogContext);
-              if (!widget.state.categoryDeleteHintShown) {
-                widget.state.markCategoryDeleteHintShown();
-                showDialog(
-                  context: context, // Usiamo il context esterno (sicuro)
-                  builder: (context) => AlertDialog(
-                    backgroundColor: AppColors.surfaceLight,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    title: Row(
-                      children: [
-                        Icon(Icons.info_outline_rounded,
-                            color: AppColors.primary),
-                        const SizedBox(width: 8),
-                        Text("Suggerimento",
-                            style: TextStyle(
-                                fontFamily: 'Outfit',
-                                color: AppColors.primary)),
-                      ],
-                    ),
-                    content: Text(
-                      "Tieni premuto su una categoria per eliminarla.",
-                      style: TextStyle(
-                          fontFamily: 'Outfit',
-                          fontSize: 16,
-                          color: AppColors.textPrimary),
-                    ),
-                    actions: [
-                      ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: Text("Ho capito",
-                            style: TextStyle(
-                                color: AppColors.surfaceLight,
-                                fontFamily: 'Outfit')),
-                      ),
-                    ],
-                  ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child:
-                const Text("Aggiungi", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
 
-  void _showDeleteCategoryDialog(
-      BuildContext context, String category, String section) {
-    if (category == "Tutti") return; // Non è possibile eliminare "Tutti"
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceLight,
-        title: Text("Elimina Categoria",
-            style: TextStyle(fontFamily: 'Outfit', color: AppColors.error)),
-        content:
-            Text("Sei sicuro di voler eliminare la categoria '$category'?"),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Annulla")),
-          ElevatedButton(
-            onPressed: () {
-              widget.state.removeCustomCategory(category, section);
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text("Elimina", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _showAddItemDialog(BuildContext context) {
     final TextEditingController nameController = TextEditingController();

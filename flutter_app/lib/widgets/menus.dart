@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/app_state.dart';
 import '../theme/app_colors.dart';
 
 class HorizontalHeaderMenu extends StatelessWidget {
@@ -86,23 +87,129 @@ class HorizontalHeaderMenu extends StatelessWidget {
 }
 
 class VerticalCategoryMenu extends StatelessWidget {
-  final List<String> categories;
-  final String selectedCategory;
-  final Function(String) onCategorySelected;
-  final Function(String)? onCategoryLongPressed;
-  final VoidCallback onAddCategoryPressed;
+  final AppState state;
+  final String section;
 
   const VerticalCategoryMenu({
     super.key,
-    required this.categories,
-    required this.selectedCategory,
-    required this.onCategorySelected,
-    this.onCategoryLongPressed,
-    required this.onAddCategoryPressed,
+    required this.state,
+    required this.section,
   });
+
+  // Finestra di dialogo per aggiungere una nuova categoria
+  void _showAddCategoryDialog(BuildContext context) {
+    final TextEditingController catController = TextEditingController();
+    final String title = section == 'pantry' ? "Nuova Categoria Dispensa" : "Nuova Categoria Spesa";
+    
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.surfaceLight,
+        title: Text(title,
+            style:
+                TextStyle(fontFamily: 'Outfit', color: AppColors.textPrimary)),
+        content: TextField(
+          controller: catController,
+          decoration:
+              const InputDecoration(hintText: "Nome categoria (es. Dolci)"),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text("Annulla")),
+          ElevatedButton(
+            onPressed: () {
+              state.addCustomCategory(catController.text, section);
+              Navigator.pop(dialogContext);
+              if (!state.categoryDeleteHintShown) {
+                state.markCategoryDeleteHintShown();
+                showDialog(
+                  context: context, 
+                  builder: (context) => AlertDialog(
+                    backgroundColor: AppColors.surfaceLight,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                    title: Row(
+                      children: [
+                        Icon(Icons.info_outline_rounded,
+                            color: AppColors.primary),
+                        const SizedBox(width: 8),
+                        Text("Suggerimento",
+                            style: TextStyle(
+                                fontFamily: 'Outfit',
+                                color: AppColors.primary)),
+                      ],
+                    ),
+                    content: Text(
+                      "Tieni premuto su una categoria per eliminarla.",
+                      style: TextStyle(
+                          fontFamily: 'Outfit',
+                          fontSize: 16,
+                          color: AppColors.textPrimary),
+                    ),
+                    actions: [
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: Text("Ho capito",
+                            style: TextStyle(
+                                color: AppColors.surfaceLight,
+                                fontFamily: 'Outfit')),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child:
+                const Text("Aggiungi", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Finestra di dialogo per eliminare una categoria personalizzata
+  void _showDeleteCategoryDialog(BuildContext context, String category) {
+    if (category == "Tutti") return; // Non è possibile eliminare "Tutti"
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceLight,
+        title: Text("Elimina Categoria",
+            style: TextStyle(fontFamily: 'Outfit', color: AppColors.error)),
+        content:
+            Text("Sei sicuro di voler eliminare la categoria '$category'?"),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Annulla")),
+          ElevatedButton(
+            onPressed: () {
+              state.removeCustomCategory(category, section);
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text("Elimina", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final categories = state.categories;
+    final selectedCategory = section == 'pantry' 
+        ? state.selectedPantryCategory 
+        : state.selectedShoppingCategory;
+
     // Implementa vertical_menu.xml: colonna laterale sinistra con la lista delle categorie
     return Container(
       width: 85,
@@ -131,10 +238,8 @@ class VerticalCategoryMenu extends StatelessWidget {
                 final isSelected = category == selectedCategory;
 
                 return InkWell(
-                  onTap: () => onCategorySelected(category),
-                  onLongPress: onCategoryLongPressed != null
-                      ? () => onCategoryLongPressed!(category)
-                      : null,
+                  onTap: () => state.selectCategory(category, section),
+                  onLongPress: () => _showDeleteCategoryDialog(context, category),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     margin:
@@ -181,7 +286,7 @@ class VerticalCategoryMenu extends StatelessWidget {
 
           // Pulsante (+) in fondo per aggiungere una nuova categoria (addCategory)
           InkWell(
-            onTap: onAddCategoryPressed,
+            onTap: () => _showAddCategoryDialog(context),
             child: Container(
               height: 50,
               width: double.infinity,
