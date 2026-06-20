@@ -226,7 +226,9 @@ class AppState extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('notificationsEnabled', enabled);
       _scheduleNotifications();
-    } catch (e) {}
+    } catch (e) {
+      print("Errore salvataggio stato notifiche: $e");
+    }
   }
 
   Future<void> setNotificationTime(TimeOfDay time) async {
@@ -237,7 +239,9 @@ class AppState extends ChangeNotifier {
       await prefs.setInt('notificationHour', time.hour);
       await prefs.setInt('notificationMinute', time.minute);
       _scheduleNotifications();
-    } catch (e) {}
+    } catch (e) {
+      print("Errore salvataggio ora notifiche: $e");
+    }
   }
 
   void _scheduleNotifications() {
@@ -350,7 +354,9 @@ class AppState extends ChangeNotifier {
                   currentUserData!.groupIds.contains(lastActive)) {
                 if (groupId != lastActive) setGroupId(lastActive); // Background
               }
-            } catch (_) {}
+            } catch (e) {
+              print("Errore auto-login gruppo: $e");
+            }
 
             isInitializingUser = false;
             notifyListeners();
@@ -396,7 +402,9 @@ class AppState extends ChangeNotifier {
           final Map<String, dynamic> decoded = jsonDecode(groupNamesJson);
           savedGroupNames =
               decoded.map((key, value) => MapEntry(key, value.toString()));
-        } catch (_) {}
+        } catch (e) {
+          print("Errore decodifica JSON nomi gruppi: $e");
+        }
       }
       notifyListeners();
     } catch (e) {
@@ -588,7 +596,9 @@ class AppState extends ChangeNotifier {
           final key = 'savedGroups_${currentUserAuth?.uid ?? ''}';
           await prefs.setStringList(key, savedGroups);
           await prefs.setString('savedGroupNames', jsonEncode(savedGroupNames));
-        } catch (_) {}
+        } catch (e) {
+          print("Errore salvataggio rimozione gruppo in prefs: $e");
+        }
 
         if (currentUserData != null) {
           currentUserData!.groupIds.remove(groupId);
@@ -611,7 +621,9 @@ class AppState extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('lastActiveGroupId_${currentUserAuth?.uid ?? ''}');
-    } catch (_) {}
+    } catch (e) {
+      print("Errore rimozione lastActiveGroupId: $e");
+    }
     await _itemsSubscription?.cancel();
     _itemsSubscription = null;
     await _groupSubscription?.cancel();
