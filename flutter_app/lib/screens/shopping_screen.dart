@@ -394,6 +394,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                   shoppingItems,
                   history,
                   groupSize,
+                  {}, // FR6.6, FR6.7: I feedback andrebbero passati qui
                 );
 
                 if (context.mounted) {
