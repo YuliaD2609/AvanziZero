@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/app_state.dart';
 import '../widgets/menus.dart';
 import '../theme/app_colors.dart';
-import '../services/ai_scanner_service.dart';
 import '../services/smart_pantry_ai.dart';
 import '../widgets/ocr_scanner_modal.dart';
 import 'dart:math';
@@ -40,6 +39,9 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
           item.name.toLowerCase().contains(_searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     }).toList();
+
+    filteredItems
+        .sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     return Scaffold(
       backgroundColor: AppColors.background, // Avorio soft
@@ -105,11 +107,11 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                               height: 44,
                               width: 44,
                               decoration: BoxDecoration(
-                                color: AppColors.primaryVariant,
+                                color: AppColors.primary,
                                 borderRadius: BorderRadius.circular(22),
                               ),
                               child: Icon(Icons.search_rounded,
-                                  color: AppColors.surfaceLight, size: 22),
+                                  color: Colors.white, size: 22),
                             ),
                           ],
                         ),
@@ -200,7 +202,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                             borderRadius:
                                                 BorderRadius.circular(16)),
                                         child: Icon(Icons.auto_awesome_rounded,
-                                            color: AppColors.primary),
+                                            color: globalIsDarkMode ? Colors.white : AppColors.primary),
                                       ),
                                       const SizedBox(width: 12),
                                       // Pulsante Aggiungi un Elemento
@@ -223,7 +225,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                             fontFamily: 'Outfit',
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
-                                            color: AppColors.surfaceLight,
+                                            color: Colors.white,
                                           ),
                                         ),
                                       ),

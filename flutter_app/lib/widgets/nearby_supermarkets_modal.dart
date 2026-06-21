@@ -287,7 +287,7 @@ void showNearbySupermarketsModal(BuildContext context, AppState state) {
                   backgroundColor:
                       AppColors.primaryDark, // Accento Verde Scuro/Teal
                   foregroundColor:
-                      globalIsDarkMode ? Colors.black : Colors.white,
+                      Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),

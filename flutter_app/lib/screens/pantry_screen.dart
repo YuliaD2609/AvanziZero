@@ -104,11 +104,11 @@ class _PantryScreenState extends State<PantryScreen> {
                               height: 44,
                               width: 44,
                               decoration: BoxDecoration(
-                                color: AppColors.primaryVariant,
+                                color: AppColors.primary,
                                 borderRadius: BorderRadius.circular(22),
                               ),
                               child: Icon(Icons.search_rounded,
-                                  color: AppColors.surfaceLight, size: 22),
+                                  color: Colors.white, size: 22),
                             ),
                           ],
                         ),
@@ -162,7 +162,7 @@ class _PantryScreenState extends State<PantryScreen> {
                                     backgroundColor: AppColors.primaryLight,
                                     elevation: 2,
                                     child: Icon(Icons.document_scanner_rounded,
-                                        color: AppColors.primary),
+                                        color: globalIsDarkMode ? Colors.white : AppColors.primary),
                                   ),
                                   const SizedBox(width: 12),
                                   ElevatedButton(
@@ -184,7 +184,7 @@ class _PantryScreenState extends State<PantryScreen> {
                                         fontFamily: 'Outfit',
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: AppColors.surfaceLight,
+                                        color: Colors.white,
                                       ),
                                     ),
                                   ),
@@ -495,7 +495,7 @@ class _PantryScreenState extends State<PantryScreen> {
                           colorScheme: widget.state.isDarkMode
                               ? ColorScheme.dark(
                                   primary: AppColors.primary,
-                                  onPrimary: Colors.black,
+                                  onPrimary: Colors.white,
                                   onSurface: AppColors.textPrimary,
                                   surface: AppColors.background,
                                 )

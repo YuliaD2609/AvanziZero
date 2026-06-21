@@ -25,11 +25,7 @@ class HorizontalHeaderMenu extends StatelessWidget {
       height:
           85, // Altezza proporzionata per il mobile (leggermente ingrandito)
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primaryGradientEnd],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.primary,
         boxShadow: [
           BoxShadow(
             color: AppColors.shadowDark,
@@ -49,7 +45,7 @@ class HorizontalHeaderMenu extends StatelessWidget {
                 : (showHome
                     ? IconButton(
                         icon: Icon(Icons.home_rounded,
-                            color: AppColors.surfaceLight, size: 30),
+                            color: Colors.white, size: 30),
                         onPressed: onHomePressed,
                         tooltip: 'Torna alla Home',
                       )
@@ -64,7 +60,7 @@ class HorizontalHeaderMenu extends StatelessWidget {
                   fontFamily: 'Outfit',
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.surfaceLight,
+                  color: Colors.white,
                   letterSpacing: 0.5,
                 ),
                 maxLines: 1,
@@ -75,7 +71,7 @@ class HorizontalHeaderMenu extends StatelessWidget {
             // Pulsante Supermercati Vicini a destra
             IconButton(
               icon: Icon(Icons.storefront_rounded,
-                  color: AppColors.surfaceLight, size: 28),
+                  color: Colors.white, size: 28),
               onPressed: onCartPressed,
               tooltip: 'Supermercati nelle vicinanze',
             ),
@@ -157,7 +153,7 @@ class VerticalCategoryMenu extends StatelessWidget {
                         ),
                         child: Text("Ho capito",
                             style: TextStyle(
-                                color: AppColors.surfaceLight,
+                                color: Colors.white,
                                 fontFamily: 'Outfit')),
                       ),
                     ],
@@ -302,7 +298,7 @@ class VerticalCategoryMenu extends StatelessWidget {
                     fontFamily: 'Outfit',
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.surfaceLight, // Alto contrasto
+                    color: Colors.white, // Alto contrasto
                   ),
                 ),
               ),

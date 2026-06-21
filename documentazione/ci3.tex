@@ -6,6 +6,7 @@
 \usepackage{tabularx}
 \usepackage{booktabs}
 \usepackage{geometry}
+\usepackage{graphicx}
 \geometry{a4paper, margin=2cm}
 
 \title{Contextual Inquiry: FarFromHome}
@@ -98,94 +99,108 @@ supermercato & \textbf{-} Processo lento, ripetitivo e ad alto carico cognitivo.
 \end{table}
 
 \section{Piano di indagine contestuale}
-\textit{Definisci chi andrai ad intervistare e con quali obiettivi.}
+Al fine di comprendere l'importanza del problema legato alla gestione della spesa e alla riduzione degli sprechi, e per validare le funzionalità proposte da AvanziZero, è stata condotta un'indagine quantitativa tramite questionario. L'indagine ha coinvolto un campione eterogeneo di \textbf{51 persone}, includendo studenti fuorisede, coinquilini, persone che vivono sole e famiglie.
 
-Al fine di comprendere l'importanza del problema (dimenticare prodotti o perdere tempo a fare la lista) e validare la soluzione IA, l'indagine si rivolge agli stakeholder principali: \textbf{chi fa la spesa per un gruppo o per sé stesso}.
-Sono state individuate due tipologie:
-\begin{enumerate}
-    \item Il coinquilino/fuorisede (spesa disorganizzata/condivisa)
-    \item L'organizzatore della famiglia/coppia (spesa pianificata)
-\end{enumerate}
-
-\textbf{Gli obiettivi dell'analisi:}
+\textbf{Gli obiettivi dell'analisi sono i seguenti:}
 \begin{itemize}
-    \item Capire quanto tempo viene speso per compilare la lista della spesa.
-    \item Identificare la frequenza con cui ci si dimentica di comprare prodotti essenziali.
-    \item Scoprire come vengono attualmente tracciate le abitudini di consumo.
-    \item Valutare la propensione degli utenti ad affidarsi ai suggerimenti di un'Intelligenza Artificiale.
-\end{itemize}
-
-\subsection{Prima intervista (Screening iniziale)}
-Seleziona un piccolo campione eterogeneo (es. 5 persone: 2 fuorisede, 2 conviventi, 1 single lavoratore) per porre domande generali (anche online/form):
-\begin{itemize}
-    \item Chi fa solitamente la spesa in casa tua?
-    \item Quanto tempo impieghi a preparare la lista della spesa?
-    \item Ti è mai capitato di tornare dal supermercato e accorgerti di aver dimenticato un prodotto essenziale? Quanto spesso accade?
-    \item Come comunichi con i tuoi coinquilini/familiari su cosa comprare?
-    \item Ti darebbe fastidio se un'app analizzasse i tuoi consumi alimentari per aiutarti?
-\end{itemize}
-
-\subsection{Seconda intervista (Contextual Inquiry vera e propria - Face-to-Face)}
-\textit{(Questa è la parte cruciale. Devi osservare gli utenti \textbf{mentre} creano una lista della spesa o fargli domande di contesto).}
-
-\textbf{Presentazione:} "Stiamo sviluppando FarFromHome, un'app che usa l'IA per suggerirti automaticamente cosa manca in dispensa. Ci serve capire le tue abitudini attuali."
-
-\textit{Durante l'osservazione (o intervista diretta), chiedi all'utente di simulare come fa la lista della spesa ORA e fagli domande contestuali:}
-\begin{itemize}
-    \item "Fammi vedere come hai annotato le cose da comprare per oggi."
-    \item "Perché hai aggiunto il latte? Come ti sei accorto che mancava?" \textit{(Per capire se vanno a memoria o guardano nel frigo)}
-    \item "Cosa fai se sei al supermercato e non sei sicuro se a casa c'è ancora della passata di pomodoro?"
-    \item "Se un'app ti proponesse un tasto 'Aggiungi i soliti prodotti della settimana', lo useresti o vorresti comunque controllare uno per uno?"
+    \item Capire l'effettiva importanza del problema delle dimenticanze durante la spesa.
+    \item Scoprire quanto tempo viene speso per la compilazione della lista della spesa e le relative modalità di comunicazione.
+    \item Valutare l'interesse verso un'applicazione che monitori le scadenze e suggerisca automaticamente gli acquisti.
+    \item Determinare le funzionalità ritenute più utili dagli stakeholder.
 \end{itemize}
 
 \subsection{Modalità di somministrazione}
-Seguendo il template, specifica che hai somministrato il questionario \textit{face-to-face} con due persone del tuo team (uno fa le domande, l'altro prende appunti e osserva il linguaggio del corpo/reazioni, ad esempio se storcono il naso all'idea dell'IA). Mostra una tabella con i profili degli intervistati (Sesso, Età, Lavoro, Status abitativo es. Fuorisede/Famiglia).
+Per raggiungere un campione significativo in breve tempo, si è ritenuto opportuno definire le domande e somministrare il questionario online (tramite form digitale). Il questionario includeva domande a risposta chiusa e a scelta multipla, con l'obiettivo di non influenzare l'utente e raccogliere feedback spontaneo sulle loro abitudini quotidiane.
 
 \section{Analisi dei risultati delle indagini contestuali}
 
-\subsection{Quali attività svolgono al momento gli utenti?}
-Al momento gli utenti, per capire cosa comprare, aprono fisicamente il frigorifero e gli stipetti (inventario visivo). Dopodiché scrivono i prodotti su chat WhatsApp condivise (es. gruppo "Spesa Casa") o su app di note generiche (es. Google Keep). Quando un prodotto finisce durante la settimana, sperano di ricordarsi di appuntarlo, ma spesso se ne dimenticano.
-
-\subsection{Quali task vorrebbero svolgere?}
-Vorrebbero aprire l'app e trovare \textbf{già pronta} una bozza della lista della spesa con i prodotti che stanno per finire, senza dover controllare fisicamente la dispensa. Vogliono poter accettare i suggerimenti dell'IA con un solo tap e avere la libertà di aggiungere manualmente prodotti extra.
-
-\subsection{Come vengono apprese le attività da svolgere?}
-L'interazione con l'IA deve essere passiva e \textit{zero-effort}. L'utente non deve "imparare" a usare l'IA: l'app impara dall'utente man mano che vengono inseriti o consumati i prodotti. L'attività di accettare i suggerimenti sarà intuitiva, simile a spuntare le notifiche o accettare suggerimenti testuali sulla tastiera.
-
-\subsection{Dove vengono svolte le attività?}
+\subsection{Chi fa solitamente la spesa?}
+Dal campione analizzato è emerso che le responsabilità per la spesa sono prevalentemente affidate a una singola persona all'interno del nucleo domestico, ma in alcuni casi la gestione è condivisa:
 \begin{itemize}
-    \item \textbf{Creazione lista:} Spesso a casa (in cucina) ma anche sui mezzi pubblici o in università (quando si ha tempo morto e si cerca di fare mente locale). È qui che l'IA dà il massimo vantaggio, non potendo l'utente guardare il frigo.
-    \item \textbf{Consultazione lista:} Esclusivamente al supermercato (spesso offline o con poca connessione, l'IA deve aver già generato la lista).
+    \item \textbf{Genitori (43.1\%)}
+    \item \textbf{Io (41.2\%)}
+    \item \textbf{Tutti (insieme ad altri membri della famiglia o al partner) (13.7\%)}
+    \item \textbf{Coinquilini (2.0\%)}
 \end{itemize}
 
-\subsection{Che relazione c'è tra utente e dati? (Privacy)}
-L'app tratterà dati sulle abitudini alimentari. Dalle interviste (che farai) potrebbe emergere che agli utenti non importa condividere la frequenza con cui comprano la pasta, ma è fondamentale rassicurarli che i dati dell'IA sono usati localmente o in modo anonimo solo per migliorare le loro predizioni, e non venduti a supermercati per pubblicità mirata.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{chart_chi_fa_spesa.png}
+    \caption{Distribuzione degli incaricati alla spesa}
+\end{figure}
 
-\subsection{Quali altri strumenti ha l'utente per completare il task?}
-Esistono app come \textit{Bring!} o \textit{Any.do}, ma si basano su inserimento manuale. Esistono assistenti vocali ("Alexa, aggiungi latte alla lista"), ma richiedono un'azione proattiva dell'utente nel momento esatto in cui il prodotto finisce. Nessuno strumento attuale \textbf{anticipa} il bisogno basandosi sul consumo storico.
-
-\subsection{Come comunicano gli utenti tra loro relativamente ai task?}
-Gli utenti comunicano in modo asincrono. Un coinquilino finisce l'olio e (se si ricorda) lo scrive nel gruppo WhatsApp. L'IA di FarFromHome sostituirà questa comunicazione: se l'IA sa che una bottiglia d'olio dura in media 3 settimane per 3 persone, lo suggerirà automaticamente senza che i coinquilini debbano ricordarsi di comunicarlo.
-
-\subsection{Con quale frequenza sono eseguiti i task?}
-La generazione e il completamento della lista avvengono tipicamente 1 o 2 volte a settimana per la spesa principale, e quotidianamente per piccoli acquisti (es. pane). L'IA dovrà adattarsi a questi cicli.
-
-\subsection{Quali sono i vincoli di tempo sui task, se ce ne sono?}
-La revisione dei suggerimenti dell'IA deve richiedere meno di 30 secondi. Se l'utente deve perdere tempo a cancellare troppe previsioni errate dell'IA, l'app perde di utilità rispetto al foglio di carta.
-
-\subsection{Che accade quando le cose vanno male durante l'esecuzione dei task?}
-Se l'IA suggerisce prodotti sbagliati (falsi positivi) o non suggerisce qualcosa che manca (falsi negativi), l'utente interviene manualmente. Il sistema deve prevedere un meccanismo di \textit{feedback implicito} (se l'utente scarta un suggerimento, l'IA impara che ha sbagliato i calcoli e aggiusta i pesi per la prossima settimana).
-
-\section{Annotazioni}
-\textit{In questa sezione inserirai i veri fatti che hai osservato durante le interviste.}
-
-\textbf{Esempio di Fatti osservati (da adattare con i tuoi veri risultati):}
+\subsection{Tempo impiegato per la lista della spesa}
+Escludendo le persone che hanno dichiarato di non redigere alcuna lista della spesa (o di comprare sul momento), il tempo impiegato per pianificare gli acquisti si distribuisce principalmente su durate molto brevi:
 \begin{itemize}
-    \item Le persone trovano noioso dover controllare la scadenza o la quantità dei prodotti in dispensa.
-    \item È emerso che i prodotti più dimenticati sono quelli di "back-up" (sale, olio, zucchero, carta igienica) perché non si consumano in un giorno, ma lentamente.
-    \item Molti utenti single/fuorisede sono propensi a farsi guidare completamente da un'app se questo significa risparmiare 10 minuti di tempo.
-    \item Le madri di famiglia intervistate si fidano meno dell'IA e preferiscono avere il controllo finale sulla lista, usando le predizioni solo come "promemoria" e non come lista definitiva.
-    \item Se la precisione dell'IA è percepita come bassa nelle prime 2 settimane, l'utente abbandona la feature. Il \textit{cold-start} (i primi giorni di utilizzo dell'app) deve essere gestito bene, magari chiedendo all'inizio "Ogni quanto compri il latte?".
+    \item \textbf{0-5 minuti (52.9\%)}
+    \item \textbf{6-15 minuti (20.6\%)}
+    \item \textbf{Più di 30 minuti (14.7\%)}
+    \item \textbf{16-30 minuti (11.8\%)}
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{chart_tempo_lista.png}
+    \caption{Tempo impiegato per la lista della spesa}
+\end{figure}
+
+\subsection{Dimenticanze nella compilazione della lista}
+Alla domanda su quanto spesso si dimentichi di inserire qualcosa nella lista della spesa, i risultati (escludendo chi non fa la lista) sono i seguenti:
+\begin{itemize}
+    \item \textbf{Raramente (62.5\%)}
+    \item \textbf{Spesso (14.6\%)}
+    \item \textbf{Mai (12.5\%)}
+    \item \textbf{Sempre (10.4\%)}
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{chart_dimenticanze_lista.png}
+    \caption{Frequenza dimenticanze lista della spesa}
+\end{figure}
+
+L'inefficienza dei metodi attuali è confermata anche dal fatto che ben il \textbf{78.4\%} degli intervistati totali ha dichiarato che gli è capitato di tornare dal supermercato e accorgersi di aver dimenticato un prodotto essenziale.
+
+\subsection{Comunicazione tra coinquilini e familiari}
+Per quanto riguarda la comunicazione su cosa acquistare, gli intervistati potevano indicare più metodi contemporaneamente. I risultati mostrano che la comunicazione è spesso destrutturata e frammentata su più canali:
+\begin{itemize}
+    \item \textbf{WhatsApp (68.6\%)}
+    \item \textbf{Si va insieme (39.2\%)}
+    \item \textbf{Chiamata o a voce (29.4\%)}
+    \item \textbf{Lista cartacea (19.6\%)}
+    \item \textbf{Altre app dedicate (5.9\%)}
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{chart_comunicazione.png}
+    \caption{Metodi di comunicazione utilizzati per la spesa}
+\end{figure}
+
+Il forte utilizzo di app di messaggistica generiche e accordi verbali contribuisce alla perdita delle informazioni e all'alto tasso di dimenticanze o acquisti doppi rilevato in precedenza.
+
+\subsection{Scadenze e propensione verso la tecnologia (IA)}
+L'idea di affidarsi alla tecnologia per delegare il carico cognitivo è stata accolta in modo molto positivo:
+\begin{itemize}
+    \item Il \textbf{68.6\%} (35 persone) si è detto disposto a usare un'app che monitora la dispensa e avvisa delle scadenze in automatico.
+    \item L'introduzione di un'Intelligenza Artificiale che analizza i consumi per aiutare a diminuire gli sprechi \textbf{non darebbe fastidio} alla stragrande maggioranza degli intervistati (\textbf{76.5\%}, 39 persone), dimostrando che i vantaggi percepiti superano le potenziali perplessità legate alla privacy.
+\end{itemize}
+
+\subsection{Funzionalità più richieste}
+Gli intervistati hanno potuto selezionare le funzionalità che ritenevano più utili in un'app per la gestione della spesa. Le tre preferenze più gettonate in assoluto sono state:
+\begin{enumerate}
+    \item \textbf{Notifiche push per prodotti in scadenza} (scelta 36 volte).
+    \item \textbf{Suggerimenti di ricette basati sugli ingredienti in dispensa} (scelta 32 volte).
+    \item \textbf{Scannerizzazione automatica dello scontrino per aggiungere prodotti} (scelta 24 volte).
+\end{enumerate}
+Altre funzionalità molto apprezzate sono state le "Statistiche grafiche delle spese mensili" (22 volte) e la "Sincronizzazione della lista in tempo reale tra coinquilini" (21 volte).
+
+\section{Annotazioni e Fatti osservati}
+\begin{itemize}
+    \item Esiste un evidente disallineamento tra il tempo investito per organizzare la spesa (spesso pochissimo o nullo) e i risultati ottenuti (alta percentuale di dimenticanze). Questo conferma la necessità di uno strumento che operi \textit{dietro le quinte} (tramite IA o scanner scontrino) minimizzando lo sforzo richiesto.
+    \item Le notifiche per i prodotti in scadenza sono percepite come la funzionalità con maggior valore aggiunto, confermando la sensibilità al tema dello spreco alimentare.
+    \item La "Scannerizzazione automatica dello scontrino" è molto desiderata poiché risponde direttamente alla barriera d'ingresso dell'inventario manuale: la pigrizia o la mancanza di tempo nel registrare prodotto per prodotto.
+    \item L'interesse per i "Suggerimenti di ricette" indica che gli utenti non vedono l'app solo come un inventario, ma come un assistente attivo per decidere cosa cucinare con quello che c'è a disposizione, salvando i pasti dell'ultimo minuto.
 \end{itemize}
 
 \end{document}

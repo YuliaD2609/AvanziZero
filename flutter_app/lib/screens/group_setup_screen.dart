@@ -111,7 +111,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
           SnackBar(
             content: Text(
                 "Hai già inviato una richiesta per $inputCode. Attendi l'approvazione."),
-            backgroundColor: AppColors.warningAlt, // Giallo Ambra
+            backgroundColor: AppColors.warning, // Giallo Ambra
           ),
         );
         setState(() => _isLoading = false);
@@ -406,9 +406,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor:
                                       AppColors.primary, // Verde Salvia Intenso
-                                  foregroundColor: globalIsDarkMode
-                                      ? Colors.black
-                                      : Colors.white,
+                                  foregroundColor: Colors.white,
                                   elevation: 0,
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 32, vertical: 16),
@@ -508,9 +506,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                         _isLoading ? null : _joinExistingGroup,
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.primary,
-                                      foregroundColor: globalIsDarkMode
-                                          ? Colors.black
-                                          : Colors.white,
+                                      foregroundColor: Colors.white,
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 14),
                                       shape: RoundedRectangleBorder(
@@ -524,9 +520,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                             width: 20,
                                             child: CircularProgressIndicator(
                                                 strokeWidth: 2,
-                                                color: globalIsDarkMode
-                                                    ? Colors.black
-                                                    : Colors.white),
+                                                color: Colors.white),
                                           )
                                         : const Text(
                                             "Entra nel Gruppo",
@@ -549,7 +543,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                           .warningLight, // Giallo tenue
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
-                                          color: AppColors.warningBorder),
+                                          color: AppColors.warning),
                                     ),
                                     child: Column(
                                       crossAxisAlignment:
@@ -558,7 +552,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                         Row(
                                           children: [
                                             Icon(Icons.hourglass_top_rounded,
-                                                color: AppColors.warningIcon,
+                                                color: AppColors.warning,
                                                 size: 18),
                                             const SizedBox(width: 6),
                                             Text(
@@ -566,7 +560,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                               style: TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   color: AppColors
-                                                      .warningTextDark),
+                                                      .textPrimary),
                                             ),
                                           ],
                                         ),
@@ -580,7 +574,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                                     "• $code",
                                                     style: TextStyle(
                                                         color: AppColors
-                                                            .warningTextMedium,
+                                                            .textSecondary,
                                                         fontWeight:
                                                             FontWeight.w500),
                                                   ),
@@ -688,7 +682,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
         boxShadow: [
           BoxShadow(
             color: AppColors
-                .shadowCard, // 5% di opacità per un'ombra morbida e naturale
+                .shadowMedium, // 5% di opacità per un'ombra morbida e naturale
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),

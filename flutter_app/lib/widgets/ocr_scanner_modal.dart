@@ -161,7 +161,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                         Text(
                                           "Estrazione OCR ed Elaborazione LLM...",
                                           style: TextStyle(
-                                            color: AppColors.surfaceLight,
+                                            color: Colors.white,
                                             fontWeight: FontWeight.bold,
                                             fontFamily: 'Outfit',
                                           ),
@@ -265,7 +265,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                               "Scatta Foto",
                               style: TextStyle(
                                   fontFamily: 'Outfit',
-                                  color: AppColors.surfaceLight,
+                                  color: Colors.white,
                                   fontWeight: FontWeight.bold),
                             ),
                             style: ElevatedButton.styleFrom(
@@ -349,7 +349,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                 fontFamily: 'Outfit',
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.surfaceLight,
+                                color: Colors.white,
                               ),
                             ),
                           ),

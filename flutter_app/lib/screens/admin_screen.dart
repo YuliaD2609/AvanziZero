@@ -405,7 +405,7 @@ class _AdminScreenState extends State<AdminScreen> {
                             widget.state.notificationTime.format(context),
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.primaryDarker),
+                                color: AppColors.primaryDark),
                           ),
                         ),
                         onTap: () async {
@@ -418,7 +418,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   colorScheme: widget.state.isDarkMode
                                       ? ColorScheme.dark(
                                           primary: AppColors.primary,
-                                          onPrimary: Colors.black,
+                                          onPrimary: Colors.white,
                                           onSurface: AppColors.textPrimary,
                                           surface: AppColors.background,
                                         )
@@ -546,7 +546,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.primaryDarker),
+                                      color: AppColors.primaryDark),
                                 ),
                               ),
                             ],
@@ -638,7 +638,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                                         fontWeight:
                                                             FontWeight.bold,
                                                         color: AppColors
-                                                            .warningDark)),
+                                                            .warning)),
                                               ),
                                             ]
                                           ],

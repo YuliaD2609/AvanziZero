@@ -4,17 +4,11 @@ import '../models/app_state.dart' show globalIsDarkMode;
 class AppColors {
   // Colori Primari (Verde Salvia / Teal)
   static Color get primary =>
-      globalIsDarkMode ? const Color(0xFF6BB099) : const Color(0xFF5A9E87);
+      globalIsDarkMode ? const Color(0xFF3D7A65) : const Color(0xFF5A9E87); // Più scuro in dark mode
   static Color get primaryDark =>
-      globalIsDarkMode ? const Color(0xFFD1FAE5) : const Color(0xFF056C3F);
+      globalIsDarkMode ? const Color(0xFF2E5C4C) : const Color(0xFF056C3F);
   static Color get primaryLight =>
       globalIsDarkMode ? const Color(0xFF1E3A30) : const Color(0xFFD1FAE5);
-  static Color get primaryGradientEnd =>
-      globalIsDarkMode ? const Color(0xFF86C5AD) : const Color(0xFF76B59D);
-  static Color get primaryVariant =>
-      globalIsDarkMode ? const Color(0xFF7BBEA7) : const Color(0xFF6BB099);
-  static Color get primaryDarker =>
-      globalIsDarkMode ? const Color(0xFFE5F8EE) : const Color(0xFF065F46);
 
   // Colori Testo
   static Color get textPrimary =>
@@ -46,17 +40,10 @@ class AppColors {
       globalIsDarkMode ? const Color(0xFFFBBF24) : const Color(0xFFF59E0B);
   static Color get warningLight =>
       globalIsDarkMode ? const Color(0xFF451A03) : const Color(0xFFFEF3C7);
-  static Color get warningDark => globalIsDarkMode ? const Color(0xFFFCD34D) : const Color(0xFFD97706);
-  static Color get warningAlt => globalIsDarkMode ? const Color(0xFFFACC15) : const Color(0xFFEAB308);
-  static Color get warningBorder => globalIsDarkMode ? const Color(0xFF854D0E) : const Color(0xFFFDE047);
-  static Color get warningIcon => globalIsDarkMode ? const Color(0xFFFDE047) : const Color(0xFFCA8A04);
-  static Color get warningTextDark => globalIsDarkMode ? const Color(0xFFFEF08A) : const Color(0xFF854D0E);
-  static Color get warningTextMedium => globalIsDarkMode ? const Color(0xFFFDE047) : const Color(0xFFA16207);
 
   // Ombre
   static Color get shadowLight => globalIsDarkMode ? const Color(0x33000000) : const Color(0x051C3D32);
   static Color get shadowMedium => globalIsDarkMode ? const Color(0x40000000) : const Color(0x081C3D32);
   static Color get shadowNavbar => globalIsDarkMode ? const Color(0x4D000000) : const Color(0x0A1C3D32);
-  static Color get shadowCard => globalIsDarkMode ? const Color(0x66000000) : const Color(0x0D1C3D32);
   static Color get shadowDark => globalIsDarkMode ? const Color(0x80000000) : const Color(0x1A1C3D32);
 }
