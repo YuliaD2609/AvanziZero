@@ -144,7 +144,7 @@ void showNearbySupermarketsModal(BuildContext context, AppState state) {
                                   color: isSelected
                                       ? AppColors.textPrimary
                                       : AppColors.textPrimary
-                                          .withOpacity(0.8),
+                                          .withValues(alpha: 0.8),
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -163,7 +163,7 @@ void showNearbySupermarketsModal(BuildContext context, AppState state) {
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? Colors.white
-                                : AppColors.border.withOpacity(0.5),
+                                : AppColors.border.withValues(alpha: 0.5),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -265,8 +265,7 @@ void showNearbySupermarketsModal(BuildContext context, AppState state) {
                     await launchUrl(mapsUrl,
                         mode: LaunchMode.externalApplication);
                   } catch (e) {
-                    print("Impossibile aprire Google Maps: $e");
-                    if (context.mounted) {
+                                        if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                             content: Text(

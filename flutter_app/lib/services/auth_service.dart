@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
@@ -45,8 +46,7 @@ class AuthService {
       }
       return null;
     } catch (e) {
-      print("Errore durante la registrazione: $e");
-      rethrow;
+            rethrow;
     }
   }
 
@@ -64,8 +64,7 @@ class AuthService {
       }
       return null;
     } catch (e) {
-      print("Errore durante il login: $e");
-      rethrow;
+            rethrow;
     }
   }
 
@@ -78,8 +77,7 @@ class AuthService {
       }
       return null;
     } catch (e) {
-      print("Errore recupero dati utente: $e");
-      return null;
+            return null;
     }
   }
 
@@ -90,8 +88,7 @@ class AuthService {
         'groupIds': FieldValue.arrayUnion([groupId])
       });
     } catch (e) {
-      print("Errore aggiornamento gruppi utente: $e");
-      rethrow;
+            rethrow;
     }
   }
 
@@ -116,8 +113,7 @@ class AuthService {
         'timestamp': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print("Errore invio richiesta: $e");
-      rethrow;
+            rethrow;
     }
   }
 
@@ -126,8 +122,7 @@ class AuthService {
     try {
       return await _auth.signOut();
     } catch (e) {
-      print("Errore durante il logout: $e");
-      return;
+            return;
     }
   }
 
@@ -136,8 +131,7 @@ class AuthService {
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } catch (e) {
-      print("Errore invio reset password: $e");
-      rethrow;
+            rethrow;
     }
   }
 }

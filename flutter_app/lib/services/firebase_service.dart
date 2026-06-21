@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_state.dart';
 
@@ -58,8 +59,7 @@ class FirebaseService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print("Errore nel salvataggio del prodotto: $e");
-    }
+          }
   }
 
   /// Aggiorna solo la quantità di un prodotto esistente.
@@ -70,8 +70,7 @@ class FirebaseService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print("Errore nell'aggiornamento della quantità: $e");
-    }
+          }
   }
 
   /// Elimina un prodotto dal cloud.
@@ -79,8 +78,7 @@ class FirebaseService {
     try {
       await _itemsRef.doc(itemId).delete();
     } catch (e) {
-      print("Errore nell'eliminazione del prodotto: $e");
-    }
+          }
   }
 
 
@@ -116,8 +114,7 @@ class FirebaseService {
         }
       }
     } catch (e) {
-      print("Errore nel seeding iniziale: $e");
-    }
+          }
   }
 
   Stream<DocumentSnapshot> getGroupStream() {
@@ -130,8 +127,7 @@ class FirebaseService {
         'categories': categories,
       }, SetOptions(merge: true));
     } catch (e) {
-      print("Errore aggiornamento categorie: $e");
-    }
+          }
   }
 
   /// Elimina definitivamente il gruppo e tutti i suoi dati (wipe completo)
@@ -149,8 +145,7 @@ class FirebaseService {
       // 2. Elimina il documento del gruppo
       await _db.collection('groups').doc(groupId).delete();
     } catch (e) {
-      print("Errore nell'eliminazione del gruppo: $e");
-    }
+          }
   }
 
   /// Registra il consumo di un prodotto nello storico leggero
@@ -167,8 +162,7 @@ class FirebaseService {
         'timestamp': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print("Errore logging consumi: $e");
-    }
+          }
   }
 
   /// Recupera gli ultimi log di consumo
@@ -184,8 +178,7 @@ class FirebaseService {
       final docs = snap.docs.map((d) => d.data()).toList();
       return docs;
     } catch (e) {
-      print("Errore get history: $e");
-      return [];
+            return [];
     }
   }
 }

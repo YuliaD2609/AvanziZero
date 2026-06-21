@@ -47,8 +47,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
         });
       }
     } catch (e) {
-      print("Errore nell'acquisizione dell'immagine: $e");
-      if (mounted) {
+            if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Impossibile accedere alla sorgente: $e"),
@@ -150,7 +149,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                 // Overlay scuro durante l'analisi
                                 if (_isAnalyzing)
                                   Container(
-                                    color: Colors.black.withOpacity(0.6),
+                                    color: Colors.black.withValues(alpha: 0.6),
                                     child: Column(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
@@ -158,7 +157,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                         CircularProgressIndicator(
                                             color: AppColors.primary),
                                         const SizedBox(height: 16),
-                                        Text(
+                                        const Text(
                                           "Estrazione OCR ed Elaborazione LLM...",
                                           style: TextStyle(
                                             color: Colors.white,
@@ -261,7 +260,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                             onPressed: () => _captureImage(ImageSource.camera),
                             icon: const Icon(Icons.camera_rounded,
                                 color: Colors.white),
-                            label: Text(
+                            label: const Text(
                               "Scatta Foto",
                               style: TextStyle(
                                   fontFamily: 'Outfit',
@@ -343,7 +342,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12)),
                             ),
-                            child: Text(
+                            child: const Text(
                               "Inserisci elementi dallo scontrino",
                               style: TextStyle(
                                 fontFamily: 'Outfit',

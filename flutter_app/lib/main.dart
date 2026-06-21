@@ -27,9 +27,7 @@ void main() async {
   try {
     await dotenv.load(fileName: ".env");
   } catch (e) {
-    print(
-        "Avviso: File .env non trovato. Le funzionalità API potrebbero non funzionare.");
-  }
+      }
 
   try {
     // Inizializza Firebase nativamente usando le options generate da FlutterFire CLI
@@ -43,11 +41,8 @@ void main() async {
       cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
     );
 
-    print("Firebase inizializzato con successo!");
-  } catch (e) {
-    print(
-        "Avviso: Firebase non configurato nativamente ($e). Avvio in fallback locale per test UI.");
-  }
+      } catch (e) {
+      }
 
   runApp(const AvanziZeroApp());
 }
@@ -199,7 +194,7 @@ class _MainNavigatorState extends State<MainNavigator> {
 
         return PopScope(
             canPop: _currentIndex == 0,
-            onPopInvoked: (didPop) {
+            onPopInvokedWithResult: (didPop, result) {
               if (didPop) return;
               if (_currentIndex != 0) {
                 _navigate(0);

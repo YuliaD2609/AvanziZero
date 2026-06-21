@@ -38,8 +38,7 @@ class SupermarketsService {
           timeLimit: const Duration(seconds: 7),
         );
       } catch (e) {
-        print("Timeout o errore GPS: $e");
-      }
+              }
 
       if (position == null) {
         return null;
@@ -180,12 +179,12 @@ class SupermarketsService {
           );
         }).toList();
       } else {
-        _showError(context,
+        if (context.mounted) _showError(context,
             "Errore nella ricerca dei supermercati: ${response.statusCode}");
         return null;
       }
     } catch (e) {
-      _showError(
+      if (context.mounted) _showError(
           context, "Errore durante il recupero della posizione o dei dati.");
       return null;
     }

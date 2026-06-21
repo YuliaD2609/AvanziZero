@@ -9,14 +9,10 @@ void main() async {
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);
     final models = data['models'] as List;
-    print("Modelli disponibili per questa chiave API:");
-    for (var m in models) {
+        for (var m in models) {
       if (m['name'].toString().contains('gemini')) {
-        print(m['name'].toString());
-      }
+              }
     }
   } else {
-    print("Errore Status: ${response.statusCode}");
-    print("Body: ${response.body}");
-  }
+          }
 }

@@ -107,7 +107,7 @@ class _PantryScreenState extends State<PantryScreen> {
                                 color: AppColors.primary,
                                 borderRadius: BorderRadius.circular(22),
                               ),
-                              child: Icon(Icons.search_rounded,
+                              child: const Icon(Icons.search_rounded,
                                   color: Colors.white, size: 22),
                             ),
                           ],
@@ -180,7 +180,7 @@ class _PantryScreenState extends State<PantryScreen> {
                                     ),
                                     child: Text(
                                       "Aggiungi un elemento",
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontFamily: 'Outfit',
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -964,7 +964,7 @@ class _PantryScreenState extends State<PantryScreen> {
                                       labelText: "Categoria",
                                       filled: true,
                                       fillColor: AppColors.primaryLight
-                                          .withOpacity(0.3),
+                                          .withValues(alpha: 0.3),
                                       border: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(12),

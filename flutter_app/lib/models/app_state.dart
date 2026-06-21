@@ -183,8 +183,7 @@ class AppState extends ChangeNotifier {
       globalIsDarkMode = _isDarkMode;
       notifyListeners();
     } catch (e) {
-      print("Errore caricamento tema: $e");
-    }
+          }
   }
 
   Future<void> toggleDarkMode() async {
@@ -195,8 +194,7 @@ class AppState extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isDarkMode', _isDarkMode);
     } catch (e) {
-      print("Errore salvataggio tema: $e");
-    }
+          }
   }
 
   bool _notificationsEnabled = true;
@@ -215,8 +213,7 @@ class AppState extends ChangeNotifier {
       _scheduleNotifications();
       notifyListeners();
     } catch (e) {
-      print("Errore caricamento notifiche: $e");
-    }
+          }
   }
 
   Future<void> setNotificationsEnabled(bool enabled) async {
@@ -227,8 +224,7 @@ class AppState extends ChangeNotifier {
       await prefs.setBool('notificationsEnabled', enabled);
       _scheduleNotifications();
     } catch (e) {
-      print("Errore salvataggio stato notifiche: $e");
-    }
+          }
   }
 
   Future<void> setNotificationTime(TimeOfDay time) async {
@@ -240,8 +236,7 @@ class AppState extends ChangeNotifier {
       await prefs.setInt('notificationMinute', time.minute);
       _scheduleNotifications();
     } catch (e) {
-      print("Errore salvataggio ora notifiche: $e");
-    }
+          }
   }
 
   void _scheduleNotifications() {
@@ -270,8 +265,7 @@ class AppState extends ChangeNotifier {
           prefs.getBool('category_delete_hint_shown_${userId}_$group') ?? false;
       notifyListeners();
     } catch (e) {
-      print("Errore caricamento stato hint categoria: $e");
-    }
+          }
   }
 
   Future<void> markCategoryDeleteHintShown() async {
@@ -285,8 +279,7 @@ class AppState extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('category_delete_hint_shown_${userId}_$group', true);
     } catch (e) {
-      print("Errore salvataggio stato hint categoria: $e");
-    }
+          }
   }
 
   Future<void> _checkPredictiveBannerStatus() async {
@@ -303,8 +296,7 @@ class AppState extends ChangeNotifier {
           prefs.getBool('predictive_banner_closed_${userId}_$group') ?? false;
       notifyListeners();
     } catch (e) {
-      print("Errore caricamento stato banner: $e");
-    }
+          }
   }
 
   Future<void> closePredictiveBannerPermanent() async {
@@ -319,8 +311,7 @@ class AppState extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('predictive_banner_closed_${userId}_$group', true);
     } catch (e) {
-      print("Errore salvataggio stato banner chiuso: $e");
-    }
+          }
   }
 
   AppState() {
@@ -355,8 +346,7 @@ class AppState extends ChangeNotifier {
                 if (groupId != lastActive) setGroupId(lastActive); // Background
               }
             } catch (e) {
-              print("Errore auto-login gruppo: $e");
-            }
+                          }
 
             isInitializingUser = false;
             notifyListeners();
@@ -403,13 +393,11 @@ class AppState extends ChangeNotifier {
           savedGroupNames =
               decoded.map((key, value) => MapEntry(key, value.toString()));
         } catch (e) {
-          print("Errore decodifica JSON nomi gruppi: $e");
-        }
+                  }
       }
       notifyListeners();
     } catch (e) {
-      print("Errore nel caricamento della cronologia gruppi: $e");
-    }
+          }
   }
 
   /// Imposta il codice del gruppo (Casa), avvia la sincronizzazione e lo salva nella cronologia.
@@ -436,8 +424,7 @@ class AppState extends ChangeNotifier {
       await prefs.setString(
           'lastActiveGroupId_${currentUserAuth?.uid ?? ''}', code);
     } catch (e) {
-      print("Errore salvataggio SharedPreferences: $e");
-    }
+          }
 
     _firebaseService = FirebaseService(groupId: groupId!);
 
@@ -459,8 +446,7 @@ class AppState extends ChangeNotifier {
         _scheduleNotifications();
       },
       onError: (error) {
-        print("Errore stream articoli: $error");
-        isLoading = false;
+                isLoading = false;
         notifyListeners();
       },
     );
@@ -539,8 +525,7 @@ class AppState extends ChangeNotifier {
               UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id));
         }
       } catch (e) {
-        print("Errore caricamento membro $uid: $e");
-      }
+              }
     }
     groupMembers = members;
     notifyListeners();
@@ -556,8 +541,7 @@ class AppState extends ChangeNotifier {
       await prefs.setStringList(key, savedGroups);
       await prefs.setString('savedGroupNames', jsonEncode(savedGroupNames));
     } catch (e) {
-      print("Errore rimozione gruppo da SharedPreferences: $e");
-    }
+          }
 
     // Se elimino il gruppo in cui mi trovo attualmente, esco dal gruppo
     if (groupId == code) {
@@ -597,8 +581,7 @@ class AppState extends ChangeNotifier {
           await prefs.setStringList(key, savedGroups);
           await prefs.setString('savedGroupNames', jsonEncode(savedGroupNames));
         } catch (e) {
-          print("Errore salvataggio rimozione gruppo in prefs: $e");
-        }
+                  }
 
         if (currentUserData != null) {
           currentUserData!.groupIds.remove(groupId);
@@ -612,9 +595,7 @@ class AppState extends ChangeNotifier {
           .waitForPendingWrites()
           .timeout(const Duration(seconds: 3));
     } catch (e) {
-      print(
-          "Errore o timeout nel salvataggio dei dati pendenti su Firebase: $e");
-    }
+          }
 
     groupId = null;
     groupName = null;
@@ -622,8 +603,7 @@ class AppState extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('lastActiveGroupId_${currentUserAuth?.uid ?? ''}');
     } catch (e) {
-      print("Errore rimozione lastActiveGroupId: $e");
-    }
+          }
     await _itemsSubscription?.cancel();
     _itemsSubscription = null;
     await _groupSubscription?.cancel();
@@ -790,8 +770,7 @@ class AppState extends ChangeNotifier {
         }
       }
     } catch (e) {
-      print("Prodotto non trovato localmente: $e");
-    }
+          }
   }
 
   Future<void> deleteItem(String itemId) async {
@@ -805,8 +784,7 @@ class AppState extends ChangeNotifier {
       notifyListeners();
       await _firebaseService?.deleteItem(itemId);
     } catch (e) {
-      print("Errore eliminazione locale: $e");
-    }
+          }
   }
 
   Future<void> addItem(ItemModel newItem) async {
@@ -896,7 +874,6 @@ class AppState extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print("Errore aggiornamento nome utente: $e");
-    }
+          }
   }
 }

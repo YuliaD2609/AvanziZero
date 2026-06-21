@@ -56,7 +56,7 @@ class HorizontalHeaderMenu extends StatelessWidget {
               child: Text(
                 title,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: 'Outfit',
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -294,7 +294,7 @@ class VerticalCategoryMenu extends StatelessWidget {
               child: Center(
                 child: Text(
                   "+",
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Outfit',
                     fontSize: 28,
                     fontWeight: FontWeight.bold,

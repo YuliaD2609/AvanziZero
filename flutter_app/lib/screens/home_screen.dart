@@ -71,7 +71,7 @@ class HomeScreen extends StatelessWidget {
                         color: AppColors.primaryLight, // Menta Chiaro
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                            color: AppColors.primary.withOpacity(0.3)),
+                            color: AppColors.primary.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -163,7 +163,7 @@ class HomeScreen extends StatelessWidget {
                           style: TextStyle(
                             fontFamily: 'Outfit',
                             fontSize: 13,
-                            color: AppColors.textPrimary.withOpacity(0.7),
+                            color: AppColors.textPrimary.withValues(alpha: 0.7),
                             fontWeight: FontWeight.w500,
                           ),
                           textAlign: TextAlign.center,
@@ -202,7 +202,7 @@ class HomeScreen extends StatelessWidget {
                       color: AppColors.surfaceLight,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                          color: AppColors.error.withOpacity(0.4), width: 1.5),
+                          color: AppColors.error.withValues(alpha: 0.4), width: 1.5),
                       boxShadow: [
                         BoxShadow(
                             color: AppColors.shadowLight,

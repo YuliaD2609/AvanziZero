@@ -245,7 +245,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                     height: 250,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.primaryLight.withOpacity(0.5),
+                      color: AppColors.primaryLight.withValues(alpha: 0.5),
                     ),
                   ),
                 ),
@@ -257,7 +257,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                     height: 300,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.primaryDark.withOpacity(0.2),
+                      color: AppColors.primaryDark.withValues(alpha: 0.2),
                     ),
                   ),
                 ),
@@ -372,10 +372,10 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                               margin: const EdgeInsets.only(bottom: 24),
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: AppColors.error.withOpacity(0.1),
+                                color: AppColors.error.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                    color: AppColors.error.withOpacity(0.5)),
+                                    color: AppColors.error.withValues(alpha: 0.5)),
                               ),
                               child: Row(
                                 children: [

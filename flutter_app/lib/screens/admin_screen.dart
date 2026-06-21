@@ -113,8 +113,7 @@ class _AdminScreenState extends State<AdminScreen> {
         );
       }
     } catch (e) {
-      print("Errore rimozione membro: $e");
-    }
+          }
   }
 
   Future<void> _promoteToAdmin(String uid) async {
@@ -135,8 +134,7 @@ class _AdminScreenState extends State<AdminScreen> {
         );
       }
     } catch (e) {
-      print("Errore promozione admin: $e");
-    }
+          }
   }
 
   Future<void> _acceptRequest(String uid) async {
@@ -168,8 +166,7 @@ class _AdminScreenState extends State<AdminScreen> {
         );
       }
     } catch (e) {
-      print("Errore accettazione: $e");
-    }
+          }
   }
 
   Future<void> _rejectRequest(String uid) async {
@@ -194,8 +191,7 @@ class _AdminScreenState extends State<AdminScreen> {
         );
       }
     } catch (e) {
-      print("Errore rifiuto: $e");
-    }
+          }
   }
 
   @override
@@ -259,7 +255,7 @@ class _AdminScreenState extends State<AdminScreen> {
                         offset: const Offset(0, 4)),
                   ],
                   border:
-                      Border.all(color: AppColors.primary.withOpacity(0.15)),
+                      Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
                 ),
                 child: Form(
                   key: _profileFormKey,
@@ -353,7 +349,7 @@ class _AdminScreenState extends State<AdminScreen> {
                         offset: const Offset(0, 4)),
                   ],
                   border:
-                      Border.all(color: AppColors.primary.withOpacity(0.15)),
+                      Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
                 ),
                 child: Column(
                   children: [
@@ -568,7 +564,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                     offset: const Offset(0, 4))
                               ],
                               border: Border.all(
-                                  color: AppColors.primary.withOpacity(0.15)),
+                                  color: AppColors.primary.withValues(alpha: 0.15)),
                             ),
                             child: ListView.separated(
                               shrinkWrap: true,
@@ -728,7 +724,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                       ],
                                       border: Border.all(
                                           color: AppColors.primary
-                                              .withOpacity(0.15)),
+                                              .withValues(alpha: 0.15)),
                                     ),
                                     child: requests.isEmpty
                                         ? Padding(
@@ -1076,7 +1072,6 @@ class _AdminScreenState extends State<AdminScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
-      print("Errore uscita gruppo: $e");
-    }
+          }
   }
 }
