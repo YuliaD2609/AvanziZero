@@ -49,7 +49,8 @@ IGIENE = [
 
 ALL_PRODUCTS = FRUTTA_VERDURA + LATTICINI + CARNE_PESCE + SECCO_PASTA + BEVANDE + IGIENE
 
-MARCHI_GARBAGE = ["COOP", "MAXI", "BIO", "IT", "PREC", "VVERDEB", "LORIANA", "CONAD", "ESSELUNGA", "PAM", "LIDL"]
+SUPERMARKET_BRANDS = ["COOP", "MAXI", "CONAD", "ESSELUNGA", "PAM", "LIDL", "EUROSPIN", "CARREFOUR", "MD", "PENNY", "CRAI", "DESPAR", "IPER", "FAMILA"]
+PRODUCT_MODIFIERS = ["SAN", "ROCCO", "VALLE", "FATTORIA", "MULINO", "BARILLA", "MUTTI", "FERRERO", "IT", "IGP", "DOP", "DOC", "BIO", "EXTRA", "PREMIUM", "NOSTRANO", "PREC", "LORIANA", "VVERDEB", "ITALIA"]
 
 def add_noise(word):
     """Introduce errori OCR tipici."""
@@ -59,7 +60,7 @@ def add_noise(word):
         return word.replace("I", "1")
     if random.random() < 0.1:
         return word.replace("B", "8")
-    if random.random() < 0.05:
+    if random.random() < 0.05 and len(word) > 3:
         return word[:len(word)//2] + word[len(word)//2 + 1:] # Rimuovi un carattere
     return word
 
@@ -81,16 +82,21 @@ def generate_receipt_item():
     product = random.choice(ALL_PRODUCTS)
     product_tokens = product.split()
     
-    # Aggiungi marche (rumore) al nome del prodotto
-    if random.random() > 0.6:
-        product_tokens.append(random.choice(MARCHI_GARBAGE))
-        random.shuffle(product_tokens) # Mischia le parole del nome
+    # Aggiungi modificatori di prodotto (es. BIO, IT, SAN ROCCO)
+    if random.random() > 0.4:
+        # Aggiunge 1 o 2 modificatori
+        mods = random.sample(PRODUCT_MODIFIERS, k=random.randint(1, 2))
+        product_tokens.extend(mods)
         
     # Applica rumore
     product_tokens = [add_noise(t) for t in product_tokens]
     
-    # Calibri o pesi fittizi (Rumore OCR da classificare come O)
+    # Rumore OCR da classificare come O
     extra_noise = []
+    # Aggiungi brand supermercato che DEVE essere ignorato
+    if random.random() > 0.6:
+        extra_noise.append(random.choice(SUPERMARKET_BRANDS))
+        
     if random.random() > 0.7:
         extra_noise.append(f"{random.randint(10,99)}-{random.randint(1,9)}") # es. 14-2
     if random.random() > 0.8:
@@ -115,7 +121,7 @@ def generate_receipt_item():
         tokens.append(qty)
         ner_tags.append("B-QTY")
         
-    # Aggiunta rumore ed extra
+    # Aggiunta rumore ed extra (Tutto O)
     for noise in extra_noise:
         tokens.append(noise)
         ner_tags.append("O")
