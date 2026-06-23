@@ -6,12 +6,14 @@ class AIPrediction {
   final int quantitaSuggerita;
   final String motivoAggiunta;
   final int confidenzaPercentuale;
+  final bool autoAdd; // FR6.7: Flag per inserimento automatico
 
   AIPrediction({
     required this.nomeProdotto,
     required this.quantitaSuggerita,
     required this.motivoAggiunta,
     required this.confidenzaPercentuale,
+    this.autoAdd = false,
   });
 }
 
@@ -22,6 +24,7 @@ class SmartPantryAI {
     List<ItemModel> shoppingItems,
     List<Map<String, dynamic>> consumptionHistory,
     int groupSize,
+    Map<String, Map<String, int>> aiFeedback,
   ) {
     List<AIPrediction> suggestions = [];
 
@@ -141,6 +144,14 @@ class SmartPantryAI {
         }
       }
 
+      // FR6.6: Se rifiutato troppe volte, blocca il suggerimento
+      int acceptCount = aiFeedback[nameKey]?['acceptCount'] ?? 0;
+      int rejectCount = aiFeedback[nameKey]?['rejectCount'] ?? 0;
+
+      if (rejectCount >= 3) {
+        return; 
+      }
+
       // Condizione C: Frequenza di Acquisto superata ed è esaurito
       if (!triggered && currentQty == 0) {
         if (purchaseDates.isNotEmpty) {
@@ -160,12 +171,20 @@ class SmartPantryAI {
       }
 
       if (triggered) {
-        suggestions.add(AIPrediction(
-          nomeProdotto: originalName,
-          quantitaSuggerita: qtySuggerita,
-          motivoAggiunta: motivo,
-          confidenzaPercentuale: confidenza,
-        ));
+        // FR6.6: Usa accettazione/rifiuto come feedback per affinare il modello predittivo
+        confidenza -= (rejectCount * 15);
+        confidenza += (acceptCount * 10);
+        confidenza = mathMin(100, confidenza);
+
+        if (confidenza > 0) {
+          suggestions.add(AIPrediction(
+            nomeProdotto: originalName,
+            quantitaSuggerita: qtySuggerita,
+            motivoAggiunta: motivo,
+            confidenzaPercentuale: confidenza,
+            autoAdd: acceptCount > 3, // FR6.7: Inserimento automatico se accettato > 3 volte
+          ));
+        }
       }
     });
 
