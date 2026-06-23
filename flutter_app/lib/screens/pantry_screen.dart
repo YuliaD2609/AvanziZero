@@ -50,6 +50,12 @@ class _PantryScreenState extends State<PantryScreen> {
             onHomePressed: widget.onHomePressed,
             onCartPressed: widget.onCartPressed,
             showHome: false,
+            leftAction: IconButton(
+              icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 30),
+              onPressed: () {
+                widget.state.toggleSidebar();
+              },
+            ),
           ),
 
           // Corpo Centrale: Menu Verticale Categorie a sinistra, Barra Ricerca e Prodotti a destra
@@ -57,9 +63,16 @@ class _PantryScreenState extends State<PantryScreen> {
             child: Row(
               children: [
                 // Menu Verticale a sinistra (lasciata intatta la divisione in categorie)
-                VerticalCategoryMenu(
-                  state: widget.state,
-                  section: 'pantry',
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  alignment: Alignment.centerLeft,
+                  child: widget.state.isSidebarVisible
+                      ? VerticalCategoryMenu(
+                          state: widget.state,
+                          section: 'pantry',
+                        )
+                      : const SizedBox(width: 0),
                 ),
 
                 // Sezione Destra: Barra di ricerca e Lista

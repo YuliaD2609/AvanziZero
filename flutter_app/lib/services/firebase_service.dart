@@ -129,6 +129,15 @@ class FirebaseService {
           }
   }
 
+  Future<void> updateAIFeedback(Map<String, Map<String, int>> aiFeedback) async {
+    try {
+      await _db.collection('groups').doc(groupId).set({
+        'aiFeedback': aiFeedback,
+      }, SetOptions(merge: true));
+    } catch (e) {
+    }
+  }
+
   /// Elimina definitivamente il gruppo e tutti i suoi dati (wipe completo)
   Future<void> deleteGroup() async {
     try {

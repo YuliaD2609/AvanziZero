@@ -138,6 +138,10 @@ class AppState extends ChangeNotifier {
   List<String> savedGroups = []; // Cronologia locale dei codici gruppo visitati
   List<UserModel> groupMembers = []; // Utenti del gruppo attivo
 
+  // FR6.6 - Tracking dei feedback IA
+  Map<String, Map<String, int>> aiFeedback = {};
+
+
   // Proprietà calcolata per i prodotti in scadenza
   List<ItemModel> get expiringItems {
     final items = allItems.where((i) => i.isPantry && i.urgencyLevel > 0).toList();
@@ -176,10 +180,14 @@ class AppState extends ChangeNotifier {
   bool _isDarkMode = false;
   bool get isDarkMode => _isDarkMode;
 
+  bool _isSidebarVisible = true;
+  bool get isSidebarVisible => _isSidebarVisible;
+
   Future<void> _loadThemePreference() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       _isDarkMode = prefs.getBool('isDarkMode') ?? false;
+      _isSidebarVisible = prefs.getBool('isSidebarVisible') ?? true;
       globalIsDarkMode = _isDarkMode;
       notifyListeners();
     } catch (e) {
@@ -195,6 +203,16 @@ class AppState extends ChangeNotifier {
       await prefs.setBool('isDarkMode', _isDarkMode);
     } catch (e) {
           }
+  }
+
+  Future<void> toggleSidebar() async {
+    _isSidebarVisible = !_isSidebarVisible;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isSidebarVisible', _isSidebarVisible);
+    } catch (e) {
+    }
   }
 
   bool _notificationsEnabled = true;
@@ -462,6 +480,16 @@ class AppState extends ChangeNotifier {
           savedGroupNames[groupId!] = groupName!;
           SharedPreferences.getInstance().then((prefs) {
             prefs.setString('savedGroupNames', jsonEncode(savedGroupNames));
+          });
+        }
+
+        if (data.containsKey('aiFeedback')) {
+          final Map<String, dynamic> rawFeedback = data['aiFeedback'];
+          aiFeedback = rawFeedback.map((key, value) {
+            return MapEntry(
+              key, 
+              (value as Map<String, dynamic>).map((k, v) => MapEntry(k, v as int))
+            );
           });
         }
 
@@ -875,5 +903,21 @@ class AppState extends ChangeNotifier {
       }
     } catch (e) {
           }
+  }
+
+  Future<void> acceptAISuggestion(String productName) async {
+    final name = productName.toLowerCase().trim();
+    aiFeedback.putIfAbsent(name, () => {'acceptCount': 0, 'rejectCount': 0});
+    aiFeedback[name]!['acceptCount'] = (aiFeedback[name]!['acceptCount'] ?? 0) + 1;
+    notifyListeners();
+    await _firebaseService?.updateAIFeedback(aiFeedback);
+  }
+
+  Future<void> rejectAISuggestion(String productName) async {
+    final name = productName.toLowerCase().trim();
+    aiFeedback.putIfAbsent(name, () => {'acceptCount': 0, 'rejectCount': 0});
+    aiFeedback[name]!['rejectCount'] = (aiFeedback[name]!['rejectCount'] ?? 0) + 1;
+    notifyListeners();
+    await _firebaseService?.updateAIFeedback(aiFeedback);
   }
 }

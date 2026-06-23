@@ -53,6 +53,12 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
             onHomePressed: widget.onHomePressed,
             onCartPressed: widget.onCartPressed,
             showHome: false,
+            leftAction: IconButton(
+              icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 30),
+              onPressed: () {
+                widget.state.toggleSidebar();
+              },
+            ),
           ),
 
           // Corpo della schermata: Categorie a sinistra, Ricerca/Lista a destra
@@ -60,20 +66,63 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
             child: Row(
               children: [
                 // Menu Verticale sinistro (Categorie List lasciate intatte)
-                VerticalCategoryMenu(
-                  state: widget.state,
-                  section: 'shopping',
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  alignment: Alignment.centerLeft,
+                  child: widget.state.isSidebarVisible
+                      ? VerticalCategoryMenu(
+                          state: widget.state,
+                          section: 'shopping',
+                        )
+                      : const SizedBox(width: 0),
                 ),
 
                 // Colonna destra: Barra di ricerca, Predictive badge, Lista Prodotti e Pulsanti
                 Expanded(
                   child: Column(
                     children: [
-                      // Barra di Ricerca (search_bar)
+                      // Barra di Ricerca (search_bar) e Seleziona Tutto
                       Padding(
                         padding: const EdgeInsets.all(12),
                         child: Row(
                           children: [
+                            // Pulsante Seleziona/Deseleziona Tutto
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  bool allSelected = filteredItems.isNotEmpty && filteredItems.every((item) => _checkedItems.contains(item.id));
+                                  if (allSelected) {
+                                    for (var item in filteredItems) {
+                                      _checkedItems.remove(item.id);
+                                    }
+                                  } else {
+                                    for (var item in filteredItems) {
+                                      _checkedItems.add(item.id);
+                                    }
+                                  }
+                                });
+                              },
+                              child: Container(
+                                height: 44,
+                                width: 44,
+                                decoration: BoxDecoration(
+                                  color: (filteredItems.isNotEmpty && filteredItems.every((item) => _checkedItems.contains(item.id)))
+                                      ? AppColors.primary
+                                      : Colors.transparent,
+                                  border: Border.all(color: AppColors.primary, width: 2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.checklist_rounded,
+                                  color: (filteredItems.isNotEmpty && filteredItems.every((item) => _checkedItems.contains(item.id)))
+                                      ? Colors.white
+                                      : AppColors.primary,
+                                  size: 24,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: Container(
                                 height: 44,
@@ -370,23 +419,15 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
       isScrollControlled: true,
       builder: (context) => StatefulBuilder(
         builder: (context, setStateModal) {
-          // Lancia la chiamata AI solo al primo render
           if (!hasFetched) {
             hasFetched = true;
             WidgetsBinding.instance.addPostFrameCallback((_) async {
               try {
-                final history = await widget.state.firebaseService
-                        ?.getConsumptionHistory() ??
-                    [];
-                final pantryItems =
-                    widget.state.allItems.where((i) => i.isPantry).toList();
-                final shoppingItems =
-                    widget.state.allItems.where((i) => i.isShopping).toList();
-                final groupSize = widget.state.groupMembers.isNotEmpty
-                    ? widget.state.groupMembers.length
-                    : 1;
+                final history = await widget.state.firebaseService?.getConsumptionHistory() ?? [];
+                final pantryItems = widget.state.allItems.where((i) => i.isPantry).toList();
+                final shoppingItems = widget.state.allItems.where((i) => i.isShopping).toList();
+                final groupSize = widget.state.groupMembers.isNotEmpty ? widget.state.groupMembers.length : 1;
 
-                // Ritardo artificiale per feedback visivo (l'algoritmo puro è istantaneo)
                 await Future.delayed(const Duration(milliseconds: 600));
 
                 final result = SmartPantryAI.predict(
@@ -394,12 +435,35 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                   shoppingItems,
                   history,
                   groupSize,
-                  {}, // FR6.6, FR6.7: I feedback andrebbero passati qui
+                  widget.state.aiFeedback,
                 );
+
+                List<AIPrediction> toDisplay = [];
+                for (var pred in result) {
+                  if (pred.autoAdd) {
+                    final newItem = ItemModel(
+                      id: DateTime.now().millisecondsSinceEpoch.toString() + pred.nomeProdotto.hashCode.toString(),
+                      name: pred.nomeProdotto,
+                      category: "Altro",
+                      quantity: pred.quantitaSuggerita,
+                      isShopping: true,
+                    );
+                    widget.state.addItem(newItem);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text("✨ ${pred.nomeProdotto} aggiunto automaticamente dall'IA!"),
+                        backgroundColor: AppColors.primary,
+                        duration: const Duration(seconds: 2),
+                      ));
+                    }
+                  } else {
+                    toDisplay.add(pred);
+                  }
+                }
 
                 if (context.mounted) {
                   setStateModal(() {
-                    aiSuggestions = result;
+                    aiSuggestions = toDisplay;
                     isAILoading = false;
                   });
                 }
@@ -408,8 +472,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                   setStateModal(() {
                     isAILoading = false;
                   });
-                  ScaffoldMessenger.of(context)
-                      .showSnackBar(SnackBar(content: Text("Errore IA: $e")));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Errore IA: $e")));
                 }
               }
             });
@@ -422,8 +485,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
             padding: const EdgeInsets.only(left: 24, right: 24, top: 24, bottom: 8),
             decoration: BoxDecoration(
               color: AppColors.surfaceLight,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -447,7 +509,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                 Text(
                   isAILoading
                       ? "L'IA sta analizzando lo storico dei consumi..."
-                      : "I suggerimenti intelligenti basati sulle tue abitudini.",
+                      : "Scorri a DESTRA per ACCETTARE, scorri a SINISTRA per RIFIUTARE il suggerimento.",
                   style: TextStyle(
                       fontFamily: 'Outfit',
                       color: AppColors.textSecondary,
@@ -485,7 +547,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
-                          ...aiSuggestions.map((pred) => _buildPredictionCard(pred, context)),
+                          ...aiSuggestions.map((pred) => _buildPredictionCard(pred, context, setStateModal, aiSuggestions)),
                         ],
                       ),
                     ),
@@ -499,57 +561,94 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
     );
   }
 
-  Widget _buildPredictionCard(AIPrediction pred, BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        title: Row(
+  Widget _buildPredictionCard(AIPrediction pred, BuildContext context, void Function(void Function()) setStateModal, List<AIPrediction> listRef) {
+    return Dismissible(
+      key: Key(pred.nomeProdotto),
+      direction: DismissDirection.horizontal,
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(16)
+        ),
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: const Row(
           children: [
-            Expanded(
-              child: Text(
-                pred.nomeProdotto,
-                style: TextStyle(
-                  fontFamily: 'Outfit',
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                  fontSize: 16,
+            Icon(Icons.add_shopping_cart_rounded, color: Colors.white),
+            SizedBox(width: 8),
+            Text("Accetta", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
+          ]
+        ),
+      ),
+      secondaryBackground: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: AppColors.error,
+          borderRadius: BorderRadius.circular(16)
+        ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Text("Rifiuta", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            SizedBox(width: 8),
+            Icon(Icons.close_rounded, color: Colors.white),
+          ]
+        ),
+      ),
+      onDismissed: (direction) {
+        setStateModal(() {
+          listRef.remove(pred);
+        });
+
+        if (direction == DismissDirection.endToStart) { 
+          widget.state.rejectAISuggestion(pred.nomeProdotto);
+        } else if (direction == DismissDirection.startToEnd) { 
+          widget.state.acceptAISuggestion(pred.nomeProdotto);
+          
+          final newItem = ItemModel(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            name: pred.nomeProdotto,
+            category: "Altro", 
+            quantity: pred.quantitaSuggerita,
+            isShopping: true,
+          );
+          widget.state.addItem(newItem);
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          title: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  pred.nomeProdotto,
+                  style: TextStyle(
+                    fontFamily: 'Outfit',
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: Text(
-            pred.motivoAggiunta,
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 13, fontStyle: FontStyle.italic),
+            ],
           ),
-        ),
-        trailing: IconButton(
-          icon: Icon(Icons.add_circle_rounded, color: AppColors.primary, size: 32),
-          onPressed: () {
-            final newItemId = DateTime.now().millisecondsSinceEpoch.toString();
-            final newItem = ItemModel(
-              id: newItemId,
-              name: pred.nomeProdotto,
-              category: "Altro", // Verrà inferito o sarà default
-              quantity: pred.quantitaSuggerita,
-              isShopping: true,
-            );
-            widget.state.addItem(newItem);
-            Navigator.pop(context); // Chiude il modal
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text("${pred.nomeProdotto} aggiunto alla spesa!"),
-              backgroundColor: AppColors.primary,
-              duration: const Duration(seconds: 2),
-            ));
-          },
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+              pred.motivoAggiunta,
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13, fontStyle: FontStyle.italic),
+            ),
+          ),
         ),
       ),
     );
