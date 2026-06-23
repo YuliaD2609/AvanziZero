@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/app_state.dart';
 import '../theme/app_colors.dart';
 import '../services/notification_service.dart';
+import 'auth_screen.dart';
 
 class AdminScreen extends StatefulWidget {
   final AppState state;
@@ -279,7 +280,6 @@ class _AdminScreenState extends State<AdminScreen> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _emailController,
-                        readOnly: true,
                         decoration: InputDecoration(
                           labelText: "Email",
                           prefixIcon: Icon(Icons.email_outlined,
@@ -456,8 +456,10 @@ class _AdminScreenState extends State<AdminScreen> {
                   onPressed: () async {
                     await widget.state.authService.signOut();
                     if (!mounted) return;
-                    Navigator.of(context, rootNavigator: true)
-                        .popUntil((route) => route.isFirst);
+                    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const AuthScreen()),
+                      (Route<dynamic> route) => false,
+                    );
                   },
                   icon: Icon(Icons.logout_rounded, color: AppColors.error),
                   label: Text("Logout",

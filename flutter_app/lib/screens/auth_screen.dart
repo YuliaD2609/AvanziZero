@@ -183,6 +183,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           borderRadius: BorderRadius.circular(12)),
                       filled: true,
                       fillColor: Colors.white,
+                      errorMaxLines: 5,
                     ),
                     obscureText: true,
                     validator: (val) {
