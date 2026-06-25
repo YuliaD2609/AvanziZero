@@ -16,6 +16,7 @@ class ItemModel {
   final String id;
   String name;
   String expireDate; // Formato testuale "gg/mm/aaaa" come da layout nativo
+  List<String> expireDates; // Lista di tutte le date di scadenza per le istanze multiple
   int quantity;
   String category;
   bool isPantry;
@@ -26,12 +27,13 @@ class ItemModel {
     required this.id,
     required this.name,
     this.expireDate = "-",
+    List<String>? expireDates,
     this.quantity = 1,
     required this.category,
     this.isPantry = false,
     this.isShopping = false,
     this.ownerId,
-  });
+  }) : expireDates = expireDates ?? (expireDate != "-" && expireDate != "Data: N/A" && expireDate.isNotEmpty ? [expireDate] : []);
 
   String get _cleanDateText => expireDate
       .replaceAll("In scadenza: ", "")
@@ -783,6 +785,10 @@ class AppState extends ChangeNotifier {
 
       if (delta < 0 && item.isPantry) {
         _firebaseService?.logConsumption(item.name, -delta);
+        if (item.expireDates.length > item.quantity) {
+          item.expireDates.removeAt(0);
+          item.expireDate = item.expireDates.isNotEmpty ? item.expireDates.first : "-";
+        }
       }
 
       if (item.quantity <= 0) {
@@ -792,7 +798,7 @@ class AppState extends ChangeNotifier {
         if (item.isPantry) _checkAndAutoAddShopping(item);
       } else {
         notifyListeners();
-        await _firebaseService?.updateItemQuantity(itemId, item.quantity);
+        await _firebaseService?.saveItem(item);
         if (item.quantity == 1 && item.isPantry && delta < 0) {
           _checkAndAutoAddShopping(item);
         }
@@ -839,6 +845,45 @@ class AppState extends ChangeNotifier {
     final index = allItems.indexWhere((i) => i.id == updatedItem.id);
     if (index != -1) {
       allItems[index] = updatedItem;
+
+      if (updatedItem.isPantry && updatedItem.expireDate != "-" && updatedItem.expireDate != "Data: N/A" && updatedItem.expireDate.isNotEmpty) {
+        final otherIndex = allItems.indexWhere((i) => i.isPantry && i.id != updatedItem.id && i.name.trim().toLowerCase() == updatedItem.name.trim().toLowerCase());
+        if (otherIndex != -1) {
+          final otherItem = allItems[otherIndex];
+          
+          if (otherItem.expireDates.isEmpty && otherItem.expireDate != "-" && otherItem.expireDate != "Data: N/A" && otherItem.expireDate.isNotEmpty) {
+            otherItem.expireDates.add(otherItem.expireDate);
+          }
+          if (updatedItem.expireDates.isEmpty && updatedItem.expireDate != "-" && updatedItem.expireDate != "Data: N/A" && updatedItem.expireDate.isNotEmpty) {
+            updatedItem.expireDates.add(updatedItem.expireDate);
+          }
+
+          otherItem.quantity += updatedItem.quantity;
+          otherItem.expireDates.addAll(updatedItem.expireDates);
+
+          otherItem.expireDates.sort((a, b) {
+            final pA = a.split('/');
+            final pB = b.split('/');
+            if (pA.length != 3 || pB.length != 3) return 0;
+            final dA = DateTime(int.parse(pA[2]), int.parse(pA[1]), int.parse(pA[0]));
+            final dB = DateTime(int.parse(pB[2]), int.parse(pB[1]), int.parse(pB[0]));
+            return dA.compareTo(dB);
+          });
+          if (otherItem.expireDates.isNotEmpty) {
+            otherItem.expireDate = otherItem.expireDates.first;
+          }
+
+          allItems.removeWhere((i) => i.id == updatedItem.id);
+          final oIdx = allItems.indexWhere((i) => i.id == otherItem.id);
+          if (oIdx != -1) allItems[oIdx] = otherItem;
+          notifyListeners();
+
+          await _firebaseService?.deleteItem(updatedItem.id);
+          await _firebaseService?.saveItem(otherItem);
+          return;
+        }
+      }
+
       notifyListeners();
       await _firebaseService?.saveItem(updatedItem);
     }
@@ -865,20 +910,54 @@ class AppState extends ChangeNotifier {
     for (var item in allItems
         .where((i) => i.isShopping && selectedItemIds.contains(i.id))
         .toList()) {
-      item.isShopping = false;
-      item.isPantry = true;
-      item.expireDate = "-";
-      await _firebaseService?.saveItem(item);
+      final existingPantryItems = allItems.where((i) => i.isPantry && i.name.trim().toLowerCase() == item.name.trim().toLowerCase()).toList();
+      ItemModel? existingWithoutExpire;
+      for (var pItem in existingPantryItems) {
+        if (pItem.expireDate == "-" || pItem.expireDate == "Data: N/A" || pItem.expireDate.isEmpty) {
+          existingWithoutExpire = pItem;
+          break;
+        }
+      }
+
+      if (existingWithoutExpire != null) {
+        existingWithoutExpire.quantity += item.quantity;
+        await _firebaseService?.saveItem(existingWithoutExpire);
+        allItems.remove(item);
+        await _firebaseService?.deleteItem(item.id);
+      } else {
+        item.isShopping = false;
+        item.isPantry = true;
+        item.expireDate = "-";
+        item.expireDates = [];
+        await _firebaseService?.saveItem(item);
+      }
     }
     notifyListeners();
   }
 
   Future<void> markShoppingDone() async {
     for (var item in allItems.where((i) => i.isShopping).toList()) {
-      item.isShopping = false;
-      item.isPantry = true;
-      item.expireDate = "-";
-      await _firebaseService?.saveItem(item);
+      final existingPantryItems = allItems.where((i) => i.isPantry && i.name.trim().toLowerCase() == item.name.trim().toLowerCase()).toList();
+      ItemModel? existingWithoutExpire;
+      for (var pItem in existingPantryItems) {
+        if (pItem.expireDate == "-" || pItem.expireDate == "Data: N/A" || pItem.expireDate.isEmpty) {
+          existingWithoutExpire = pItem;
+          break;
+        }
+      }
+
+      if (existingWithoutExpire != null) {
+        existingWithoutExpire.quantity += item.quantity;
+        await _firebaseService?.saveItem(existingWithoutExpire);
+        allItems.remove(item);
+        await _firebaseService?.deleteItem(item.id);
+      } else {
+        item.isShopping = false;
+        item.isPantry = true;
+        item.expireDate = "-";
+        item.expireDates = [];
+        await _firebaseService?.saveItem(item);
+      }
     }
     notifyListeners();
   }

@@ -439,8 +439,9 @@ class _PantryScreenState extends State<PantryScreen> {
   // Finestra di dialogo per aggiungere manualmente un prodotto
   void _showAddItemDialog(BuildContext context) {
     final TextEditingController nameController = TextEditingController();
+    final TextEditingController quantityController = TextEditingController(text: "1");
     bool nameError = false;
-    DateTime? selectedDate;
+    List<DateTime?> selectedDates = [null];
     String selectedCat = widget.state.selectedPantryCategory == "Tutti"
         ? widget.state.categories[1]
         : widget.state.selectedPantryCategory;
@@ -454,126 +455,189 @@ class _PantryScreenState extends State<PantryScreen> {
           title: Text("Aggiungi Elemento Dispensa",
               style: TextStyle(
                   fontFamily: 'Outfit', color: AppColors.textPrimary)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  labelText: "Nome Elemento",
-                  errorText:
-                      nameError ? "Inserisci il nome dell'elemento" : null,
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: "Nome Elemento",
+                    errorText:
+                        nameError ? "Inserisci il nome dell'elemento" : null,
+                  ),
+                  onChanged: (val) {
+                    if (nameError && val.trim().isNotEmpty) {
+                      setDialogState(() => nameError = false);
+                    }
+                  },
                 ),
-                onChanged: (val) {
-                  if (nameError && val.trim().isNotEmpty) {
-                    setDialogState(() => nameError = false);
-                  }
-                },
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                readOnly: true,
-                controller: TextEditingController(
-                  text: selectedDate == null
-                      ? ""
-                      : "${selectedDate!.day.toString().padLeft(2, '0')}/${selectedDate!.month.toString().padLeft(2, '0')}/${selectedDate!.year}",
+                const SizedBox(height: 8),
+                TextField(
+                  controller: quantityController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: "Quantità"),
+                  onChanged: (val) {
+                    int q = int.tryParse(val) ?? 1;
+                    if (q < 1) q = 1;
+                    if (selectedDates.length > q) {
+                      setDialogState(() {
+                        selectedDates = selectedDates.sublist(0, q);
+                      });
+                    }
+                  },
                 ),
-                decoration: InputDecoration(
-                  labelText: "Data Scadenza (Opzionale)",
-                  hintText: "Scegli dal calendario",
-                  suffixIcon: selectedDate != null
-                      ? IconButton(
-                          icon: Icon(Icons.clear_rounded,
-                              color: AppColors.textSecondary),
-                          onPressed: () {
-                            setDialogState(() {
-                              selectedDate = null;
-                            });
-                          },
-                        )
-                      : Icon(Icons.calendar_today_rounded,
-                          color: AppColors.primary),
-                ),
-                onTap: () async {
-                  final DateTime? picked = await showDatePicker(
-                    context: context,
-                    initialDate: selectedDate ?? DateTime.now(),
-                    firstDate:
-                        DateTime.now().subtract(const Duration(days: 365)),
-                    lastDate:
-                        DateTime.now().add(const Duration(days: 365 * 10)),
-                    builder: (context, child) {
-                      return Theme(
-                        data: Theme.of(context).copyWith(
-                          colorScheme: widget.state.isDarkMode
-                              ? ColorScheme.dark(
-                                  primary: AppColors.primary,
-                                  onPrimary: Colors.white,
-                                  onSurface: AppColors.textPrimary,
-                                  surface: AppColors.background,
-                                )
-                              : ColorScheme.light(
-                                  primary: AppColors.primary,
-                                  onPrimary: Colors.white,
-                                  onSurface: AppColors.textPrimary,
-                                  surface: AppColors.background,
-                                ),
-                          textButtonTheme: TextButtonThemeData(
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppColors.primary,
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Date di Scadenza", style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                    IconButton(
+                      icon: Icon(Icons.add_circle_outline_rounded, color: AppColors.primary),
+                      onPressed: () {
+                        int q = int.tryParse(quantityController.text) ?? 1;
+                        if (selectedDates.length < q) {
+                          setDialogState(() {
+                            selectedDates.add(null);
+                          });
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Puoi inserire al massimo $q scadenze (una per ogni unità). Aumenta la quantità per aggiungerne altre."),
+                              backgroundColor: AppColors.error,
+                              duration: const Duration(seconds: 2),
                             ),
+                          );
+                        }
+                      },
+                      tooltip: "Aggiungi un'altra scadenza",
+                    ),
+                  ],
+                ),
+                ...selectedDates.asMap().entries.map((entry) {
+                  int idx = entry.key;
+                  DateTime? d = entry.value;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            readOnly: true,
+                            controller: TextEditingController(
+                              text: d == null
+                                  ? ""
+                                  : "${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}",
+                            ),
+                            decoration: InputDecoration(
+                              labelText: "Scadenza ${idx + 1}",
+                              hintText: "Scegli dal calendario",
+                              suffixIcon: d != null
+                                  ? IconButton(
+                                      icon: Icon(Icons.clear_rounded,
+                                          color: AppColors.textSecondary),
+                                      onPressed: () {
+                                        setDialogState(() {
+                                          selectedDates[idx] = null;
+                                        });
+                                      },
+                                    )
+                                  : Icon(Icons.calendar_today_rounded,
+                                      color: AppColors.primary),
+                            ),
+                            onTap: () async {
+                              final DateTime? picked = await showDatePicker(
+                                context: context,
+                                initialDate: d ?? DateTime.now(),
+                                firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                                lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+                                builder: (context, child) {
+                                  return Theme(
+                                    data: Theme.of(context).copyWith(
+                                      colorScheme: widget.state.isDarkMode
+                                          ? ColorScheme.dark(
+                                              primary: AppColors.primary,
+                                              onPrimary: Colors.white,
+                                              onSurface: AppColors.textPrimary,
+                                              surface: AppColors.background,
+                                            )
+                                          : ColorScheme.light(
+                                              primary: AppColors.primary,
+                                              onPrimary: Colors.white,
+                                              onSurface: AppColors.textPrimary,
+                                              surface: AppColors.background,
+                                            ),
+                                      textButtonTheme: TextButtonThemeData(
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: AppColors.primary,
+                                        ),
+                                      ),
+                                    ),
+                                    child: child!,
+                                  );
+                                },
+                              );
+                              if (picked != null) {
+                                setDialogState(() {
+                                  selectedDates[idx] = picked;
+                                });
+                              }
+                            },
                           ),
                         ),
-                        child: child!,
-                      );
-                    },
+                        if (idx > 0)
+                          IconButton(
+                            icon: Icon(Icons.delete_outline_rounded, color: AppColors.error),
+                            onPressed: () {
+                              setDialogState(() {
+                                selectedDates.removeAt(idx);
+                              });
+                            },
+                          ),
+                      ],
+                    ),
                   );
-                  if (picked != null) {
-                    setDialogState(() {
-                      selectedDate = picked;
-                    });
-                  }
-                },
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: selectedCat,
-                items: widget.state.categories
-                    .where((c) => c != "Tutti")
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                    .toList(),
-                onChanged: (val) => setDialogState(() => selectedCat = val!),
-                decoration: const InputDecoration(labelText: "Categoria"),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String?>(
-                initialValue: selectedOwnerId,
-                items: [
-                  const DropdownMenuItem<String?>(
-                      value: null, child: Text("Tutti")),
-                  ...widget.state.groupMembers
-                      .map((member) => DropdownMenuItem<String?>(
-                            value: member.id,
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 12,
-                                  height: 12,
-                                  margin: const EdgeInsets.only(right: 8),
-                                  decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: widget.state
-                                          .getMemberColor(member.id)),
-                                ),
-                                Text(member.name),
-                              ],
-                            ),
-                          ))
-                ],
-                onChanged: (val) => setDialogState(() => selectedOwnerId = val),
-                decoration: const InputDecoration(labelText: "Proprietà di"),
-              ),
-            ],
+                }),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: selectedCat,
+                  items: widget.state.categories
+                      .where((c) => c != "Tutti")
+                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                      .toList(),
+                  onChanged: (val) => setDialogState(() => selectedCat = val!),
+                  decoration: const InputDecoration(labelText: "Categoria"),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String?>(
+                  initialValue: selectedOwnerId,
+                  items: [
+                    const DropdownMenuItem<String?>(
+                        value: null, child: Text("Tutti")),
+                    ...widget.state.groupMembers
+                        .map((member) => DropdownMenuItem<String?>(
+                              value: member.id,
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 12,
+                                    height: 12,
+                                    margin: const EdgeInsets.only(right: 8),
+                                    decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: widget.state
+                                            .getMemberColor(member.id)),
+                                  ),
+                                  Text(member.name),
+                                ],
+                              ),
+                            ))
+                  ],
+                  onChanged: (val) => setDialogState(() => selectedOwnerId = val),
+                  decoration: const InputDecoration(labelText: "Proprietà di"),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -582,14 +646,31 @@ class _PantryScreenState extends State<PantryScreen> {
             ElevatedButton(
               onPressed: () {
                 if (nameController.text.trim().isNotEmpty) {
-                  final expireStr = selectedDate == null
-                      ? "-"
-                      : "${selectedDate!.day.toString().padLeft(2, '0')}/${selectedDate!.month.toString().padLeft(2, '0')}/${selectedDate!.year}";
+                  int q = int.tryParse(quantityController.text) ?? 1;
+                  if (q < 1) q = 1;
+
+                  List<String> validDates = selectedDates
+                      .where((d) => d != null)
+                      .map((d) => "${d!.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}")
+                      .toList();
+
+                  // Sort dates chronologically
+                  validDates.sort((a, b) {
+                    final pA = a.split('/');
+                    final pB = b.split('/');
+                    final dA = DateTime(int.parse(pA[2]), int.parse(pA[1]), int.parse(pA[0]));
+                    final dB = DateTime(int.parse(pB[2]), int.parse(pB[1]), int.parse(pB[0]));
+                    return dA.compareTo(dB);
+                  });
+
+                  final expireStr = validDates.isEmpty ? "-" : validDates.first;
+
                   widget.state.addItem(ItemModel(
                     id: DateTime.now().millisecondsSinceEpoch.toString(),
                     name: nameController.text.trim(),
                     expireDate: expireStr,
-                    quantity: 1,
+                    expireDates: validDates,
+                    quantity: q,
                     category: selectedCat,
                     isPantry: true,
                     ownerId: selectedOwnerId,
@@ -617,7 +698,25 @@ class _PantryScreenState extends State<PantryScreen> {
         TextEditingController(text: item.quantity.toString());
     bool nameError = false;
 
-    DateTime? selectedDate = item.parsedExpireDate;
+    List<DateTime?> selectedDates = item.expireDates.map((dateStr) {
+      final parts = dateStr.split('/');
+      if (parts.length == 3) {
+        final d = int.tryParse(parts[0]);
+        final m = int.tryParse(parts[1]);
+        final y = int.tryParse(parts[2]);
+        if (d != null && m != null && y != null) {
+          return DateTime(y, m, d);
+        }
+      }
+      return null;
+    }).where((d) => d != null).toList();
+
+    if (selectedDates.isEmpty && item.parsedExpireDate != null) {
+      selectedDates.add(item.parsedExpireDate);
+    }
+    if (selectedDates.isEmpty) {
+      selectedDates.add(null);
+    }
 
     String selectedCat = widget.state.categories.contains(item.category)
         ? item.category
@@ -652,6 +751,132 @@ class _PantryScreenState extends State<PantryScreen> {
                   },
                 ),
                 const SizedBox(height: 8),
+                TextField(
+                  controller: quantityController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: "Quantità"),
+                  onChanged: (val) {
+                    int q = int.tryParse(val) ?? 1;
+                    if (q < 1) q = 1;
+                    if (selectedDates.length > q) {
+                      setDialogState(() {
+                        selectedDates = selectedDates.sublist(0, q);
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Date di Scadenza", style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                    IconButton(
+                      icon: Icon(Icons.add_circle_outline_rounded, color: AppColors.primary),
+                      onPressed: () {
+                        int q = int.tryParse(quantityController.text) ?? 1;
+                        if (selectedDates.length < q) {
+                          setDialogState(() {
+                            selectedDates.add(null);
+                          });
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Puoi inserire al massimo $q scadenze (una per ogni unità). Aumenta la quantità per aggiungerne altre."),
+                              backgroundColor: AppColors.error,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                      tooltip: "Aggiungi un'altra scadenza",
+                    ),
+                  ],
+                ),
+                ...selectedDates.asMap().entries.map((entry) {
+                  int idx = entry.key;
+                  DateTime? d = entry.value;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            readOnly: true,
+                            controller: TextEditingController(
+                              text: d == null
+                                  ? "Data: N/A"
+                                  : "${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}",
+                            ),
+                            decoration: InputDecoration(
+                              labelText: "Scadenza ${idx + 1}",
+                              hintText: "Scegli dal calendario",
+                              suffixIcon: d != null
+                                  ? IconButton(
+                                      icon: Icon(Icons.clear_rounded,
+                                          color: AppColors.textSecondary),
+                                      onPressed: () {
+                                        setDialogState(() {
+                                          selectedDates[idx] = null;
+                                        });
+                                      },
+                                    )
+                                  : Icon(Icons.calendar_today_rounded,
+                                      color: AppColors.primary),
+                            ),
+                            onTap: () async {
+                              final DateTime? picked = await showDatePicker(
+                                context: context,
+                                initialDate: d ?? DateTime.now(),
+                                firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                                lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+                                builder: (context, child) {
+                                  return Theme(
+                                    data: Theme.of(context).copyWith(
+                                      colorScheme: widget.state.isDarkMode
+                                          ? ColorScheme.dark(
+                                              primary: AppColors.primary,
+                                              onPrimary: Colors.white,
+                                              onSurface: AppColors.textPrimary,
+                                              surface: AppColors.background,
+                                            )
+                                          : ColorScheme.light(
+                                              primary: AppColors.primary,
+                                              onPrimary: Colors.white,
+                                              onSurface: AppColors.textPrimary,
+                                              surface: AppColors.background,
+                                            ),
+                                      textButtonTheme: TextButtonThemeData(
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: AppColors.primary,
+                                        ),
+                                      ),
+                                    ),
+                                    child: child!,
+                                  );
+                                },
+                              );
+                              if (picked != null) {
+                                setDialogState(() {
+                                  selectedDates[idx] = picked;
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                        if (idx > 0)
+                          IconButton(
+                            icon: Icon(Icons.delete_outline_rounded, color: AppColors.error),
+                            onPressed: () {
+                              setDialogState(() {
+                                selectedDates.removeAt(idx);
+                              });
+                            },
+                          ),
+                      ],
+                    ),
+                  );
+                }),
+                const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: selectedCat,
                   items: widget.state.categories
@@ -660,64 +885,6 @@ class _PantryScreenState extends State<PantryScreen> {
                       .toList(),
                   onChanged: (val) => setDialogState(() => selectedCat = val!),
                   decoration: const InputDecoration(labelText: "Categoria"),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  readOnly: true,
-                  controller: TextEditingController(
-                    text: selectedDate == null
-                        ? "Data: N/A"
-                        : "${selectedDate!.day.toString().padLeft(2, '0')}/${selectedDate!.month.toString().padLeft(2, '0')}/${selectedDate!.year}",
-                  ),
-                  decoration: InputDecoration(
-                    labelText: "Data Scadenza",
-                    hintText: "Scegli dal calendario",
-                    suffixIcon: selectedDate != null
-                        ? IconButton(
-                            icon: Icon(Icons.clear_rounded,
-                                color: AppColors.textSecondary),
-                            onPressed: () {
-                              setDialogState(() {
-                                selectedDate = null;
-                              });
-                            },
-                          )
-                        : Icon(Icons.calendar_today_rounded,
-                            color: AppColors.primary),
-                  ),
-                  onTap: () async {
-                    final DateTime? picked = await showDatePicker(
-                      context: context,
-                      initialDate: selectedDate ?? DateTime.now(),
-                      firstDate:
-                          DateTime.now().subtract(const Duration(days: 365)),
-                      lastDate:
-                          DateTime.now().add(const Duration(days: 365 * 10)),
-                      builder: (context, child) {
-                        return Theme(
-                          data: Theme.of(context).copyWith(
-                            colorScheme: ColorScheme.light(
-                              primary: AppColors.primary,
-                              onPrimary: Colors.white,
-                              onSurface: AppColors.textPrimary,
-                            ),
-                          ),
-                          child: child!,
-                        );
-                      },
-                    );
-                    if (picked != null) {
-                      setDialogState(() {
-                        selectedDate = picked;
-                      });
-                    }
-                  },
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: quantityController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: "Quantità"),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String?>(
@@ -762,13 +929,28 @@ class _PantryScreenState extends State<PantryScreen> {
                       int.tryParse(quantityController.text) ?? item.quantity;
                   if (q < 1) q = 1;
 
+                  List<String> validDates = selectedDates
+                      .where((d) => d != null)
+                      .map((d) => "${d!.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}")
+                      .toList();
+
+                  // Sort dates chronologically
+                  validDates.sort((a, b) {
+                    final pA = a.split('/');
+                    final pB = b.split('/');
+                    final dA = DateTime(int.parse(pA[2]), int.parse(pA[1]), int.parse(pA[0]));
+                    final dB = DateTime(int.parse(pB[2]), int.parse(pB[1]), int.parse(pB[0]));
+                    return dA.compareTo(dB);
+                  });
+
                   item.name = nameController.text.trim();
                   item.category = selectedCat;
                   item.quantity = q;
                   item.ownerId = selectedOwnerId;
-                  item.expireDate = selectedDate == null
+                  item.expireDates = validDates;
+                  item.expireDate = validDates.isEmpty
                       ? "Data: N/A"
-                      : "${selectedDate!.day.toString().padLeft(2, '0')}/${selectedDate!.month.toString().padLeft(2, '0')}/${selectedDate!.year}";
+                      : validDates.first;
 
                   widget.state.updateItem(item);
                   Navigator.pop(context);

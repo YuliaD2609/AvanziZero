@@ -27,6 +27,7 @@ class FirebaseService {
           id: doc.id,
           name: data['name'] ?? '',
           expireDate: data['expireDate'] ?? '-',
+          expireDates: (data['expireDates'] as List<dynamic>?)?.map((e) => e.toString()).toList(),
           quantity: data['quantity'] ?? 0,
           category: data['category'] ?? 'Tutti',
           isPantry: data['isPantry'] ?? false,
@@ -50,6 +51,7 @@ class FirebaseService {
       await docRef.set({
         'name': item.name,
         'expireDate': item.expireDate,
+        'expireDates': item.expireDates,
         'quantity': item.quantity,
         'category': item.category,
         'isPantry': item.isPantry,
@@ -105,6 +107,7 @@ class FirebaseService {
           await docRef.set({
             'name': item.name,
             'expireDate': item.expireDate,
+            'expireDates': item.expireDates,
             'quantity': item.quantity,
             'category': item.category,
             'isPantry': item.isPantry,

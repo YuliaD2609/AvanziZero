@@ -23,7 +23,7 @@ def clean_chi_fa(x):
         return "Io"
     if "genitore" in x or "i miei" in x:
         return "Genitori"
-    if "coinquilin" in x:
+    if "coinquilini" in x:
         return "Coinquilini"
     return "Altro"
 
@@ -42,16 +42,24 @@ def clean_tempo(x):
         "non preparo la lista",
         "compro sul momento",
         "non preparo",
-        "non faccio"
+        "non faccio",
+        "tempo di un dibattito tra me e mia mamma per decidere cosa manca e cosa ci serve",
+        "non la preparo",
+        "non faccio la lista"
     ]
     for ign in ignore_list:
         if ign in x:
             return None # To drop
     
     if "un po' di tempo" in x: return 40
-    if "pochissimo" in x or x == "poco": return 2
-    if "quarto d ora" in x: return 15
+    if "pochissimo" in x : return 2
+    if "quarto d'ora" in x or x == "15 min" or x == "Dipende da cosa devo prendere massimo un quarto d ora": return 15
     if "mezz'ora" in x: return 30
+    if "poco tempo" in x or x == "5 minuti" or x == "poco" or x == "molto poco": return 5
+    if "10 minuti" in x or x == "Dieci minuti" or x == "meno di dieci minuti": return 10
+    if "30 minuti" in x: return 30
+    if "45 minuti" in x: return 45
+    if "un po' di tempo" in x: return 40
     
     nums = re.findall(r'\d+', x)
     if nums:
