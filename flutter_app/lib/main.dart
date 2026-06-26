@@ -252,34 +252,8 @@ class _MainNavigatorState extends State<MainNavigator> {
                       label: 'Spesa',
                     ),
                     NavigationDestination(
-                      icon: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4.0),
-                            child: Icon(Icons.room_service_outlined, color: AppColors.textSecondary),
-                          ),
-                          Positioned(
-                            top: 0,
-                            right: 0,
-                            child: Icon(Icons.star_rounded, size: 12, color: Colors.amber),
-                          ),
-                        ],
-                      ),
-                      selectedIcon: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4.0),
-                            child: Icon(Icons.room_service_rounded, color: AppColors.primary),
-                          ),
-                          Positioned(
-                            top: 0,
-                            right: 0,
-                            child: Icon(Icons.star_rounded, size: 12, color: Colors.amber),
-                          ),
-                        ],
-                      ),
+                      icon: ChefHatIcon(color: AppColors.textSecondary, size: 24),
+                      selectedIcon: ChefHatIcon(color: AppColors.primary, size: 24),
                       label: 'Ricette',
                     ),
                   ],

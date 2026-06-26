@@ -47,8 +47,9 @@ def create_db():
     cursor.execute('CREATE INDEX idx_recipes_with_oven ON recipes(with_oven)')
     cursor.execute('CREATE INDEX idx_recipe_ingredients_norm ON recipe_ingredients(normalized_name)')
 
-    # Dati iniziali curati (GialloZafferano, Cucchiaio d'Argento, Fatto in Casa da Benedetta, ecc.)
+    # Maxi-Dataset Curato (GialloZafferano, Cucchiaio d'Argento, Fatto in Casa da Benedetta, Tavolartegusto, Food.com)
     recipes_data = [
+        # --- PRIMI PIATTI ---
         {
             "name": "Spaghetti alla Carbonara",
             "description": "Il classico primo piatto romano cremoso e saporito, perfetto per una cena tra coinquilini.",
@@ -118,6 +119,110 @@ def create_db():
             ]
         },
         {
+            "name": "Penne all'Arrabbiata",
+            "description": "Un classico piccante, veloce ed economico, perfetto per spaghettate notturne.",
+            "source": "Tavolartegusto",
+            "category": "Primi Piatti",
+            "prep_time": "15 min",
+            "prep_time_min": 15,
+            "difficulty": "Facile",
+            "with_oven": False,
+            "instructions": "1. Soffriggere aglio e peperoncino nell'olio. 2. Aggiungere la passata di pomodoro e cuocere 10 min. 3. Saltare le penne al dente nel sugo.",
+            "ingredients": [
+                ("Penne (o altra pasta)", "320g", "pasta"),
+                ("Passata di Pomodoro", "400g", "sugo"),
+                ("Peperoncino piccante", "1", "peperoncino"),
+                ("Olio d'oliva", "q.b.", "olio")
+            ]
+        },
+        {
+            "name": "Spaghetti al Tonno e Limone",
+            "description": "Primo salva-cena per eccellenza, aromatico e pronto nel tempo di cottura della pasta.",
+            "source": "GialloZafferano",
+            "category": "Primi Piatti",
+            "prep_time": "12 min",
+            "prep_time_min": 12,
+            "difficulty": "Facile",
+            "with_oven": False,
+            "instructions": "1. Sgocciolare il tonno e scaldarlo in padella con olio e buccia di limone grattugiata. 2. Scolare la pasta e saltarla con succo di limone e prezzemolo.",
+            "ingredients": [
+                ("Spaghetti", "320g", "pasta"),
+                ("Tonno in scatola", "160g", "tonno"),
+                ("Limone (succo e scorza)", "1", "limone"),
+                ("Olio d'oliva", "q.b.", "olio")
+            ]
+        },
+        {
+            "name": "Risotto allo Zafferano (Milanese)",
+            "description": "Elegante, cremoso e saporito, ottimo per fare bella figura con gli ospiti.",
+            "source": "Cucchiaio d'Argento",
+            "category": "Primi Piatti",
+            "prep_time": "25 min",
+            "prep_time_min": 25,
+            "difficulty": "Media",
+            "with_oven": False,
+            "instructions": "1. Tostare il riso con cipolla e olio. 2. Sfumare e cuocere aggiungendo brodo bollente. 3. A fine cottura unire lo zafferano e mantecare con burro e parmigiano.",
+            "ingredients": [
+                ("Riso (Arborio o Carnaroli)", "300g", "riso"),
+                ("Zafferano in bustina", "1 bustina", "zafferano"),
+                ("Burro", "40g", "burro"),
+                ("Parmigiano Reggiano", "50g", "parmigiano")
+            ]
+        },
+        {
+            "name": "Spaghetti Aglio, Olio e Peperoncino",
+            "description": "La regina delle spaghettate di mezzanotte, velocissima e a costo quasi zero.",
+            "source": "Fatto in Casa da Benedetta",
+            "category": "Primi Piatti",
+            "prep_time": "10 min",
+            "prep_time_min": 10,
+            "difficulty": "Facile",
+            "with_oven": False,
+            "instructions": "1. Scaldare dolcemente olio, aglio e peperoncino in padella. 2. Lessare gli spaghetti al dente. 3. Saltare in padella con un mestolo di acqua di cottura per creare l'emulsione.",
+            "ingredients": [
+                ("Spaghetti", "320g", "pasta"),
+                ("Aglio", "2 spicchi", "aglio"),
+                ("Peperoncino", "q.b.", "peperoncino"),
+                ("Olio d'oliva", "q.b.", "olio")
+            ]
+        },
+        {
+            "name": "Gnocchi alla Sorrentina",
+            "description": "Gnocchi filanti passati al forno con pomodoro, mozzarella e basilico fresco.",
+            "source": "Tavolartegusto",
+            "category": "Primi Piatti",
+            "prep_time": "25 min",
+            "prep_time_min": 25,
+            "difficulty": "Facile",
+            "with_oven": True,
+            "instructions": "1. Cuocere gli gnocchi per 1-2 minuti. 2. Condirli con sugo di pomodoro e cubetti di mozzarella. 3. Gratinare in forno a 220°C per 10 minuti.",
+            "ingredients": [
+                ("Gnocchi di patate", "500g", "gnocchi"),
+                ("Passata o Sugo di pomodoro", "400g", "sugo"),
+                ("Mozzarella", "200g", "mozzarella"),
+                ("Parmigiano Reggiano", "50g", "parmigiano")
+            ]
+        },
+        {
+            "name": "Pasta e Fagioli Cremosa",
+            "description": "Primo piatto corposo, nutriente e confortante per le fredde giornate invernali.",
+            "source": "Cucchiaio d'Argento",
+            "category": "Primi Piatti",
+            "prep_time": "20 min",
+            "prep_time_min": 20,
+            "difficulty": "Facile",
+            "with_oven": False,
+            "instructions": "1. Soffriggere aglio/cipolla con olio. 2. Unire i fagioli e un po' d'acqua. 3. Frullare una parte dei fagioli. 4. Cuocere la pasta corta direttamente nel brodo di fagioli.",
+            "ingredients": [
+                ("Pasta mista (o tubetti)", "250g", "pasta"),
+                ("Fagioli precotti in scatola", "400g", "fagioli"),
+                ("Olio d'oliva", "q.b.", "olio"),
+                ("Sale e pepe", "q.b.", "pepe")
+            ]
+        },
+
+        # --- SECONDI PIATTI ---
+        {
             "name": "Pollo al Forno con Patate",
             "description": "Un secondo piatto intramontabile, facile da preparare e amato da tutti.",
             "source": "Tavolartegusto",
@@ -166,6 +271,109 @@ def create_db():
             ]
         },
         {
+            "name": "Polpette al Sugo della Nonna",
+            "description": "Morbide polpette cotte lentamente nel sugo di pomodoro, perfette per fare la scarpetta.",
+            "source": "GialloZafferano",
+            "category": "Secondi Piatti",
+            "prep_time": "30 min",
+            "prep_time_min": 30,
+            "difficulty": "Media",
+            "with_oven": False,
+            "instructions": "1. Mescolare carne trita, uova, formaggio, pane ammollato e sale. 2. Formare le polpette. 3. Cuocere nel sugo di pomodoro in padella per 20 minuti.",
+            "ingredients": [
+                ("Carne Macinata (manzo/maiale)", "400g", "carne"),
+                ("Passata di Pomodoro", "400g", "sugo"),
+                ("Uova", "1", "uova"),
+                ("Parmigiano o Pecorino", "50g", "parmigiano")
+            ]
+        },
+        {
+            "name": "Scaloppine al Limone",
+            "description": "Tenere fettine di carne con una cremina profumata al limone, pronte in padella in 10 minuti.",
+            "source": "Tavolartegusto",
+            "category": "Secondi Piatti",
+            "prep_time": "10 min",
+            "prep_time_min": 10,
+            "difficulty": "Facile",
+            "with_oven": False,
+            "instructions": "1. Infarinate le fettine di carne. 2. Rosolarle nel burro o olio in padella. 3. Aggiungere il succo di limone e far restringere la cremina.",
+            "ingredients": [
+                ("Fettine di Maiale o Vitello", "400g", "carne"),
+                ("Limone (succo)", "1", "limone"),
+                ("Farina", "q.b.", "farina"),
+                ("Burro (o olio)", "30g", "burro")
+            ]
+        },
+        {
+            "name": "Tranci di Salmone Croccanti",
+            "description": "Salmone gustoso cotto in padella con pelle croccante e un filo di olio d'oliva.",
+            "source": "Food.com",
+            "category": "Secondi Piatti",
+            "prep_time": "12 min",
+            "prep_time_min": 12,
+            "difficulty": "Facile",
+            "with_oven": False,
+            "instructions": "1. Asciugare i tranci di salmone. 2. Scaldare la padella con poco olio. 3. Cuocere prima sul lato della pelle fino a croccantezza, poi girare per 3 minuti.",
+            "ingredients": [
+                ("Tranci di Salmone", "400g", "salmone"),
+                ("Olio d'oliva", "q.b.", "olio"),
+                ("Sale e pepe", "q.b.", "pepe")
+            ]
+        },
+        {
+            "name": "Omelette Prosciutto e Formaggio",
+            "description": "Classica francese, morbida all'esterno e filante all'interno, facilissima e istantanea.",
+            "source": "Cucchiaio d'Argento",
+            "category": "Secondi Piatti",
+            "prep_time": "8 min",
+            "prep_time_min": 8,
+            "difficulty": "Facile",
+            "with_oven": False,
+            "instructions": "1. Sbattere le uova con sale e un cucchiaio di latte. 2. Cuocere in padella imburrata. 3. Farcire con prosciutto e formaggio, poi piegare a metà.",
+            "ingredients": [
+                ("Uova", "3", "uova"),
+                ("Prosciutto Cotto", "50g", "prosciutto"),
+                ("Formaggio a Fette (Emmental/Fondente)", "50g", "formaggio"),
+                ("Burro (o olio)", "10g", "burro")
+            ]
+        },
+        {
+            "name": "Melanzane alla Parmigiana",
+            "description": "Iconico piatto unico o secondo ricco, con strati di melanzane fritte o grigliate, pomodoro e formaggio.",
+            "source": "GialloZafferano",
+            "category": "Secondi Piatti",
+            "prep_time": "50 min",
+            "prep_time_min": 50,
+            "difficulty": "Media",
+            "with_oven": True,
+            "instructions": "1. Grigliare o friggere le melanzane. 2. Disporre in teglia alternando melanzane, sugo, mozzarella e parmigiano. 3. Cuocere in forno a 200°C per 30 min.",
+            "ingredients": [
+                ("Melanzane", "2", "melanzane"),
+                ("Passata di Pomodoro", "500g", "sugo"),
+                ("Mozzarella", "250g", "mozzarella"),
+                ("Parmigiano", "80g", "parmigiano")
+            ]
+        },
+        {
+            "name": "Cotoletta di Pollo Croccante",
+            "description": "Petto di pollo panato e fritto o cotto in padella, dorato e amatissimo dagli studenti.",
+            "source": "Fatto in Casa da Benedetta",
+            "category": "Secondi Piatti",
+            "prep_time": "15 min",
+            "prep_time_min": 15,
+            "difficulty": "Facile",
+            "with_oven": False,
+            "instructions": "1. Passare le fette di pollo nell'uovo sbattuto e poi nel pangrattato. 2. Friggere in padella con olio ben caldo fino a doratura.",
+            "ingredients": [
+                ("Petto di Pollo a fette", "400g", "pollo"),
+                ("Uova", "1", "uova"),
+                ("Pangrattato", "100g", "pane"),
+                ("Olio di semi per friggere (o d'oliva)", "q.b.", "olio")
+            ]
+        },
+
+        # --- PIATTI UNICI ---
+        {
             "name": "Caprese Ricca con Pomodoro e Basilico",
             "description": "Piatto unico fresco, istantaneo e mediterraneo, ideale quando non si ha voglia di accendere fornelli.",
             "source": "GialloZafferano",
@@ -198,6 +406,90 @@ def create_db():
             ]
         },
         {
+            "name": "Insalata di Riso Ricca",
+            "description": "L'emblema dell'estate e dei pranzi al sacco in università. Facile da conservare in frigo per giorni.",
+            "source": "Fatto in Casa da Benedetta",
+            "category": "Piatti Unici",
+            "prep_time": "25 min",
+            "prep_time_min": 25,
+            "difficulty": "Facile",
+            "with_oven": False,
+            "instructions": "1. Lessare il riso e farlo raffreddare. 2. Condire con tonno, verdurine sott'olio, uova sode e olive. 3. Conservare in frigo.",
+            "ingredients": [
+                ("Riso per insalate", "300g", "riso"),
+                ("Tonno in scatola", "160g", "tonno"),
+                ("Uova (da fare sode)", "2", "uova"),
+                ("Verdure sott'olio / Giardiniera", "100g", "verdure")
+            ]
+        },
+        {
+            "name": "Cous Cous Estivo Verdure e Tonno",
+            "description": "Piatto unico espresso senza cottura ai fornelli (basta acqua bollente), profumato e sano.",
+            "source": "Tavolartegusto",
+            "category": "Piatti Unici",
+            "prep_time": "15 min",
+            "prep_time_min": 15,
+            "difficulty": "Facile",
+            "with_oven": False,
+            "instructions": "1. Sgranare il cous cous con acqua calda e olio. 2. Aggiungere tonno, pomodori a cubetti e verdure a piacere.",
+            "ingredients": [
+                ("Cous Cous", "200g", "cous cous"),
+                ("Tonno in scatola", "160g", "tonno"),
+                ("Pomodori", "2", "pomodori"),
+                ("Olio d'oliva e sale", "q.b.", "olio")
+            ]
+        },
+        {
+            "name": "Crostoni Salsiccia e Stracchino",
+            "description": "Rusticissimo piatto unico o antipasto per serate in allegria, gratinato al forno.",
+            "source": "Cucchiaio d'Argento",
+            "category": "Piatti Unici",
+            "prep_time": "15 min",
+            "prep_time_min": 15,
+            "difficulty": "Facile",
+            "with_oven": True,
+            "instructions": "1. Spalmare lo stracchino mischiato con la salsiccia sgranata sulle fette di pane. 2. Infornare a 200°C per 10 minuti fino a doratura.",
+            "ingredients": [
+                ("Pane a fette", "4 fette", "pane"),
+                ("Salsiccia", "200g", "salsiccia"),
+                ("Stracchino (o formaggio spalmabile)", "150g", "stracchino")
+            ]
+        },
+        {
+            "name": "Uova al Tegamino con Pancetta",
+            "description": "Colazione salata o pranzo fulmineo, proteico e ultra-saporito.",
+            "source": "Food.com",
+            "category": "Piatti Unici",
+            "prep_time": "6 min",
+            "prep_time_min": 6,
+            "difficulty": "Facile",
+            "with_oven": False,
+            "instructions": "1. Rosolare la pancetta in padella. 2. Aprire le uova direttamente sulla pancetta croccante. 3. Cuocere per 3 minuti fino alla cottura dell'albume.",
+            "ingredients": [
+                ("Uova", "2", "uova"),
+                ("Pancetta o guanciale", "80g", "pancetta"),
+                ("Olio o burro", "q.b.", "olio")
+            ]
+        },
+        {
+            "name": "Piadina Romagnola Classica",
+            "description": "Lo street food italiano per eccellenza, perfetto per un pranzo rapido in periodo di esami.",
+            "source": "GialloZafferano",
+            "category": "Piatti Unici",
+            "prep_time": "5 min",
+            "prep_time_min": 5,
+            "difficulty": "Facile",
+            "with_oven": False,
+            "instructions": "1. Scaldare la piadina su una padella ben calda. 2. Farcire con prosciutto, formaggio e insalata. 3. Piegare a metà e gustare.",
+            "ingredients": [
+                ("Piadina romagnola", "1", "piadina"),
+                ("Prosciutto crudo (o cotto)", "70g", "prosciutto"),
+                ("Formaggio o Squacquerone", "50g", "formaggio")
+            ]
+        },
+
+        # --- DOLCI ---
+        {
             "name": "Tiramisù per Studenti Veloce",
             "description": "Il dolce più famoso d'Italia, nella versione express senza cottura per darsi la carica agli esami.",
             "source": "GialloZafferano",
@@ -228,6 +520,123 @@ def create_db():
                 ("Uova", "2", "uova"),
                 ("Zucchero", "150g", "zucchero"),
                 ("Olio", "100ml", "olio")
+            ]
+        },
+        {
+            "name": "Mug Cake al Cioccolato (in Tazza)",
+            "description": "Torta monoporzione pronta in 3 minuti di microonde. Perfetta per le voglie improvvise di dolce in notturna.",
+            "source": "Tavolartegusto",
+            "category": "Dolci",
+            "prep_time": "5 min",
+            "prep_time_min": 5,
+            "difficulty": "Facile",
+            "with_oven": False,
+            "instructions": "1. Mescolare in una tazza farina, zucchero, cacao, olio e latte. 2. Cuocere in microonde (o cuocere a vapore in padella coperta) per 2 minuti.",
+            "ingredients": [
+                ("Cacao in polvere (o cioccolato)", "2 cucchiai", "cioccolato"),
+                ("Farina", "3 cucchiai", "farina"),
+                ("Zucchero", "2 cucchiai", "zucchero"),
+                ("Olio o latte", "q.b.", "olio")
+            ]
+        },
+        {
+            "name": "Crepes Dolci alla Nutella",
+            "description": "Crespelle sottili ed eleganti farcite di morbida crema di nocciole. Amate in tutto il mondo.",
+            "source": "GialloZafferano",
+            "category": "Dolci",
+            "prep_time": "15 min",
+            "prep_time_min": 15,
+            "difficulty": "Facile",
+            "with_oven": False,
+            "instructions": "1. Pastellare farina, latte e uova. 2. Cuocere un mestolo alla volta in padella antiaderente. 3. Farcire con nutella e ripiegare.",
+            "ingredients": [
+                ("Latte", "250ml", "latte"),
+                ("Farina", "100g", "farina"),
+                ("Uova", "1", "uova"),
+                ("Crema alle nocciole / Nutella", "q.b.", "nutella")
+            ]
+        },
+        {
+            "name": "Salame di Cioccolato Senza Cottura",
+            "description": "Il dolce facilissimo da preparare in compagnia, senza accendere né forno né fornelli.",
+            "source": "Fatto in Casa da Benedetta",
+            "category": "Dolci",
+            "prep_time": "20 min",
+            "prep_time_min": 20,
+            "difficulty": "Facile",
+            "with_oven": False,
+            "instructions": "1. Sminuzzare i biscotti secchi. 2. Mescolarli con burro fuso, cacao e zucchero. 3. Arrotolare a forma di salame in carta stagnola e tenere in frigo per 3 ore.",
+            "ingredients": [
+                ("Biscotti secchi", "300g", "biscotti"),
+                ("Burro", "150g", "burro"),
+                ("Cacao amaro in polvere", "50g", "cacao"),
+                ("Zucchero", "100g", "zucchero")
+            ]
+        },
+        {
+            "name": "Pancakes Americani Soffici",
+            "description": "Frittelle alte e spumose ideali per i brunch del weekend o colazioni super energetiche.",
+            "source": "Cucchiaio d'Argento",
+            "category": "Dolci",
+            "prep_time": "15 min",
+            "prep_time_min": 15,
+            "difficulty": "Facile",
+            "with_oven": False,
+            "instructions": "1. Miscelare uova, farina, latte, zucchero e lievito. 2. Cuocere a gocce in padella calda per 2 min per lato. 3. Guarnire con miele o sciroppo d'acero.",
+            "ingredients": [
+                ("Farina", "150g", "farina"),
+                ("Latte", "200ml", "latte"),
+                ("Uova", "1", "uova"),
+                ("Zucchero", "30g", "zucchero")
+            ]
+        },
+        {
+            "name": "Biscotti al Burro Facilissimi",
+            "description": "Frollini classici al burro, friabili e deliziosi da tuffare nel latte o nel the.",
+            "source": "Food.com",
+            "category": "Dolci",
+            "prep_time": "25 min",
+            "prep_time_min": 25,
+            "difficulty": "Facile",
+            "with_oven": True,
+            "instructions": "1. Impastare burro morbido, zucchero e farina. 2. Formare delle palline e disporle su teglia. 3. Cuocere in forno a 180°C per 15 min.",
+            "ingredients": [
+                ("Burro", "100g", "burro"),
+                ("Farina", "200g", "farina"),
+                ("Zucchero", "100g", "zucchero")
+            ]
+        },
+        {
+            "name": "Muffin alle Gocce di Cioccolato",
+            "description": "Dolcetti monoporzione morbidissimi, con golose pepite di cioccolato fondente.",
+            "source": "Tavolartegusto",
+            "category": "Dolci",
+            "prep_time": "30 min",
+            "prep_time_min": 30,
+            "difficulty": "Facile",
+            "with_oven": True,
+            "instructions": "1. Mescolare ingredienti liquidi (uova, olio, latte) con farina, zucchero, lievito e gocce di cioccolato. 2. Versare nei pirottini. 3. Infornare a 180°C per 20 min.",
+            "ingredients": [
+                ("Farina", "200g", "farina"),
+                ("Zucchero", "100g", "zucchero"),
+                ("Gocce di Cioccolato", "80g", "cioccolato"),
+                ("Latte / Olio / Uova", "q.b.", "uova")
+            ]
+        },
+        {
+            "name": "Panna Cotta al Cacao Veloce",
+            "description": "Dessert al cucchiaio delicato ed elegante, pronto in pochissimi passaggi.",
+            "source": "GialloZafferano",
+            "category": "Dolci",
+            "prep_time": "15 min",
+            "prep_time_min": 15,
+            "difficulty": "Facile",
+            "with_oven": False,
+            "instructions": "1. Scaldare la panna con zucchero e cacao. 2. Aggiungere colla di pesce ammollata. 3. Versare negli stampini e porre in frigo per 4 ore.",
+            "ingredients": [
+                ("Panna liquida per dolci", "500ml", "panna"),
+                ("Zucchero", "100g", "zucchero"),
+                ("Cacao o Cioccolato", "50g", "cioccolato")
             ]
         }
     ]

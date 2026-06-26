@@ -22,6 +22,7 @@ class RecipesScreen extends StatefulWidget {
 class _RecipesScreenState extends State<RecipesScreen> {
   String _selectedCategory = 'Tutte';
   bool? _withOven; // null = tutti, true = con forno, false = senza forno
+  bool _isRandomMode = false;
   List<RecipeMatch> _recipes = [];
   bool _isLoading = true;
 
@@ -49,11 +50,21 @@ class _RecipesScreenState extends State<RecipesScreen> {
         .map((i) => i.name)
         .toList();
 
-    final matches = await RecipeMatcherService.findMatchingRecipes(
-      pantryItems,
-      selectedCategory: _selectedCategory,
-      withOven: _withOven,
-    );
+    List<RecipeMatch> matches;
+    if (_isRandomMode) {
+      matches = await RecipeMatcherService.findRandomRecipes(
+        pantryItems,
+        selectedCategory: _selectedCategory,
+        withOven: _withOven,
+        count: 5,
+      );
+    } else {
+      matches = await RecipeMatcherService.findMatchingRecipes(
+        pantryItems,
+        selectedCategory: _selectedCategory,
+        withOven: _withOven,
+      );
+    }
 
     setState(() {
       _recipes = matches;
@@ -70,23 +81,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
         elevation: 0,
         title: Row(
           children: [
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 4.0),
-                  child: Icon(Icons.room_service_rounded, color: AppColors.primary, size: 28),
-                ),
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: Icon(Icons.star_rounded, size: 14, color: Colors.amber),
-                ),
-              ],
-            ),
+            ChefHatIcon(color: AppColors.primary, size: 28),
             const SizedBox(width: 10),
             Text(
-              'Ricette Magiche',
+              _isRandomMode ? 'Ricette Casuali' : 'Ricette',
               style: TextStyle(
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.bold,
@@ -97,12 +95,24 @@ class _RecipesScreenState extends State<RecipesScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.shopping_cart_outlined, color: AppColors.primary),
-            onPressed: widget.onCartPressed,
+            tooltip: 'Ricette dalla Dispensa',
+            icon: Icon(Icons.kitchen_outlined, color: !_isRandomMode ? AppColors.primary : AppColors.textSecondary, size: 26),
+            onPressed: () {
+              setState(() {
+                _isRandomMode = false;
+              });
+              _loadRecipes();
+            },
           ),
           IconButton(
-            icon: Icon(Icons.home_outlined, color: AppColors.textSecondary),
-            onPressed: widget.onHomePressed,
+            tooltip: '5 Ricette Casuali',
+            icon: Icon(Icons.casino_outlined, color: _isRandomMode ? AppColors.primary : AppColors.textSecondary, size: 26),
+            onPressed: () {
+              setState(() {
+                _isRandomMode = true;
+              });
+              _loadRecipes();
+            },
           ),
         ],
       ),
@@ -302,29 +312,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.amber, width: 1),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
-                        const SizedBox(width: 4),
-                        Text(
-                          recipe.source,
-                          style: const TextStyle(
-                            color: Colors.black87,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -343,7 +330,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   const SizedBox(width: 16),
                   Icon(recipe.withOven ? Icons.microwave_rounded : Icons.pan_tool_rounded, color: AppColors.textSecondary, size: 18),
                   const SizedBox(width: 4),
-                  Text(recipe.withOven ? 'Con Forno' : 'In Padella/Senza Forno', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+                  Text(recipe.withOven ? 'Con Forno' : 'In Padella', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
                 ],
               ),
             ),
@@ -361,29 +348,59 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   const SizedBox(height: 8),
                   ...recipe.allIngredients.map((ing) {
                     final isMissing = recipe.missingIngredients.contains(ing);
+                    final isTolerated = recipe.toleratedIngredients.contains(ing);
+                    
+                    IconData iconData;
+                    Color iconColor;
+                    String statusText = '';
+                    Color textColor = AppColors.textPrimary;
+                    FontWeight fontWeight = FontWeight.normal;
+
+                    if (isMissing) {
+                      iconData = Icons.warning_rounded;
+                      iconColor = Colors.orange;
+                      statusText = 'Manca in Dispensa';
+                      textColor = Colors.orange.shade700;
+                      fontWeight = FontWeight.w600;
+                    } else if (isTolerated) {
+                      iconData = Icons.fiber_manual_record;
+                      iconColor = AppColors.textSecondary.withOpacity(0.6);
+                      statusText = 'Ingrediente base';
+                      textColor = AppColors.textSecondary;
+                    } else {
+                      iconData = Icons.check_circle_rounded;
+                      iconColor = Colors.green;
+                    }
+
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 6.0),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            isMissing ? Icons.warning_rounded : Icons.check_circle_rounded,
-                            color: isMissing ? Colors.orange : Colors.green,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '${ing.name} (${ing.quantity})',
-                            style: TextStyle(
-                              color: isMissing ? Colors.orange.shade700 : AppColors.textPrimary,
-                              fontWeight: isMissing ? FontWeight.w600 : FontWeight.normal,
-                              fontSize: 14,
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2.0),
+                            child: Icon(
+                              iconData,
+                              color: iconColor,
+                              size: isTolerated ? 14 : 18,
                             ),
                           ),
-                          if (isMissing) ...[
-                            const Spacer(),
+                          SizedBox(width: isTolerated ? 12 : 8),
+                          Expanded(
+                            child: Text(
+                              '${ing.name} (${ing.quantity})',
+                              style: TextStyle(
+                                color: textColor,
+                                fontWeight: fontWeight,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          if (statusText.isNotEmpty) ...[
+                            const SizedBox(width: 8),
                             Text(
-                              'Manca in Dispensa',
-                              style: TextStyle(color: Colors.orange.shade700, fontSize: 12, fontStyle: FontStyle.italic),
+                              statusText,
+                              style: TextStyle(color: textColor, fontSize: 12, fontStyle: FontStyle.italic),
                             ),
                           ]
                         ],
@@ -479,4 +496,55 @@ class _RecipesScreenState extends State<RecipesScreen> {
       ),
     );
   }
+}
+
+class ChefHatIcon extends StatelessWidget {
+  final Color color;
+  final double size;
+
+  const ChefHatIcon({super.key, required this.color, this.size = 24});
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size(size, size),
+      painter: _ChefHatPainter(color: color),
+    );
+  }
+}
+
+class _ChefHatPainter extends CustomPainter {
+  final Color color;
+
+  _ChefHatPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.width * 0.08
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final path = Path();
+
+    // Base del cappello (fascia inferiore stilizzata)
+    path.moveTo(size.width * 0.25, size.height * 0.85);
+    path.lineTo(size.width * 0.75, size.height * 0.85);
+    
+    path.moveTo(size.width * 0.25, size.height * 0.70);
+    path.lineTo(size.width * 0.75, size.height * 0.70);
+
+    // Contorno superiore a nuvola stilizzato (3 arcate morbide e continue)
+    path.moveTo(size.width * 0.25, size.height * 0.70);
+    path.cubicTo(size.width * 0.05, size.height * 0.60, size.width * 0.15, size.height * 0.30, size.width * 0.35, size.height * 0.35);
+    path.cubicTo(size.width * 0.40, size.height * 0.10, size.width * 0.60, size.height * 0.10, size.width * 0.65, size.height * 0.35);
+    path.cubicTo(size.width * 0.85, size.height * 0.30, size.width * 0.95, size.height * 0.60, size.width * 0.75, size.height * 0.70);
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

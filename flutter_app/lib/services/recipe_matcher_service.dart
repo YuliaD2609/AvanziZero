@@ -39,6 +39,7 @@ class RecipeMatch {
   final String instructions;
   final List<RecipeIngredient> allIngredients;
   final List<RecipeIngredient> missingIngredients;
+  final List<RecipeIngredient> toleratedIngredients;
 
   RecipeMatch({
     required this.id,
@@ -53,6 +54,7 @@ class RecipeMatch {
     required this.instructions,
     required this.allIngredients,
     required this.missingIngredients,
+    required this.toleratedIngredients,
   });
 }
 
@@ -165,6 +167,9 @@ class RecipeMatcherService {
 
       List<RecipeIngredient> allIngredients = ingredientMaps.map((m) => RecipeIngredient.fromMap(m)).toList();
       List<RecipeIngredient> missingIngredients = [];
+      List<RecipeIngredient> toleratedIngredients = [];
+
+      final List<String> stapleKeywords = ['zucchero', 'farina', 'sale', 'pepe', 'acqua', 'olio'];
 
       for (var ing in allIngredients) {
         bool found = false;
@@ -175,27 +180,30 @@ class RecipeMatcherService {
           }
         }
         if (!found) {
-          missingIngredients.add(ing);
+          bool isStaple = stapleKeywords.any((staple) => ing.normalizedName.contains(staple) || ing.name.toLowerCase().contains(staple));
+          if (isStaple) {
+            toleratedIngredients.add(ing);
+          } else {
+            missingIngredients.add(ing);
+          }
         }
       }
 
-      // Filtro Tolleranza: massimo 2 ingredienti mancanti
-      if (missingIngredients.length <= 2) {
-        matches.add(RecipeMatch(
-          id: recipeId,
-          name: map['name'] as String,
-          description: (map['description'] as String?) ?? '',
-          source: map['source'] as String,
-          category: map['category'] as String,
-          prepTime: map['prep_time'] as String,
-          prepTimeMin: map['prep_time_min'] as int,
-          difficulty: map['difficulty'] as String,
-          withOven: (map['with_oven'] as int) == 1,
-          instructions: map['instructions'] as String,
-          allIngredients: allIngredients,
-          missingIngredients: missingIngredients,
-        ));
-      }
+      matches.add(RecipeMatch(
+        id: recipeId,
+        name: map['name'] as String,
+        description: (map['description'] as String?) ?? '',
+        source: map['source'] as String,
+        category: map['category'] as String,
+        prepTime: map['prep_time'] as String,
+        prepTimeMin: map['prep_time_min'] as int,
+        difficulty: map['difficulty'] as String,
+        withOven: (map['with_oven'] as int) == 1,
+        instructions: map['instructions'] as String,
+        allIngredients: allIngredients,
+        missingIngredients: missingIngredients,
+        toleratedIngredients: toleratedIngredients,
+      ));
     }
 
     // Ranking per studenti: prima le ricette con meno ingredienti mancanti, poi le più veloci
@@ -204,6 +212,95 @@ class RecipeMatcherService {
       if (missingCompare != 0) return missingCompare;
       return a.prepTimeMin.compareTo(b.prepTimeMin);
     });
+
+    if (matches.length > 5) {
+      matches = matches.sublist(0, 5);
+    }
+
+    return matches;
+  }
+
+  /// Interroga il database SQLite per ottenere ricette casuali in base ai filtri, ignorando il limite di ingredienti mancanti
+  static Future<List<RecipeMatch>> findRandomRecipes(
+    List<String> pantryItems, {
+    String? selectedCategory,
+    bool? withOven,
+    int count = 5,
+  }) async {
+    final db = await getDatabase();
+
+    String whereClause = '1 = 1';
+    List<dynamic> whereArgs = [];
+
+    if (selectedCategory != null && selectedCategory.isNotEmpty && selectedCategory != 'Tutte') {
+      whereClause += ' AND category = ?';
+      whereArgs.add(selectedCategory);
+    }
+
+    if (withOven != null) {
+      whereClause += ' AND with_oven = ?';
+      whereArgs.add(withOven ? 1 : 0);
+    }
+
+    final List<Map<String, dynamic>> maps = await db.query(
+      'recipes',
+      where: whereClause,
+      whereArgs: whereArgs,
+      orderBy: 'RANDOM()',
+      limit: count,
+    );
+
+    final normalizedPantry = pantryItems.map((e) => e.trim().toLowerCase()).toList();
+    List<RecipeMatch> matches = [];
+    final List<String> stapleKeywords = ['zucchero', 'farina', 'sale', 'pepe', 'acqua', 'olio'];
+
+    for (var map in maps) {
+      final recipeId = map['id'] as int;
+
+      final List<Map<String, dynamic>> ingredientMaps = await db.query(
+        'recipe_ingredients',
+        where: 'recipe_id = ?',
+        whereArgs: [recipeId],
+      );
+
+      List<RecipeIngredient> allIngredients = ingredientMaps.map((m) => RecipeIngredient.fromMap(m)).toList();
+      List<RecipeIngredient> missingIngredients = [];
+      List<RecipeIngredient> toleratedIngredients = [];
+
+      for (var ing in allIngredients) {
+        bool found = false;
+        for (var pItem in normalizedPantry) {
+          if (pItem.contains(ing.normalizedName) || ing.normalizedName.contains(pItem)) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          bool isStaple = stapleKeywords.any((staple) => ing.normalizedName.contains(staple) || ing.name.toLowerCase().contains(staple));
+          if (isStaple) {
+            toleratedIngredients.add(ing);
+          } else {
+            missingIngredients.add(ing);
+          }
+        }
+      }
+
+      matches.add(RecipeMatch(
+        id: recipeId,
+        name: map['name'] as String,
+        description: (map['description'] as String?) ?? '',
+        source: map['source'] as String,
+        category: map['category'] as String,
+        prepTime: map['prep_time'] as String,
+        prepTimeMin: map['prep_time_min'] as int,
+        difficulty: map['difficulty'] as String,
+        withOven: (map['with_oven'] as int) == 1,
+        instructions: map['instructions'] as String,
+        allIngredients: allIngredients,
+        missingIngredients: missingIngredients,
+        toleratedIngredients: toleratedIngredients,
+      ));
+    }
 
     return matches;
   }
