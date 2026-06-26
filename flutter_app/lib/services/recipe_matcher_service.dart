@@ -184,7 +184,7 @@ class RecipeMatcherService {
         matches.add(RecipeMatch(
           id: recipeId,
           name: map['name'] as String,
-          description: map['description'] as String?,
+          description: (map['description'] as String?) ?? '',
           source: map['source'] as String,
           category: map['category'] as String,
           prepTime: map['prep_time'] as String,

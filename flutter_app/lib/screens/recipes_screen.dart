@@ -274,7 +274,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: isReadyToCook ? AppColors.primary.withOpacity(0.15) : AppColors.background,
-                border: Border(bottom: Border.all(color: AppColors.border, width: 1)),
+                border: Border(bottom: BorderSide(color: AppColors.border, width: 1)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
