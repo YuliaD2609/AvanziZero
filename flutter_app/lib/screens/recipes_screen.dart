@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/app_state.dart';
-import '../services/recipe_matcher_service.dart';
+import '../services/ia/recipe_matcher_service.dart';
 import '../theme/app_colors.dart';
 
 class RecipesScreen extends StatefulWidget {
@@ -21,7 +21,7 @@ class RecipesScreen extends StatefulWidget {
 
 class _RecipesScreenState extends State<RecipesScreen> {
   String _selectedCategory = 'Tutte';
-  bool? _withOven; // null = tutti, true = con forno, false = senza forno
+  bool? _withOven; // Opzione forno
   bool _isRandomMode = false;
   List<RecipeMatch> _recipes = [];
   bool _isLoading = true;
@@ -118,7 +118,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
       ),
       body: Column(
         children: [
-          // Sezione Filtri: Categorie ed opzione Forno
+          // Sezione filtri
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
@@ -134,7 +134,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Chip Categorie
+                // Chip categorie
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -164,7 +164,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                // Checkbox Forno / Senza Forno
+                // Filtri forno
                 Row(
                   children: [
                     Text(
@@ -176,7 +176,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // Checkbox Con Forno
+                    // Con forno
                     FilterChip(
                       selected: _withOven == true,
                       label: const Text('Con Forno'),
@@ -195,7 +195,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       },
                     ),
                     const SizedBox(width: 8),
-                    // Checkbox Senza Forno
+                    // Senza forno
                     FilterChip(
                       selected: _withOven == false,
                       label: const Text('Senza Forno'),
@@ -218,7 +218,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
               ],
             ),
           ),
-          // Lista delle Ricette
+          // Lista ricette
           Expanded(
             child: _isLoading
                 ? Center(
@@ -279,7 +279,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Intestazione Card: Nome e Tag Fonte
+            // Intestazione card
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -315,7 +315,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 ],
               ),
             ),
-            // Info su Tempo, Difficoltà e Forno
+            // Info cottura
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
@@ -335,7 +335,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
               ),
             ),
             const Divider(height: 1),
-            // Sezione Ingredienti
+            // Sezione ingredienti
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -420,7 +420,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 ],
               ),
             ),
-            // Pulsante di Azione (Aggiungi Mancanti alla Spesa)
+            // Pulsante azione
             if (!isReadyToCook)
               Padding(
                 padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
@@ -448,7 +448,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           duration: const Duration(seconds: 3),
                         ),
                       );
-                      // Ricarica per aggiornare lo stato
+                      // Ricarica stato
                       _loadRecipes();
                     }
                   },
@@ -529,14 +529,14 @@ class _ChefHatPainter extends CustomPainter {
 
     final path = Path();
 
-    // Base del cappello (fascia inferiore stilizzata)
+    // Base cappello
     path.moveTo(size.width * 0.25, size.height * 0.85);
     path.lineTo(size.width * 0.75, size.height * 0.85);
     
     path.moveTo(size.width * 0.25, size.height * 0.70);
     path.lineTo(size.width * 0.75, size.height * 0.70);
 
-    // Contorno superiore a nuvola stilizzato (3 arcate morbide e continue)
+    // Contorno superiore
     path.moveTo(size.width * 0.25, size.height * 0.70);
     path.cubicTo(size.width * 0.05, size.height * 0.60, size.width * 0.15, size.height * 0.30, size.width * 0.35, size.height * 0.35);
     path.cubicTo(size.width * 0.40, size.height * 0.10, size.width * 0.60, size.height * 0.10, size.width * 0.65, size.height * 0.35);

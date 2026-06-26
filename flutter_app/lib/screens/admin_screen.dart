@@ -42,7 +42,7 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   void _saveProfile() async {
-    // Funzionalità mockata per il profilo personale (da implementare in futuro)
+    // Profilo mockato
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text("Profilo aggiornato con successo!"),
@@ -51,7 +51,7 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
-  // ============== GESTIONE GRUPPO E RICHIESTE =================
+  // Gestione gruppo e richieste
 
   Future<void> _confirmRemoveMember(String uid) async {
     showDialog(
@@ -143,18 +143,18 @@ class _AdminScreenState extends State<AdminScreen> {
     if (groupId == null) return;
     try {
       final db = FirebaseFirestore.instance;
-      // 1. Rimuovi la richiesta
+      // Rimuovi richiesta
       await db
           .collection('groups')
           .doc(groupId)
           .collection('requests')
           .doc(uid)
           .delete();
-      // 2. Aggiungi il membro al gruppo
+      // Aggiungi membro
       await db.collection('groups').doc(groupId).update({
         'members': FieldValue.arrayUnion([uid])
       });
-      // 3. Aggiorna l'utente (aggiungi groupIds, rimuovi pending)
+      // Aggiorna utente
       await db.collection('users').doc(uid).update({
         'groupIds': FieldValue.arrayUnion([groupId]),
         'pendingGroupIds': FieldValue.arrayRemove([groupId])
@@ -240,9 +240,7 @@ class _AdminScreenState extends State<AdminScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ==========================================
-              // SEZIONE 1: MODIFICA DATI PERSONALI
-              // ==========================================
+              // Sezione modifica dati
               _buildSectionTitle("I Miei Dati Personali"),
               Container(
                 padding: const EdgeInsets.all(20),
@@ -334,9 +332,7 @@ class _AdminScreenState extends State<AdminScreen> {
               ),
               const SizedBox(height: 28),
 
-              // ==========================================
-              // SEZIONE 1.5: NOTIFICHE
-              // ==========================================
+              // Sezione notifiche
               _buildSectionTitle("Impostazioni Notifiche"),
               Container(
                 decoration: BoxDecoration(
@@ -447,9 +443,7 @@ class _AdminScreenState extends State<AdminScreen> {
               ),
               const SizedBox(height: 28),
 
-              // ==========================================
-              // SEZIONE LOGOUT
-              // ==========================================
+              // Sezione logout
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
@@ -475,11 +469,11 @@ class _AdminScreenState extends State<AdminScreen> {
               ),
               const SizedBox(height: 28),
 
-              // Se non c'è un gruppo attivo, fermati qui
+              // Nessun gruppo attivo
               if (widget.state.groupId == null)
                 const SizedBox.shrink()
               else ...[
-                // Dati real-time del gruppo
+                // Dati gruppo
                 StreamBuilder<DocumentSnapshot>(
                     stream: FirebaseFirestore.instance
                         .collection('groups')
@@ -502,9 +496,7 @@ class _AdminScreenState extends State<AdminScreen> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // ==========================================
-                          // NOME DEL GRUPPO E CODICE
-                          // ==========================================
+                          // Nome e codice gruppo
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -550,9 +542,7 @@ class _AdminScreenState extends State<AdminScreen> {
                             ],
                           ),
 
-                          // ==========================================
-                          // SEZIONE 2: MEMBRI DEL GRUPPO
-                          // ==========================================
+                          // Sezione membri
                           _buildSectionTitle("Membri del Gruppo"),
                           Container(
                             padding: const EdgeInsets.all(12),
@@ -694,9 +684,7 @@ class _AdminScreenState extends State<AdminScreen> {
                           ),
                           const SizedBox(height: 28),
 
-                          // ==========================================
-                          // SEZIONE 3: RICHIESTE DI INGRESSO
-                          // ==========================================
+                          // Sezione richieste
                           if (isMeAdmin) ...[
                             _buildSectionTitle("Richieste di Ingresso"),
                             const SizedBox(height: 10),
@@ -930,9 +918,9 @@ class _AdminScreenState extends State<AdminScreen> {
               Navigator.pop(ctx);
               await widget.state.deleteGroup();
               if (mounted) {
-                // Dopo l'eliminazione, FirebaseService cancellerà il doc.
-                // Il listener in AppState lo rileverà e forzerà il leaveGroup.
-                Navigator.pop(context); // Torna alla home
+                // Cancella documento
+                // Forza leaveGroup
+                Navigator.pop(context); // Torna home
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
@@ -1059,7 +1047,7 @@ class _AdminScreenState extends State<AdminScreen> {
         'groupIds': FieldValue.arrayRemove([groupId])
       });
 
-      // Rimuovi dalle cronologie locali per non mostrare più il gruppo nei recenti
+      // Rimuovi cronologia locale
       widget.state.savedGroups.remove(groupId);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setStringList('savedGroups', widget.state.savedGroups);
@@ -1067,7 +1055,7 @@ class _AdminScreenState extends State<AdminScreen> {
         widget.state.currentUserData!.groupIds.remove(groupId);
       }
 
-      // Resetta stato locale senza attivare l'alert di gruppo eliminato
+      // Resetta stato locale
       await widget.state.leaveGroup(deleted: false);
 
       if (mounted) {

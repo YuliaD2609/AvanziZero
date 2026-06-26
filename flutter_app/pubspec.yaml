@@ -41,5 +41,5 @@ flutter:
   assets:
     - assets/images/logo.png
     - .env
-    - assets/models/
+    - assets/ai_models/
     - assets/db/recipes_catalog.db

@@ -7,22 +7,21 @@ class AuthService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   AuthService() {
-    // Workaround per gli emulatori: disabilita il controllo Play Integrity / reCAPTCHA
-    // che causa l'errore CONFIGURATION_NOT_FOUND in locale.
+    // Disabilita controlli di sicurezza in locale
     _auth.setSettings(appVerificationDisabledForTesting: true);
   }
 
-  // Stream per ascoltare i cambiamenti di stato dell'autenticazione
+  // Definisce stream autenticazione
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  // Restituisce l'utente corrente o null
+  // Restituisce utente corrente
   User? get currentUser => _auth.currentUser;
 
   Future<void> _disableRecaptcha() async {
     await _auth.setSettings(appVerificationDisabledForTesting: true);
   }
 
-  // Registrazione con Email e Password
+  // Registra nuovo utente
   Future<UserModel?> registerWithEmailAndPassword(
       String email, String password, String name) async {
     try {
@@ -32,12 +31,12 @@ class AuthService {
       User? user = result.user;
 
       if (user != null) {
-        // Creazione del documento utente in Firestore
+        // Crea documento utente
         UserModel newUser = UserModel(
           id: user.uid,
           email: email,
           name: name,
-          groupIds: [], // Nessun gruppo alla registrazione
+          groupIds: [], // Inizializza gruppi vuoti
         );
 
         await _db.collection('users').doc(user.uid).set(newUser.toMap());
@@ -49,7 +48,7 @@ class AuthService {
     }
   }
 
-  // Login con Email e Password
+  // Effettua il login
   Future<UserModel?> signInWithEmailAndPassword(
       String email, String password) async {
     try {
@@ -67,7 +66,7 @@ class AuthService {
     }
   }
 
-  // Recupera i dati dell'utente dal DB
+  // Recupera dati utente
   Future<UserModel?> getUserData(String uid) async {
     try {
       DocumentSnapshot doc = await _db.collection('users').doc(uid).get();
@@ -80,7 +79,7 @@ class AuthService {
     }
   }
 
-  // Aggiunge un gruppo all'utente
+  // Aggiunge gruppo all'utente
   Future<void> addGroupToUser(String uid, String groupId) async {
     try {
       await _db.collection('users').doc(uid).update({
@@ -95,11 +94,11 @@ class AuthService {
   Future<void> sendJoinRequest(
       String uid, String groupId, String name, String email) async {
     try {
-      // 1. Aggiungi il gruppo nei pendingGroupIds dell'utente
+      // Aggiunge gruppo a richieste in sospeso
       await _db.collection('users').doc(uid).update({
         'pendingGroupIds': FieldValue.arrayUnion([groupId])
       });
-      // 2. Crea il documento richiesta
+      // Crea documento richiesta
       await _db
           .collection('groups')
           .doc(groupId)
@@ -116,7 +115,7 @@ class AuthService {
     }
   }
 
-  // Logout
+  // Effettua il logout
   Future<void> signOut() async {
     try {
       return await _auth.signOut();
@@ -125,7 +124,7 @@ class AuthService {
     }
   }
 
-  // Recupero Password
+  // Invia reset password
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);

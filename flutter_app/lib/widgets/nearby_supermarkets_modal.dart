@@ -33,7 +33,7 @@ void showNearbySupermarketsModal(BuildContext context, AppState state) {
   showModalBottomSheet(
     context: context,
     backgroundColor: Colors.transparent,
-    isScrollControlled: true, // Impedisce overflow su schermi ridotti
+    isScrollControlled: true, // Impedisce overflow
     builder: (context) => StatefulBuilder(
       builder: (context, setModalState) {
         if (!hasStartedFetching) {
@@ -186,7 +186,7 @@ void showNearbySupermarketsModal(BuildContext context, AppState state) {
         return Container(
           constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height *
-                0.85, // Lascia un margine superiore visibile
+                0.85, // Margine superiore visibile
           ),
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
@@ -236,12 +236,12 @@ void showNearbySupermarketsModal(BuildContext context, AppState state) {
               ),
               const SizedBox(height: 8),
 
-              // Lista scrollabile o Errore
+              // Contenuto dinamico
               Expanded(child: contentWidget),
 
               const SizedBox(height: 12),
 
-              // Pulsante di avvio in Maps
+              // Pulsante Maps
               ElevatedButton.icon(
                 onPressed: () async {
                   String query;
@@ -284,7 +284,7 @@ void showNearbySupermarketsModal(BuildContext context, AppState state) {
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
-                      AppColors.primaryDark, // Accento Verde Scuro/Teal
+                      AppColors.primaryDark, // Colore accento
                   foregroundColor:
                       Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),

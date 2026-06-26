@@ -19,13 +19,13 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Identifica i prodotti in scadenza per il warningLayout
+    // Identifica prodotti in scadenza
     final expiringItems = state.expiringItems;
 
     return Scaffold(
-      backgroundColor: AppColors.background, // Avorio soft
+      backgroundColor: AppColors.background, // Colore sfondo
 
-      // Rimosso FAB come richiesto, l'IA scanner è stato spostato in Dispensa
+      // FAB rimosso
 
       body: Column(
         children: [
@@ -61,14 +61,14 @@ class HomeScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Banner premium del Gruppo Casa Attivo con opzione di Uscita
+                  // Banner gruppo attivo
                   if (state.groupId != null)
                     Container(
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 10),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryLight, // Menta Chiaro
+                        color: AppColors.primaryLight, // Colore menta
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                             color: AppColors.primary.withValues(alpha: 0.3)),
@@ -131,7 +131,7 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
 
-                  // Logo / Titolo (Sostituisce l'ImageView logo_text in modo premium)
+                  // Logo
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Column(
@@ -152,7 +152,7 @@ class HomeScreen extends StatelessWidget {
                             fontFamily: 'Outfit',
                             fontSize: 36,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.primary, // Verde Salvia Intenso
+                            color: AppColors.primary, // Colore verde
                             letterSpacing: -0.5,
                           ),
                           textAlign: TextAlign.center,
@@ -173,11 +173,9 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // ===============================================================
-                  // PULSANTI PRINCIPALI (Lasciati esattamente con le scritte originali)
-                  // ===============================================================
+                  // Pulsanti principali
 
-                  // 1. Lista della spesa
+                  // Lista spesa
                   _buildMainNavigationButton(
                     title: "Lista della spesa",
                     iconData: Icons.receipt_long_rounded,
@@ -185,7 +183,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // 2. Dispensa
+                  // Dispensa
                   _buildMainNavigationButton(
                     title: "Dispensa",
                     iconData: Icons.kitchen_rounded,
@@ -193,9 +191,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // ===============================================================
-                  // SEZIONE WARNING: PRODOTTI IN SCADENZA (warningLayout)
-                  // ===============================================================
+                  // Sezione warning scadenza
                   Container(
                     height: 200,
                     decoration: BoxDecoration(
@@ -212,12 +208,12 @@ class HomeScreen extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        // Intestazione con la scritta esatta nativa "Prodotti in scadenza"
+                        // Intestazione warning
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 10),
                           decoration: BoxDecoration(
-                            color: AppColors.errorLight, // Sfondo rosso chiaro
+                            color: AppColors.errorLight, // Colore rosso chiaro
                             borderRadius: const BorderRadius.only(
                                 topLeft: Radius.circular(18),
                                 topRight: Radius.circular(18)),
@@ -234,7 +230,7 @@ class HomeScreen extends StatelessWidget {
                           ),
                         ),
 
-                        // Contenitore lista in scadenza (warningContainer)
+                        // Lista scadenza
                         Expanded(
                           child: expiringItems.isEmpty
                               ? Center(
@@ -299,7 +295,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // Nota informativa di orientamento (i supermercati sono spostati nel carrello in alto a destra)
+                  // Nota informativa
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
@@ -326,7 +322,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
 
-                  // Spazio per il FAB
+                  // Spazio FAB
                   const SizedBox(height: 80),
                 ],
               ),
@@ -337,7 +333,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Costruisce i bottoni principali replicando il design con i bordi e l'icona a sinistra
+  // Costruisce bottoni navigazione
   Widget _buildMainNavigationButton({
     required String title,
     required IconData iconData,
@@ -347,7 +343,7 @@ class HomeScreen extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        height: 70, // Altezza generosa simile al 60dp nativo
+        height: 70, // Altezza bottone
         decoration: BoxDecoration(
           color: AppColors.surfaceLight,
           borderRadius: BorderRadius.circular(20),

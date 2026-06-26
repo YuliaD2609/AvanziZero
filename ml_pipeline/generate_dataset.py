@@ -2,7 +2,7 @@ import json
 import random
 import os
 
-# Liste di prodotti espansi (supermercato italiano)
+# Definisce le liste di prodotti base
 FRUTTA_VERDURA = [
     "MELA", "MELE", "BANANA", "BANANE", "POMODORO", "POMODORI", "INSALATA", "PATATE",
     "CIPOLLA", "CIPOLLE", "CAROTE", "ZUCCHINE", "LIMONE", "LIMONI", "PESCA", "PESCHE",
@@ -61,7 +61,8 @@ def add_noise(word):
     if random.random() < 0.1:
         return word.replace("B", "8")
     if random.random() < 0.05 and len(word) > 3:
-        return word[:len(word)//2] + word[len(word)//2 + 1:] # Rimuovi un carattere
+        # Rimuove un carattere casuale
+        return word[:len(word)//2] + word[len(word)//2 + 1:]
     return word
 
 def generate_receipt_item():
@@ -69,7 +70,7 @@ def generate_receipt_item():
     tokens = []
     ner_tags = []
     
-    # Probabilità di includere la QTY
+    # Calcola la probabilità per la quantità
     has_qty = random.random() > 0.3
     qty_first = random.random() > 0.5
     
@@ -82,33 +83,33 @@ def generate_receipt_item():
     product = random.choice(ALL_PRODUCTS)
     product_tokens = product.split()
     
-    # Aggiungi modificatori di prodotto (es. BIO, IT, SAN ROCCO)
+    # Applica modificatori al prodotto
     if random.random() > 0.4:
-        # Aggiunge 1 o 2 modificatori
+        # Seleziona modificatori casuali
         mods = random.sample(PRODUCT_MODIFIERS, k=random.randint(1, 2))
         product_tokens.extend(mods)
         
-    # Applica rumore
+    # Applica rumore simulato ai token
     product_tokens = [add_noise(t) for t in product_tokens]
     
-    # Rumore OCR da classificare come O
+    # Prepara rumore da etichettare come O
     extra_noise = []
-    # Aggiungi brand supermercato che DEVE essere ignorato
+    # Inserisce nomi di brand da ignorare
     if random.random() > 0.6:
         extra_noise.append(random.choice(SUPERMARKET_BRANDS))
         
     if random.random() > 0.7:
-        extra_noise.append(f"{random.randint(10,99)}-{random.randint(1,9)}") # es. 14-2
+        extra_noise.append(f"{random.randint(10,99)}-{random.randint(1,9)}")
     if random.random() > 0.8:
-        extra_noise.append(f"{random.randint(100,500)}g") # es. 250g
+        extra_noise.append(f"{random.randint(100,500)}g")
     if random.random() > 0.9:
-        extra_noise.append(str(random.randint(1000,9999))) # es. barcode 7585
+        extra_noise.append(str(random.randint(1000,9999)))
         
     price = f"{random.randint(0, 20)},{random.randint(10, 99)}"
     iva_code = random.choice(["", " B", " C", " D", " IVA"])
     price += iva_code
     
-    # Costruzione Riga
+    # Compone la riga finale con i token
     if has_qty and qty_first:
         tokens.append(qty)
         ner_tags.append("B-QTY")
@@ -121,7 +122,7 @@ def generate_receipt_item():
         tokens.append(qty)
         ner_tags.append("B-QTY")
         
-    # Aggiunta rumore ed extra (Tutto O)
+    # Inserisce token di rumore ed extra
     for noise in extra_noise:
         tokens.append(noise)
         ner_tags.append("O")
@@ -151,7 +152,7 @@ def generate_garbage_line():
         [random.choice(supermercati), "ITALIA", "SPA"],
         ["SCANSIONATO", "CON", "CAMSCANNER"],
         ["ARRIVEDERCI", "E", "GRAZIE"],
-        [str(random.randint(1000, 9999)), "B"], # Codici OCR fasulli
+        [str(random.randint(1000, 9999)), "B"],
         ["VIA", "ROMA", "15", "TEL", "02123456"]
     ]
     tokens = random.choice(options)
@@ -164,7 +165,8 @@ def main():
     
     print(f"Generazione dataset sintetico massivo ({NUM_EXAMPLES} esempi)...")
     for _ in range(NUM_EXAMPLES):
-        if random.random() < 0.15: # 15% di righe spazzatura pura
+        # Aggiunge una riga di puro rumore con probabilità del 15%
+        if random.random() < 0.15:
             dataset.append(generate_garbage_line())
         else:
             dataset.append(generate_receipt_item())

@@ -20,10 +20,10 @@ class HorizontalHeaderMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Implementa il layout di horizontal_menu.xml con stile Pastel Sage
+    // Layout menu orizzontale
     return Container(
       height:
-          85, // Altezza proporzionata per il mobile (leggermente ingrandito)
+          85, // Altezza menu orizzontale
       decoration: BoxDecoration(
         color: AppColors.primary,
         boxShadow: [
@@ -39,7 +39,7 @@ class HorizontalHeaderMenu extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Pulsante Home o leftAction a sinistra come da layout nativo
+            // Pulsante home sinistro
             leftAction != null
                 ? leftAction!
                 : (showHome
@@ -51,7 +51,7 @@ class HorizontalHeaderMenu extends StatelessWidget {
                       )
                     : const SizedBox(width: 48)),
 
-            // Titolo della sezione al centro
+            // Titolo sezione centrale
             Expanded(
               child: Text(
                 title,
@@ -68,7 +68,7 @@ class HorizontalHeaderMenu extends StatelessWidget {
               ),
             ),
 
-            // Pulsante Supermercati Vicini a destra
+            // Pulsante supermercati destro
             IconButton(
               icon: Icon(Icons.storefront_rounded,
                   color: Colors.white, size: 28),
@@ -92,7 +92,7 @@ class VerticalCategoryMenu extends StatelessWidget {
     required this.section,
   });
 
-  // Finestra di dialogo per aggiungere una nuova categoria
+  // Dialogo nuova categoria
   void _showAddCategoryDialog(BuildContext context) {
     final TextEditingController catController = TextEditingController();
     final String title = section == 'pantry' ? "Nuova Categoria Dispensa" : "Nuova Categoria Spesa";
@@ -170,9 +170,9 @@ class VerticalCategoryMenu extends StatelessWidget {
     );
   }
 
-  // Finestra di dialogo per eliminare una categoria personalizzata
+  // Dialogo elimina categoria
   void _showDeleteCategoryDialog(BuildContext context, String category) {
-    if (category == "Tutti") return; // Non è possibile eliminare "Tutti"
+    if (category == "Tutti") return; // Impedisce eliminazione Tutti
 
     showDialog(
       context: context,
@@ -206,7 +206,7 @@ class VerticalCategoryMenu extends StatelessWidget {
         ? state.selectedPantryCategory 
         : state.selectedShoppingCategory;
 
-    // Implementa vertical_menu.xml: colonna laterale sinistra con la lista delle categorie
+    // Layout menu verticale
     return Container(
       width: 85,
       decoration: BoxDecoration(
@@ -224,7 +224,7 @@ class VerticalCategoryMenu extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Lista scrollabile delle categorie
+          // Lista categorie scrollabile
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -255,7 +255,7 @@ class VerticalCategoryMenu extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Solo testo per la categoria come richiesto
+                        // Testo categoria
                         Text(
                           category,
                           textAlign: TextAlign.center,
@@ -280,14 +280,14 @@ class VerticalCategoryMenu extends StatelessWidget {
             ),
           ),
 
-          // Pulsante (+) in fondo per aggiungere una nuova categoria (addCategory)
+          // Pulsante aggiungi categoria
           InkWell(
             onTap: () => _showAddCategoryDialog(context),
             child: Container(
               height: 50,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColors.primaryDark, // Accento Verde Scuro/Teal
+                color: AppColors.primaryDark, // Colore accento
                 borderRadius:
                     const BorderRadius.only(topRight: Radius.circular(12)),
               ),

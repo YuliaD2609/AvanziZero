@@ -26,7 +26,7 @@ class _PantryScreenState extends State<PantryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Filtra i prodotti dispensa in base alla categoria attiva e alla barra di ricerca
+    // Filtra prodotti
     final filteredItems = widget.state.allItems.where((item) {
       if (!item.isPantry) return false;
       final matchesCategory = widget.state.selectedPantryCategory == "Tutti" ||
@@ -36,15 +36,15 @@ class _PantryScreenState extends State<PantryScreen> {
       return matchesCategory && matchesSearch;
     }).toList();
 
-    // Ordina i prodotti in ordine alfabetico (case insensitive)
+    // Ordina prodotti
     filteredItems
         .sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     return Scaffold(
-      backgroundColor: AppColors.background, // Avorio soft
+      backgroundColor: AppColors.background, // Colore sfondo
       body: Column(
         children: [
-          // Menu Orizzontale Superiore come da layout nativo
+          // Menu superiore
           HorizontalHeaderMenu(
             title: "Dispensa",
             onHomePressed: widget.onHomePressed,
@@ -58,11 +58,11 @@ class _PantryScreenState extends State<PantryScreen> {
             ),
           ),
 
-          // Corpo Centrale: Menu Verticale Categorie a sinistra, Barra Ricerca e Prodotti a destra
+          // Corpo centrale
           Expanded(
             child: Row(
               children: [
-                // Menu Verticale a sinistra (lasciata intatta la divisione in categorie)
+                // Menu laterale
                 AnimatedSize(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
@@ -75,11 +75,11 @@ class _PantryScreenState extends State<PantryScreen> {
                       : const SizedBox(width: 0),
                 ),
 
-                // Sezione Destra: Barra di ricerca e Lista
+                // Sezione destra
                 Expanded(
                   child: Column(
                     children: [
-                      // Barra di Ricerca (search_bar)
+                      // Barra ricerca
                       Padding(
                         padding: const EdgeInsets.all(12),
                         child: Row(
@@ -127,11 +127,11 @@ class _PantryScreenState extends State<PantryScreen> {
                         ),
                       ),
 
-                      // Area principale: Lista dispensa e Pulsanti sovrapposti
+                      // Area principale
                       Expanded(
                         child: Stack(
                           children: [
-                            // 1. Lista dispensa scrollabile dietro i pulsanti
+                            // Lista dispensa
                             Positioned.fill(
                               child: filteredItems.isEmpty
                                   ? Center(
@@ -152,7 +152,7 @@ class _PantryScreenState extends State<PantryScreen> {
                                           left: 12,
                                           right: 12,
                                           bottom:
-                                              80), // Padding extra per scrollare oltre i pulsanti
+                                              80), //  Padding scroll
                                       itemCount: filteredItems.length,
                                       itemBuilder: (context, index) {
                                         final item = filteredItems[index];
@@ -161,7 +161,7 @@ class _PantryScreenState extends State<PantryScreen> {
                                     ),
                             ),
 
-                            // 2. Pulsanti flottanti in basso a destra
+                            // Pulsanti flottanti
                             Positioned(
                               bottom: 12,
                               right: 12,
@@ -218,9 +218,9 @@ class _PantryScreenState extends State<PantryScreen> {
     );
   }
 
-  // Costruisce la card prodotto seguendo pantry_item_layout.xml
+  // Costruisce card prodotto
   Widget _buildPantryItemCard(ItemModel item) {
-    // Colore del bordo in base all'urgenza "Zero Spreco"
+    // Colore bordo urgenza
     Color urgencyColor = AppColors.border;
     if (item.urgencyLevel == 2) urgencyColor = AppColors.error; // Rosso
     if (item.urgencyLevel == 1) urgencyColor = AppColors.warning; // Giallo
@@ -252,7 +252,7 @@ class _PantryScreenState extends State<PantryScreen> {
                 children: [
                   Row(
                     children: [
-                      // Pallino segnaposto a sinistra
+                      // Pallino segnaposto
                       Container(
                         width: 8,
                         height: 8,
@@ -266,7 +266,7 @@ class _PantryScreenState extends State<PantryScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      // Nome Prodotto (itemName)
+                      // Nome prodotto
                       Expanded(
                         child: Text(
                           item.name,
@@ -293,11 +293,11 @@ class _PantryScreenState extends State<PantryScreen> {
                   ),
                   const SizedBox(height: 8),
 
-                  // Sezione Scadenza e Quantità
+                  // Sezione dettagli
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Scadenza testuale nativa (TextExpire + itemExpire)
+                      // Scadenza testuale
                       Expanded(
                         child: Text(
                           item.formattedDateForUI,
@@ -313,7 +313,7 @@ class _PantryScreenState extends State<PantryScreen> {
                         ),
                       ),
 
-                      // Controlli Quantità (+ / -)
+                      // Controlli quantità
                       Row(
                         children: [
                           Text(
@@ -323,7 +323,7 @@ class _PantryScreenState extends State<PantryScreen> {
                           ),
                           const SizedBox(width: 6),
 
-                          // Pulsante Decremento (-)
+                          // Pulsante decremento
                           InkWell(
                             onTap: () {
                               if (item.quantity == 1) {
@@ -331,6 +331,7 @@ class _PantryScreenState extends State<PantryScreen> {
                                   context: context,
                                   builder: (context) => AlertDialog(
                                     backgroundColor: AppColors.surfaceLight,
+                                    // Titolo dell'avviso prodotto terminato
                                     title: Text("Prodotto terminato",
                                         style: TextStyle(
                                             fontFamily: 'Outfit',
@@ -392,7 +393,7 @@ class _PantryScreenState extends State<PantryScreen> {
                             ),
                           ),
 
-                          // Quantità Attuale (itemQuantity)
+                          // Quantità attuale
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                             child: Text(
@@ -406,7 +407,7 @@ class _PantryScreenState extends State<PantryScreen> {
                             ),
                           ),
 
-                          // Pulsante Incremento (+)
+                          // Pulsante incremento
                           InkWell(
                             onTap: () =>
                                 widget.state.updateQuantity(item.id, 1),
@@ -436,7 +437,7 @@ class _PantryScreenState extends State<PantryScreen> {
 
 
 
-  // Finestra di dialogo per aggiungere manualmente un prodotto
+  // Finestra aggiunta manuale
   void _showAddItemDialog(BuildContext context) {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController quantityController = TextEditingController(text: "1");
@@ -654,7 +655,7 @@ class _PantryScreenState extends State<PantryScreen> {
                       .map((d) => "${d!.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}")
                       .toList();
 
-                  // Sort dates chronologically
+                  // Ordina date
                   validDates.sort((a, b) {
                     final pA = a.split('/');
                     final pB = b.split('/');
@@ -934,7 +935,7 @@ class _PantryScreenState extends State<PantryScreen> {
                       .map((d) => "${d!.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}")
                       .toList();
 
-                  // Sort dates chronologically
+                  // Ordina date
                   validDates.sort((a, b) {
                     final pA = a.split('/');
                     final pB = b.split('/');
@@ -969,7 +970,7 @@ class _PantryScreenState extends State<PantryScreen> {
   }
 
   Future<void> _openScannerAndReview(BuildContext context) async {
-    // Apriamo la modale di scansione IA che ritornerà la lista dei prodotti
+    // Apri scanner IA
     final List<ItemModel>? scannedItems =
         await showModalBottomSheet<List<ItemModel>>(
       context: context,
@@ -979,7 +980,7 @@ class _PantryScreenState extends State<PantryScreen> {
     );
 
     if (scannedItems != null && scannedItems.isNotEmpty && context.mounted) {
-      // Mostriamo il popup per la modifica prima dell'inserimento
+      // Mostra popup revisione scansione
       _showScannedItemsReviewDialog(context, scannedItems);
     }
   }
@@ -1022,7 +1023,7 @@ class _PantryScreenState extends State<PantryScreen> {
                         itemCount: items.length,
                         itemBuilder: (context, index) {
                           final item = items[index];
-                          // Uso ObjectKey per forzare il refresh corretto quando elimino un elemento!
+                          // Mantieni refresh con ObjectKey
                           return Card(
                             key: ObjectKey(item),
                             color: AppColors.surfaceLight,
@@ -1037,7 +1038,7 @@ class _PantryScreenState extends State<PantryScreen> {
                               padding: const EdgeInsets.all(16),
                               child: Column(
                                 children: [
-                                  // Riga 1: Nome prodotto e Pulsante Cestino
+                                  // Riga 1: Nome
                                   Row(
                                     children: [
                                       Expanded(
@@ -1076,7 +1077,7 @@ class _PantryScreenState extends State<PantryScreen> {
                                   ),
                                   const SizedBox(height: 12),
 
-                                  // Riga 2: Quantità, Scadenza
+                                  // Riga 2: Quantità e Scadenza
                                   Row(
                                     children: [
                                       // Quantità
@@ -1177,7 +1178,7 @@ class _PantryScreenState extends State<PantryScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    // Bottone "+" per aggiungere riga vuota
+                    // Bottone aggiungi riga
                     TextButton.icon(
                       onPressed: () {
                         setDialogState(() {

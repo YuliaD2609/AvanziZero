@@ -1,10 +1,10 @@
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
-import '../models/app_state.dart';
-import '../services/local_ai_model.dart';
-import '../services/local_receipt_parser.dart';
-import '../services/wordpiece_tokenizer.dart';
+import '../../models/app_state.dart';
+import 'local_ai_model.dart';
+import 'local_receipt_parser.dart';
+import 'wordpiece_tokenizer.dart';
 
 class AIScannerService {
   static const int MAX_LEN = 32;
@@ -13,21 +13,21 @@ class AIScannerService {
 
   static Future<List<ItemModel>> scanReceipt(XFile imageFile) async {
     try {
-      // 1. STADIO 1: OCR (Google ML Kit)
+      // Stadio 1 OCR
       final inputImage = InputImage.fromFilePath(imageFile.path);
       final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
       final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
       await textRecognizer.close();
       String fullText = recognizedText.text;
 
-      // 2. Inizializza Tokenizer
+      // Inizializza Tokenizer
       final tokenizer = WordPieceTokenizer();
-      await tokenizer.loadVocab('assets/models/vocab.txt');
+      await tokenizer.loadVocab('assets/ai_models/vocab.txt');
 
-      // 3. STADIO 2: NLP NER in TFLite
+      // Stadio 2 NLP
       Interpreter? interpreter;
       try {
-        interpreter = await Interpreter.fromAsset('assets/models/receipt_ner_distilbert.tflite');
+        interpreter = await Interpreter.fromAsset('assets/ai_models/receipt_ner_distilbert.tflite');
         print("Modello TFLite Ibrido caricato con successo!");
       } catch (e) {
         print("Modello TFLite non trovato. Fallback all'estrattore Furbo Locale.");
@@ -36,25 +36,24 @@ class AIScannerService {
       List<ItemModel> scannedItems = [];
 
       if (interpreter != null && tokenizer.isLoaded) {
-        // [ARCHITETTURA IBRIDA]: TFLite estrae, Fuzzy corregge
+        // Architettura ibrida
         for (TextBlock block in recognizedText.blocks) {
           for (TextLine line in block.lines) {
             String rawLine = line.text;
             if (rawLine.trim().length < 3) continue;
 
             var inputIds = tokenizer.tokenize(rawLine, maxLen: MAX_LEN);
-            // Crea attention mask (1 per i token validi, 0 per i pad)
+            // Crea attention mask
             var attentionMask = inputIds.map((id) => id == 0 ? 0 : 1).toList();
 
-            // Preparazione tensori
+            // Prepara tensori
             var inputTensorIds = [inputIds];
             var inputTensorMask = [attentionMask];
             
-            // Output tensor shape [1, MAX_LEN, NUM_TAGS]
+            // Definisce shape output
             var outputTensor = List.generate(1, (_) => List.generate(MAX_LEN, (_) => List.filled(NUM_TAGS, 0.0)));
 
-            // Il convertitore TFLite ordina gli input in ordine alfabetico ('attention_mask' prima di 'input_ids')!
-            // Li passiamo in modo dinamico leggendo il nome:
+            // Passa input dinamicamente in base al nome
             int inputIdsIdx = interpreter.getInputTensor(0).name.contains("input_ids") ? 0 : 1;
             List<Object> inputs;
             if (inputIdsIdx == 0) {
@@ -71,7 +70,7 @@ class AIScannerService {
             List<int> extractedProductIds = [];
             List<int> extractedQtyIds = [];
 
-            // Mappatura token e label
+            // Mappa token e label
             for (int i = 1; i < MAX_LEN - 1; i++) { // Salta CLS e SEP
               if (inputIds[i] == 0) break; // Pad
               if (inputIds[i] >= 100) { // Token validi
@@ -105,8 +104,8 @@ class AIScannerService {
             print("Extracted Qty: $extractedQty");
 
             if (extractedProduct.length > 2) {
-               // [STADIO 3]: Fuzzy Matching locale sull'output neurale
-               // Passiamo il prodotto astratto al mega-dizionario per correggere l'OCR ("M3LA" -> "Mela")
+               // Stadio 3 Fuzzy Matching
+               // Corregge OCR
                var items = LocalReceiptParser.parseReceiptText(extractedProduct);
                if (items.isNotEmpty) {
                  var item = items.first;
@@ -150,7 +149,7 @@ class AIScannerService {
     }
   }
 
-  /// Restituisce suggerimenti predittivi usando il modello AI comportamentale locale
+  // Restituisce suggerimenti predittivi
   static Future<Map<String, List<ItemModel>>> getPredictiveSuggestions(
       List<ItemModel> pantryItems,
       List<ItemModel> shoppingItems,
@@ -158,7 +157,7 @@ class AIScannerService {
       int groupSize) async {
     await Future.delayed(const Duration(milliseconds: 800));
 
-    // Manteniamo la fantastica intelligenza statistica in locale
+    // Usa intelligenza locale
     return LocalPredictiveModel.predict(
         pantryItems, shoppingItems, consumptionHistory, groupSize);
   }

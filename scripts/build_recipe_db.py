@@ -2,20 +2,20 @@ import os
 import sqlite3
 
 def create_db():
-    # Definisce i percorsi
+    # Calcola i percorsi
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     db_dir = os.path.join(base_dir, 'flutter_app', 'assets', 'db')
     os.makedirs(db_dir, exist_ok=True)
     db_path = os.path.join(db_dir, 'recipes_catalog.db')
 
-    # Rimuove il vecchio DB se esiste per una ricostruzione pulita
+    # Rimuove il vecchio DB
     if os.path.exists(db_path):
         os.remove(db_path)
 
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    # Creazione tabella ricette
+    # Crea la tabella ricette
     cursor.execute('''
     CREATE TABLE recipes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,7 +31,7 @@ def create_db():
     )
     ''')
 
-    # Creazione tabella ingredienti ricetta
+    # Crea la tabella ingredienti
     cursor.execute('''
     CREATE TABLE recipe_ingredients (
         recipe_id INTEGER NOT NULL,
@@ -42,12 +42,12 @@ def create_db():
     )
     ''')
 
-    # Creazione indici per alte prestazioni
+    # Crea gli indici per ottimizzare le query
     cursor.execute('CREATE INDEX idx_recipes_category ON recipes(category)')
     cursor.execute('CREATE INDEX idx_recipes_with_oven ON recipes(with_oven)')
     cursor.execute('CREATE INDEX idx_recipe_ingredients_norm ON recipe_ingredients(normalized_name)')
 
-    # Maxi-Dataset Curato (GialloZafferano, Cucchiaio d'Argento, Fatto in Casa da Benedetta, Tavolartegusto, Food.com)
+    # Definisce i dati iniziali
     recipes_data = [
         # --- PRIMI PIATTI ---
         {
@@ -641,7 +641,9 @@ def create_db():
         }
     ]
 
+    # Popola il database iterando sulle ricette
     for r in recipes_data:
+        # Inserisce i dati della singola ricetta
         cursor.execute('''
         INSERT INTO recipes (name, description, source, category, prep_time, prep_time_min, difficulty, with_oven, instructions)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -649,12 +651,14 @@ def create_db():
         
         recipe_id = cursor.lastrowid
         
+        # Inserisce gli ingredienti associati
         for name, quantity, norm in r['ingredients']:
             cursor.execute('''
             INSERT INTO recipe_ingredients (recipe_id, name, quantity, normalized_name)
             VALUES (?, ?, ?, ?)
             ''', (recipe_id, name, quantity, norm))
 
+    # Salva le modifiche
     conn.commit()
     conn.close()
     print(f"=== Database {db_path} generato con successo! ({len(recipes_data)} ricette) ===")

@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math' as math;
-import '../models/app_state.dart';
+import '../../models/app_state.dart';
 
 class LocalPredictiveModel {
-  /// Analizza dispensa e storico e restituisce suggerimenti intelligenti divisi in 'scarcity' e 'expiring'
+  // Analizza storico e dispensa
   static Map<String, List<ItemModel>> predict(
       List<ItemModel> pantryItems,
       List<ItemModel> shoppingItems,
@@ -12,11 +12,11 @@ class LocalPredictiveModel {
     List<ItemModel> scarcity = [];
     List<ItemModel> expiring = [];
 
-    // Set veloce dei nomi in lista spesa per escluderli
+    // Crea set nomi spesa
     Set<String> shoppingNames =
         shoppingItems.map((s) => s.name.toLowerCase().trim()).toSet();
 
-    // 1. GESTIONE SCADENZE (urgencyLevel == 2)
+    // Gestisce scadenze
     for (var item in pantryItems) {
       if (item.urgencyLevel == 2 &&
           !shoppingNames.contains(item.name.toLowerCase().trim())) {
@@ -28,9 +28,9 @@ class LocalPredictiveModel {
       }
     }
 
-    // 2. ANALISI STORICO CON TIME DECAY
+    // Analizza storico consumi
     Map<String, double> consumptionScores = {};
-    Map<String, String> itemCategories = {}; // Per ricordare la categoria
+    Map<String, String> itemCategories = {}; // Ricorda categoria
 
     for (var log in consumptionHistory) {
       String name = (log['name'] ?? '').toString();
@@ -38,18 +38,18 @@ class LocalPredictiveModel {
 
       int qty = (log['quantity'] ?? 1) as int;
 
-      // Calcolo giorni trascorsi per il decadimento temporale
+      // Calcola giorni trascorsi
       int daysAgo = 0;
       if (log['timestamp'] != null) {
         try {
           DateTime date = (log['timestamp'] as Timestamp).toDate();
           daysAgo = DateTime.now().difference(date).inDays;
         } catch (e) {
-          // Fallback se timestamp non parsabile
+          // Ignora errori timestamp
         }
       }
 
-      // Decadimento: un consumo recente vale il 100%, un consumo vecchio perde peso progressivamente
+      // Calcola decadimento temporale
       double decayWeight = math.exp(-0.05 * daysAgo);
       double logScore = qty * decayWeight;
 
@@ -57,7 +57,7 @@ class LocalPredictiveModel {
       consumptionScores[nameKey] =
           (consumptionScores[nameKey] ?? 0.0) + logScore;
 
-      // Cerchiamo di dedurre la categoria basandoci sulla dispensa attuale se esiste
+      // Deduce categoria
       var match =
           pantryItems.where((i) => i.name.toLowerCase().trim() == nameKey);
       if (match.isNotEmpty) {
@@ -67,12 +67,12 @@ class LocalPredictiveModel {
       }
     }
 
-    // 3. CALCOLO DELLA SCARSITÀ
-    // Iteriamo sui punteggi di consumo. Più il punteggio è alto, più il prodotto viene usato spesso.
+    // Calcola scarsità
+    // Valuta punteggi consumo
     consumptionScores.forEach((nameKey, score) {
-      if (shoppingNames.contains(nameKey)) return; // Già nella spesa
+      if (shoppingNames.contains(nameKey)) return; // Salta prodotti già in spesa
 
-      // Cerchiamo la quantità attuale in dispensa
+      // Cerca quantità in dispensa
       var pantryMatch =
           pantryItems.where((i) => i.name.toLowerCase().trim() == nameKey);
       int currentQty = pantryMatch.isNotEmpty ? pantryMatch.first.quantity : 0;
@@ -80,13 +80,10 @@ class LocalPredictiveModel {
       String originalName =
           pantryMatch.isNotEmpty ? pantryMatch.first.name : nameKey;
 
-      // Se il prodotto è completamente esaurito (qty = 0) ma ha uno storico di consumo (> 0), suggeriscilo!
-      // Se il prodotto è in dispensa, valuta il rapporto tra punteggio di consumo e quantità rimanente.
-      // Esempio: se score = 3.0 e rimangono solo 2 elementi, ratio = 1.5 (Alto rischio scarsità)
-      // Un prodotto base per persona (groupSize) incide sulla tolleranza.
+      // Suggerisce se esaurito o in esaurimento
 
       if (currentQty == 0) {
-        // Esaurito ma consumato in passato
+        // Prodotto esaurito
         scarcity.add(ItemModel(
             id: '',
             name: originalName,
@@ -94,10 +91,9 @@ class LocalPredictiveModel {
       } else {
         double scarcityRatio = score / currentQty;
 
-        // Se il consumo superato/pesato è maggiore o uguale alla quantità che ci rimane
-        // O se ne rimangono pochi in senso assoluto rispetto al gruppo
+        // Controlla consumo e rimanenza assoluta
         if (scarcityRatio > 0.8 || (currentQty <= 2 && score >= 1.0)) {
-          // Previene duplicati se è già in expiring
+          // Previene duplicati
           bool isExpiring =
               expiring.any((e) => e.name.toLowerCase().trim() == nameKey);
           if (!isExpiring) {

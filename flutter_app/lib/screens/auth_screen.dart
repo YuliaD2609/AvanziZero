@@ -249,7 +249,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         _isLogin = !_isLogin;
                         _emailError = null;
                         _passwordError = null;
-                        // Resetta i campi e i messaggi di errore del form
+                        // Resetta form
                         _formKey.currentState?.reset();
                       });
                     },

@@ -6,18 +6,24 @@ import matplotlib.pyplot as plt
 import re
 import collections
 
-# Supporto automatico sia per il percorso di Yulia che di Vincenzo
-base_dir = r"C:\Users\yulia\OneDrive\Desktop\uni\FarFromHome\documentazione"
-if not os.path.exists(base_dir):
-    base_dir = r"d:\Unisa\Magistrale\EMAD\FarFromHome\documentazione"
+# Legge il percorso da un file locale ignorato da git (basedir.txt)
+basedir_file = os.path.join(os.path.dirname(__file__), 'basedir.txt')
+try:
+    with open(basedir_file, 'r', encoding='utf-8') as f:
+        base_dir = f.read().strip()
+except FileNotFoundError:
+    print(f"Errore: Crea un file 'basedir.txt' in {os.path.dirname(__file__)} contenente il percorso della cartella 'documentazione'")
+    exit(1)
 
 csv_path = os.path.join(base_dir, "Analisi sulle abitudini di spesa.csv")
 df = pd.read_csv(csv_path)
 
 def generate_pie_chart(series, title, filename):
+    # Calcola conteggi e percentuali
     counts = series.value_counts()
     percentages = (counts / len(series)) * 100
     
+    # Genera e salva il grafico a torta
     plt.figure(figsize=(6,6))
     counts.plot.pie(autopct='%1.1f%%', startangle=140)
     plt.ylabel('')
@@ -26,6 +32,7 @@ def generate_pie_chart(series, title, filename):
     plt.savefig(os.path.join(base_dir, filename))
     plt.close()
     
+    # Genera e salva il grafico a barre orizzontali
     bar_filename = filename.replace('.png', '_bar.png')
     plt.figure(figsize=(10,6))
     counts.plot.barh(color='skyblue')
@@ -42,15 +49,17 @@ def generate_pie_chart(series, title, filename):
     print(percentages)
     print("-" * 40)
 
-# 1. Con quante persone vivi (Col 1)
+# Analizza il numero di persone in casa
 def clean_persone(x):
+    # Pulisce la stringa in input
     return str(x).strip()
 
 df['Persone'] = df.iloc[:, 1].apply(clean_persone)
 generate_pie_chart(df['Persone'], 'Con quante persone vivi?', 'chart_persone.png')
 
-# 2. Chi fa la spesa (Col 2)
+# Analizza chi fa la spesa
 def clean_chi_fa(x):
+    # Normalizza la stringa
     x_orig = str(x).strip()
     x = x_orig.lower()
     tutti_group = [
@@ -74,8 +83,9 @@ def clean_chi_fa(x):
 df['Chi_fa'] = df.iloc[:, 2].apply(clean_chi_fa)
 generate_pie_chart(df['Chi_fa'], 'Chi fa solitamente la spesa?', 'chart_chi_fa.png')
 
-# 3. Quanto tempo (Col 3)
+# Analizza il tempo impiegato
 def clean_tempo(x):
+    # Pulisce e prepara la stringa per la normalizzazione
     x_orig = str(x).strip()
     x = x_orig.lower()
     
@@ -107,9 +117,10 @@ def clean_tempo(x):
     if "30 minuti" in x or x == "30 min" or x == "Dipende ma credo 1 oretta": return 30
     if "45 minuti" in x: return 45
     
+    # Estrae eventuali valori numerici
     nums = re.findall(r'\d+', x)
     if nums:
-        # Check if hour
+        # Moltiplica per 60 se il valore è espresso in ore
         if "ora" in x or "hour" in x or "oretta" in x:
             return int(nums[0]) * 60
         return int(nums[0])
@@ -132,8 +143,9 @@ def group_tempo(v):
 df_tempo['Tempo_cat'] = df_tempo['Tempo_val'].apply(group_tempo)
 generate_pie_chart(df_tempo['Tempo_cat'], 'Quanto tempo impieghi a preparare la lista della spesa?', 'chart_tempo.png')
 
-# 4. Ti pesa ricordare cosa manca (Col 4)
+# Analizza la difficoltà nel ricordare cosa manca
 def clean_pesa_ricordare(x):
+    # Converte e uniforma le risposte
     x = str(x).strip().lower()
     if "si" in x: return "Sì"
     if "no" in x and "non so" not in x: return "No"
@@ -143,8 +155,9 @@ def clean_pesa_ricordare(x):
 df['Pesa_ricordare'] = df.iloc[:, 4].apply(clean_pesa_ricordare)
 generate_pie_chart(df['Pesa_ricordare'], 'Ti pesa ricordare cosa manca?', 'chart_pesa_ricordare.png')
 
-# 5. Dimenticato prodotto essenziale (Col 5)
+# Analizza se si dimentica un prodotto essenziale
 def clean_dimenticato_essenziale(x):
+    # Converte in risposte binarie
     x = str(x).strip().lower()
     if x == "si": return "Sì"
     if x == "no": return "No"
@@ -153,8 +166,9 @@ def clean_dimenticato_essenziale(x):
 df['Dim_essenziale'] = df.iloc[:, 5].apply(clean_dimenticato_essenziale)
 generate_pie_chart(df['Dim_essenziale'], 'Hai mai dimenticato di inserire un prodotto nella lista della spesa?', 'chart_dimenticato_essenziale.png')
 
-# 6. Dimenticanze lista (Col 6)
+# Analizza quanto spesso ci sono dimenticanze
 def clean_dimenticanze(x):
+    # Mappa le risposte in categorie di frequenza standard
     x = str(x).strip().lower()
     if "non faccio la lista" in x or "non lo so" in x or "non preparo la lista" in x or "non faccio liste della spesa" in x or x=="nessuna": return None
     
@@ -171,8 +185,9 @@ df['Dim_lista'] = df.iloc[:, 6].apply(clean_dimenticanze)
 df_dim = df.dropna(subset=['Dim_lista']).copy()
 generate_pie_chart(df_dim['Dim_lista'], 'Quanto spesso dimentichi di inserire qualcosa nella lista della spesa?', 'chart_dim_lista.png')
 
-# 7. Modalità di comunicazione (Col 7)
+# Analizza le modalità di comunicazione
 def clean_comm(x):
+    # Estrae i metodi di comunicazione multipli
     x_orig = str(x).strip()
     x = x_orig.lower()
     res = set()
@@ -225,8 +240,9 @@ print(f"\nPercentuale su {len(df)} persone:")
 print(comm_percentages)
 print("-" * 40)
 
-# 8. Dimenticare prodotti in scadenza (Col 8)
+# Analizza se si dimenticano prodotti in scadenza
 def clean_dim_scadenza(x):
+    # Categorizza la frequenza delle dimenticanze per i prodotti in scadenza
     x = str(x).strip().lower()
     if "mai" in x or "nessuna" in x or "rarely" in x or "raramente" in x or "molto poco" in x or "poco" in x or "poche volte" in x or "quasi mai" in x or "fortunatamente mai" in x or "quasi mai, consumo prima quelli" in x or "Mai. Consumo sempre prima della scadenza." in x:
         return "Mai"
@@ -241,8 +257,9 @@ def clean_dim_scadenza(x):
 df['Dim_scadenza'] = df.iloc[:, 8].apply(clean_dim_scadenza)
 generate_pie_chart(df['Dim_scadenza'], 'Dimentichi prodotti in scadenza?', 'chart_dim_scadenza.png')
 
-# 9. Ti pesa ricordare le scadenze (Col 9)
+# Analizza la difficoltà nel ricordare le scadenze
 def clean_pesa_scadenze(x):
+    # Uniforma le risposte sulla difficoltà delle scadenze
     x = str(x).strip().lower()
     if "si" in x: return "Sì"
     if "no" in x and "non so" not in x: return "No"
@@ -252,8 +269,9 @@ def clean_pesa_scadenze(x):
 df['Pesa_scadenze'] = df.iloc[:, 9].apply(clean_pesa_scadenze)
 generate_pie_chart(df['Pesa_scadenze'], 'Ti pesa ricordare le scadenze?', 'chart_pesa_scadenze.png')
 
-# 10. Fastidio se app analizza acquisti (Col 10)
+# Analizza il fastidio per l'analisi acquisti dell'app
 def clean_fastidio_app(x):
+    # Uniforma le preferenze sulla privacy dell'app
     x = str(x).strip().lower()
     if "si" in x: return "Sì"
     if "no" in x and "non so" not in x: return "No"
@@ -263,8 +281,9 @@ def clean_fastidio_app(x):
 df['Fastidio_app'] = df.iloc[:, 10].apply(clean_fastidio_app)
 generate_pie_chart(df['Fastidio_app'], 'Ti da fastidio se un\'app analizza i tuoi acquisti?', 'chart_fastidio_app.png')
 
-# 11. Disposto a usare app monitoraggio (Col 11)
+# Analizza la disponibilità a usare l'app
 def clean_disposto_app(x):
+    # Uniforma le intenzioni d'uso
     x = str(x).strip().lower()
     if "si" in x: return "Sì"
     if "no" in x and "non so" not in x: return "No"
@@ -274,8 +293,9 @@ def clean_disposto_app(x):
 df['Disposto_app'] = df.iloc[:, 11].apply(clean_disposto_app)
 generate_pie_chart(df['Disposto_app'], 'Saresti disposto a usare un\'app di monitoraggio?', 'chart_disposto_app.png')
 
-# 12. Conoscere supermercati zona (Col 12)
+# Analizza l'interesse per i supermercati in zona
 def clean_supermercati_zona(x):
+    # Uniforma le preferenze relative alla mappa dei supermercati
     x = str(x).strip().lower()
     if "si" in x: return "Sì"
     if "no" in x and "non so" not in x: return "No"
@@ -285,8 +305,9 @@ def clean_supermercati_zona(x):
 df['Supermercati_zona'] = df.iloc[:, 12].apply(clean_supermercati_zona)
 generate_pie_chart(df['Supermercati_zona'], 'Ti piacerebbe conoscere i supermercati della tua zona?', 'chart_supermercati_zona.png')
 
-# 13. Frequenza supermercato (Col 13)
+# Analizza la frequenza delle visite al supermercato
 def clean_frequenza(x):
+    # Normalizza i testi per la frequenza
     if "Solo una volta al mese" in str(x).strip():
         return "Una volta al mese"
     return str(x).strip()
@@ -294,8 +315,9 @@ def clean_frequenza(x):
 df['Frequenza_supermercato'] = df.iloc[:, 13].apply(clean_frequenza)
 generate_pie_chart(df['Frequenza_supermercato'], 'Con quale frequenza ti rechi al supermercato?', 'chart_frequenza_supermercato.png')
 
-# 14. Funzionalità più utili (Col 14)
+# Analizza le funzionalità ritenute più utili
 def clean_funzionalita(x):
+    # Aggrega le funzionalità desiderate dagli utenti
     x_orig = str(x).strip()
     items = x_orig.split(';')
     res = set()

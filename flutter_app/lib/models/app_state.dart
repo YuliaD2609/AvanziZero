@@ -15,8 +15,8 @@ bool globalIsDarkMode = false;
 class ItemModel {
   final String id;
   String name;
-  String expireDate; // Formato testuale "gg/mm/aaaa" come da layout nativo
-  List<String> expireDates; // Lista di tutte le date di scadenza per le istanze multiple
+  String expireDate; // Definisce formato data di scadenza
+  List<String> expireDates; // Definisce date di scadenza multiple
   int quantity;
   String category;
   bool isPantry;
@@ -129,22 +129,20 @@ class SupermarketModel {
 }
 
 class AppState extends ChangeNotifier {
-  // ===========================================================================
-  // GESTIONE CLOUD & SINCRO REAL-TIME (FIREBASE)
-  // ===========================================================================
+  // Gestione cloud e sincronizzazione
   final AuthService authService = AuthService();
   UserModel? currentUserData;
   User? currentUserAuth;
 
   String? groupId;
-  List<String> savedGroups = []; // Cronologia locale dei codici gruppo visitati
-  List<UserModel> groupMembers = []; // Utenti del gruppo attivo
+  List<String> savedGroups = []; // Definisce cronologia gruppi locali
+  List<UserModel> groupMembers = []; // Definisce utenti nel gruppo
 
-  // FR6.6 - Tracking dei feedback IA
+  // Traccia feedback IA
   Map<String, Map<String, int>> aiFeedback = {};
 
 
-  // Proprietà calcolata per i prodotti in scadenza
+  // Calcola prodotti in scadenza
   List<ItemModel> get expiringItems {
     final items = allItems.where((i) => i.isPantry && i.urgencyLevel > 0).toList();
     items.sort((a, b) {
@@ -353,17 +351,17 @@ class AppState extends ChangeNotifier {
             currentUserData =
                 UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
 
-            // Carica la cronologia specifica dell'utente appena loggato
+            // Carica cronologia utente
             await loadSavedGroups();
 
-            // AUTO-LOGIN AL GRUPPO
+            // Logga automaticamente l'utente al gruppo
             try {
               final prefs = await SharedPreferences.getInstance();
               final lastActive =
                   prefs.getString('lastActiveGroupId_${user.uid}');
               if (lastActive != null &&
                   currentUserData!.groupIds.contains(lastActive)) {
-                if (groupId != lastActive) setGroupId(lastActive); // Background
+                if (groupId != lastActive) setGroupId(lastActive); // Esegue in background
               }
             } catch (e) {
                           }
@@ -393,14 +391,14 @@ class AppState extends ChangeNotifier {
   StreamSubscription<DocumentSnapshot>? _userDocSubscription;
 
   bool isInitializingUser =
-      true; // Mostra loader all'avvio finché non carichiamo i dati utente
+      true; // Mostra caricamento all'avvio
   bool isLoading = false;
-  bool groupWasDeleted = false; // Aggiunto per il flag di eliminazione gruppo
-  bool userWasKicked = false; // Aggiunto per il flag di rimozione dal gruppo
+  bool groupWasDeleted = false; // Definisce eliminazione gruppo
+  bool userWasKicked = false; // Definisce rimozione dal gruppo
   String? groupName;
-  Map<String, String> savedGroupNames = {}; // Codice Gruppo -> Nome Gruppo
+  Map<String, String> savedGroupNames = {}; // Mappa codice a nome gruppo
 
-  /// Carica la cronologia dei gruppi visitati dalla memoria persistente
+  // Carica i gruppi visitati
   Future<void> loadSavedGroups() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -420,7 +418,7 @@ class AppState extends ChangeNotifier {
           }
   }
 
-  /// Imposta il codice del gruppo (Casa), avvia la sincronizzazione e lo salva nella cronologia.
+  // Imposta il gruppo e avvia sincronizzazione
   Future<void> setGroupId(String newGroupId) async {
     if (newGroupId.trim().isEmpty) return;
 
@@ -434,7 +432,7 @@ class AppState extends ChangeNotifier {
     await _checkPredictiveBannerStatus();
     await _checkCategoryDeleteHint();
 
-    // Aggiunge alla cronologia (o sposta in cima se già presente) e salva localmente
+    // Aggiorna la cronologia gruppi
     try {
       final prefs = await SharedPreferences.getInstance();
       savedGroups.remove(code);
@@ -448,16 +446,15 @@ class AppState extends ChangeNotifier {
 
     _firebaseService = FirebaseService(groupId: groupId!);
 
-    // Esegue il seeding aspettando il completamento per evitare race condition con lo stream
-    // (altrimenti lo stream leggerebbe "non esiste" e scatenerebbe leaveGroup)
+    // Carica dati iniziali in modo sincrono per evitare conflitti
     await _firebaseService!
         .seedInitialDataIfNeeded(_initialDemoItems, uid: currentUserAuth?.uid);
 
-    // Cancella eventuali sottoscrizioni precedenti
+    // Cancella le vecchie sottoscrizioni
     await _itemsSubscription?.cancel();
     await _groupSubscription?.cancel();
 
-    // Sottoscrizione allo stream degli articoli
+    // Sottoscrive allo stream articoli
     _itemsSubscription = _firebaseService!.getItemsStream().listen(
       (itemsFromCloud) {
         allItems = itemsFromCloud;
@@ -499,7 +496,7 @@ class AppState extends ChangeNotifier {
           final List<dynamic> loaded = data['categories'];
           categories = loaded.map((e) => e.toString()).toList();
         } else {
-          // Migrazione dalle vecchie liste separate
+          // Unisce le categorie migrate
           Set<String> merged = {
             "Tutti",
             "Altro",
@@ -519,7 +516,7 @@ class AppState extends ChangeNotifier {
           }
           categories = merged.toList();
 
-          // Salva la lista unificata su Firebase per sincronizzarla con tutti
+          // Sincronizza categorie unificate su Firebase
           if (groupDidExist && _firebaseService != null) {
             _firebaseService!.updateCategories(categories);
           }
@@ -538,7 +535,7 @@ class AppState extends ChangeNotifier {
         }
         notifyListeners();
       } else if (!doc.exists && groupId != null && groupDidExist) {
-        // Il documento del gruppo è stato eliminato solo se l'abbiamo già visto esistere
+        // Esce se il gruppo è eliminato
         leaveGroup(deleted: true);
       }
     });
@@ -561,7 +558,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Rimuove un gruppo specifico dalla cronologia locale
+  // Rimuove un gruppo salvato
   Future<void> removeSavedGroup(String code) async {
     savedGroups.remove(code);
     savedGroupNames.remove(code);
@@ -573,7 +570,7 @@ class AppState extends ChangeNotifier {
     } catch (e) {
           }
 
-    // Se elimino il gruppo in cui mi trovo attualmente, esco dal gruppo
+    // Esce dal gruppo corrente se è stato rimosso
     if (groupId == code) {
       await leaveGroup();
     } else {
@@ -597,7 +594,7 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> leaveGroup({bool deleted = false, bool kicked = false}) async {
-    // Se il gruppo è stato eliminato o l'utente rimosso, impostiamo il flag per la UI
+    // Segnala eliminazione o espulsione all'interfaccia
     if (deleted) groupWasDeleted = true;
     if (kicked) userWasKicked = true;
 
@@ -619,7 +616,7 @@ class AppState extends ChangeNotifier {
       }
     }
 
-    // Aspetta che tutte le scritture pendenti su Firestore vengano completate
+    // Attende la scrittura pendente su Firestore
     try {
       await FirebaseFirestore.instance
           .waitForPendingWrites()
@@ -640,7 +637,7 @@ class AppState extends ChangeNotifier {
     _groupSubscription = null;
     _isPredictiveBannerClosed = false;
 
-    // Ripristina le liste di default per permettere l'ingresso pulito in un altro gruppo
+    // Ripristina liste di base
     allItems.clear();
     allItems.addAll(_initialDemoItems);
 
@@ -655,9 +652,7 @@ class AppState extends ChangeNotifier {
     super.dispose();
   }
 
-  // ===========================================================================
-  // STATO UI E FILTRI (Locale)
-  // ===========================================================================
+  // Stato interfaccia e filtri
   List<String> categories = [
     "Tutti",
     "Altro",
@@ -671,22 +666,16 @@ class AppState extends ChangeNotifier {
   String selectedPantryCategory = "Tutti";
   String selectedShoppingCategory = "Tutti";
 
-  // ===========================================================================
-  // LISTE DI BACKUP / DEMO INIZIALI
-  // ===========================================================================
+  // Dati demo iniziali
   final List<ItemModel> _initialDemoItems = [];
 
-  // Liste attive (inizializzate con i dati demo per fallback)
+  // Liste attive con dati di fallback
   late List<ItemModel> allItems = List.from(_initialDemoItems);
 
-  // ===========================================================================
-  // SUPERMERCATI NELLE VICINANZE
-  // ===========================================================================
+  // Mappa dei supermercati vicini
   List<SupermarketModel> nearbySupermarkets = [];
 
-  // ===========================================================================
-  // LOGICA E AZIONI SINCRO
-  // ===========================================================================
+  // Logica e azioni di sincronizzazione
 
   void selectCategory(String category, String section) {
     if (section == 'pantry') selectedPantryCategory = category;
@@ -715,8 +704,7 @@ class AppState extends ChangeNotifier {
   void removeCustomCategory(String categoryToRemove, String section) {
     if (categoryToRemove == "Tutti")
       return; // "Tutti" non può mai essere eliminato
-
-    bool removed = categories.remove(categoryToRemove);
+      bool removed = categories.remove(categoryToRemove);
 
     if (selectedPantryCategory == categoryToRemove) {
       selectedPantryCategory = "Tutti";
@@ -726,7 +714,7 @@ class AppState extends ChangeNotifier {
     }
 
     if (removed) {
-      // Se era un'appartenenza a liste, rimuoviamo le category da quegli item o li spostiamo su 'Altro'
+      // Aggiorna gli elementi della categoria rimossa
       for (var item in allItems) {
         if (item.category == categoryToRemove) {
           item.category = 'Altro';
@@ -823,7 +811,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> addItem(ItemModel newItem) async {
     try {
-      // Cerca un prodotto identico (nome uguale case-insensitive) nella stessa sezione
+      // Cerca prodotto identico
       final existingItem = allItems.firstWhere(
         (i) =>
             i.name.trim().toLowerCase() == newItem.name.trim().toLowerCase() &&
@@ -831,10 +819,10 @@ class AppState extends ChangeNotifier {
             i.isShopping == newItem.isShopping,
       );
 
-      // Se esiste, aggiorna solo la quantità
+      // Aggiorna la quantità
       await updateQuantity(existingItem.id, newItem.quantity);
     } catch (e) {
-      // Nessun duplicato trovato, aggiungi come nuovo elemento
+      // Aggiunge nuovo elemento
       allItems.add(newItem);
       notifyListeners();
       await _firebaseService?.saveItem(newItem);
@@ -890,7 +878,7 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> moveToShoppingList(ItemModel oldItem) async {
-    // Aggiungi alla spesa
+    // Aggiunge alla spesa
     final newItem = ItemModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: oldItem.name,
@@ -902,7 +890,7 @@ class AppState extends ChangeNotifier {
     );
     await addItem(newItem);
 
-    // Rimuovi dalla dispensa
+    // Rimuove dalla dispensa
     await deleteItem(oldItem.id);
   }
 
