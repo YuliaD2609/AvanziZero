@@ -400,7 +400,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    recipe.instructions,
+                    recipe.instructions.replaceAllMapped(RegExp(r'\s+(\d+\.)'), (match) => '\n${match.group(1)}'),
                     style: TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.4),
                   ),
                 ],
