@@ -8,13 +8,11 @@ import 'dart:math';
 
 class ShoppingScreen extends StatefulWidget {
   final AppState state;
-  final VoidCallback onHomePressed;
   final VoidCallback onCartPressed;
 
   const ShoppingScreen({
     super.key,
     required this.state,
-    required this.onHomePressed,
     required this.onCartPressed,
   });
 
@@ -50,9 +48,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
           // Menu superiore
           HorizontalHeaderMenu(
             title: "Lista della spesa",
-            onHomePressed: widget.onHomePressed,
             onCartPressed: widget.onCartPressed,
-            showHome: false,
             leftAction: IconButton(
               icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 30),
               onPressed: () {

@@ -33,9 +33,7 @@ class HomeScreen extends StatelessWidget {
             title: state.groupName?.isNotEmpty == true
                 ? state.groupName!
                 : "AvanziZero",
-            onHomePressed: () {},
             onCartPressed: onCartPressed,
-            showHome: false,
             leftAction: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

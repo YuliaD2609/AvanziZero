@@ -4,18 +4,16 @@ import '../theme/app_colors.dart';
 
 class HorizontalHeaderMenu extends StatelessWidget {
   final String title;
-  final VoidCallback onHomePressed;
-  final VoidCallback onCartPressed;
-  final bool showHome;
+  final VoidCallback? onCartPressed;
   final Widget? leftAction;
+  final List<Widget>? customActions;
 
   const HorizontalHeaderMenu({
     super.key,
     required this.title,
-    required this.onHomePressed,
-    required this.onCartPressed,
-    this.showHome = true,
+    this.onCartPressed,
     this.leftAction,
+    this.customActions,
   });
 
   @override
@@ -36,23 +34,12 @@ class HorizontalHeaderMenu extends StatelessWidget {
       ),
       child: SafeArea(
         bottom: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Stack(
+          alignment: Alignment.center,
           children: [
-            // Pulsante home sinistro
-            leftAction != null
-                ? leftAction!
-                : (showHome
-                    ? IconButton(
-                        icon: Icon(Icons.home_rounded,
-                            color: Colors.white, size: 30),
-                        onPressed: onHomePressed,
-                        tooltip: 'Torna alla Home',
-                      )
-                    : const SizedBox(width: 48)),
-
-            // Titolo sezione centrale
-            Expanded(
+            // Titolo sezione centrale perfettamente centrato
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 60), // Margine per non sovrapporsi alle icone
               child: Text(
                 title,
                 textAlign: TextAlign.center,
@@ -67,13 +54,31 @@ class HorizontalHeaderMenu extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+            
+            // Azioni (Row per distanziarli agli estremi)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Azione sinistra (es. menu laterale) o spazio vuoto
+                leftAction != null
+                    ? leftAction!
+                    : const SizedBox(width: 48),
 
-            // Pulsante supermercati destro
-            IconButton(
-              icon: Icon(Icons.storefront_rounded,
-                  color: Colors.white, size: 28),
-              onPressed: onCartPressed,
-              tooltip: 'Supermercati nelle vicinanze',
+                // Azioni a destra
+                customActions != null
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: customActions!,
+                      )
+                    : (onCartPressed != null
+                        ? IconButton(
+                            icon: Icon(Icons.storefront_rounded,
+                                color: Colors.white, size: 28),
+                            onPressed: onCartPressed,
+                            tooltip: 'Supermercati nelle vicinanze',
+                          )
+                        : const SizedBox(width: 48)),
+              ],
             ),
           ],
         ),

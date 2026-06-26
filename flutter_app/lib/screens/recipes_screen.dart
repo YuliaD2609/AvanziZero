@@ -2,16 +2,15 @@ import 'package:flutter/material.dart';
 import '../models/app_state.dart';
 import '../services/ia/recipe_matcher_service.dart';
 import '../theme/app_colors.dart';
+import '../widgets/menus.dart';
 
 class RecipesScreen extends StatefulWidget {
   final AppState state;
-  final VoidCallback onHomePressed;
   final VoidCallback onCartPressed;
 
   const RecipesScreen({
     super.key,
     required this.state,
-    required this.onHomePressed,
     required this.onCartPressed,
   });
 
@@ -76,48 +75,35 @@ class _RecipesScreenState extends State<RecipesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.surfaceLight,
-        elevation: 0,
-        title: Row(
-          children: [
-            ChefHatIcon(color: AppColors.primary, size: 28),
-            const SizedBox(width: 10),
-            Text(
-              _isRandomMode ? 'Ricette Casuali' : 'Ricette',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            tooltip: 'Ricette dalla Dispensa',
-            icon: Icon(Icons.kitchen_outlined, color: !_isRandomMode ? AppColors.primary : AppColors.textSecondary, size: 26),
-            onPressed: () {
-              setState(() {
-                _isRandomMode = false;
-              });
-              _loadRecipes();
-            },
-          ),
-          IconButton(
-            tooltip: '5 Ricette Casuali',
-            icon: Icon(Icons.casino_outlined, color: _isRandomMode ? AppColors.primary : AppColors.textSecondary, size: 26),
-            onPressed: () {
-              setState(() {
-                _isRandomMode = true;
-              });
-              _loadRecipes();
-            },
-          ),
-        ],
-      ),
       body: Column(
         children: [
+          // Header unificato
+          HorizontalHeaderMenu(
+            title: _isRandomMode ? 'Ricette Casuali' : 'Ricette',
+            customActions: [
+              IconButton(
+                tooltip: 'Ricette dalla Dispensa',
+                icon: Icon(Icons.kitchen_outlined, color: !_isRandomMode ? Colors.white : Colors.white60, size: 26),
+                onPressed: () {
+                  setState(() {
+                    _isRandomMode = false;
+                  });
+                  _loadRecipes();
+                },
+              ),
+              IconButton(
+                tooltip: '5 Ricette Casuali',
+                icon: Icon(Icons.casino_outlined, color: _isRandomMode ? Colors.white : Colors.white60, size: 26),
+                onPressed: () {
+                  setState(() {
+                    _isRandomMode = true;
+                  });
+                  _loadRecipes();
+                },
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
           // Sezione filtri
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -265,12 +251,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
       decoration: BoxDecoration(
         color: AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border, width: 1),
+        border: Border.all(color: AppColors.primary.withOpacity(0.3), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -421,6 +407,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
               ),
             ),
             // Pulsante azione
+            // Pulsante azione
             if (!isReadyToCook)
               Padding(
                 padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
@@ -444,22 +431,24 @@ class _RecipesScreenState extends State<RecipesScreen> {
                             "🛒 ${missingNames.length} ingredienti aggiunti alla tua Lista della Spesa!",
                             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                           ),
-                          backgroundColor: AppColors.primaryDark,
-                          duration: const Duration(seconds: 3),
+                          backgroundColor: AppColors.primary,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          margin: const EdgeInsets.all(16),
                         ),
                       );
-                      // Ricarica stato
+                      // Ricarica per aggiornare stato
                       _loadRecipes();
                     }
                   },
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.add_shopping_cart_rounded, size: 20),
+                      const Icon(Icons.shopping_cart_outlined, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         'Aggiungi ${recipe.missingIngredients.length} mancanti alla Spesa',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                     ],
                   ),
@@ -468,26 +457,26 @@ class _RecipesScreenState extends State<RecipesScreen> {
             else
               Padding(
                 padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: Colors.green, width: 1),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    elevation: 0,
+                    minimumSize: const Size.fromHeight(45),
                   ),
-                  child: const Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.check_circle_outline_rounded, color: Colors.green),
-                        SizedBox(width: 8),
-                        Text(
-                          'Hai tutti gli ingredienti in Dispensa! Pronto a cucinare!',
-                          style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 14),
-                        ),
-                      ],
-                    ),
+                  onPressed: () {}, // Pulsante inattivo ma verde
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.check_circle_outline, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Hai tutti gli ingredienti in dispensa!',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                    ],
                   ),
                 ),
               ),

@@ -6,13 +6,11 @@ import '../theme/app_colors.dart';
 
 class PantryScreen extends StatefulWidget {
   final AppState state;
-  final VoidCallback onHomePressed;
   final VoidCallback onCartPressed;
 
   const PantryScreen({
     super.key,
     required this.state,
-    required this.onHomePressed,
     required this.onCartPressed,
   });
 
@@ -46,10 +44,8 @@ class _PantryScreenState extends State<PantryScreen> {
         children: [
           // Menu superiore
           HorizontalHeaderMenu(
-            title: "Dispensa",
-            onHomePressed: widget.onHomePressed,
+            title: "La tua dispensa",
             onCartPressed: widget.onCartPressed,
-            showHome: false,
             leftAction: IconButton(
               icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 30),
               onPressed: () {

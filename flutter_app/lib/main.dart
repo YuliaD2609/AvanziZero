@@ -183,17 +183,17 @@ class _MainNavigatorState extends State<MainNavigator> {
           ),
           PantryScreen(
             state: widget.state,
-            onHomePressed: () => _navigate(0),
+
             onCartPressed: () => showNearbySupermarketsModal(context, widget.state),
           ),
           ShoppingScreen(
             state: widget.state,
-            onHomePressed: () => _navigate(0),
+
             onCartPressed: () => showNearbySupermarketsModal(context, widget.state),
           ),
           RecipesScreen(
             state: widget.state,
-            onHomePressed: () => _navigate(0),
+
             onCartPressed: () => showNearbySupermarketsModal(context, widget.state),
           ),
         ];
