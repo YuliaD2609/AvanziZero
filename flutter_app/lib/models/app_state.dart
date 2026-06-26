@@ -999,4 +999,26 @@ class AppState extends ChangeNotifier {
     notifyListeners();
     await _firebaseService?.updateAIFeedback(aiFeedback);
   }
+
+  Future<void> addMissingIngredientsToShoppingList(List<String> ingredients) async {
+    for (var ingName in ingredients) {
+      final cleanName = ingName.trim();
+      bool alreadyInShopping = allItems.any((i) => i.isShopping && i.name.trim().toLowerCase() == cleanName.toLowerCase());
+      if (!alreadyInShopping) {
+        final newItem = ItemModel(
+          id: DateTime.now().millisecondsSinceEpoch.toString() + cleanName.hashCode.toString(),
+          name: cleanName,
+          expireDate: "-",
+          quantity: 1,
+          category: "Altro",
+          isPantry: false,
+          isShopping: true,
+          ownerId: currentUserAuth?.uid,
+        );
+        allItems.add(newItem);
+        await _firebaseService?.saveItem(newItem);
+      }
+    }
+    notifyListeners();
+  }
 }

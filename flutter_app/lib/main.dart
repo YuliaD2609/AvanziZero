@@ -10,6 +10,7 @@ import 'screens/home_screen.dart';
 import 'screens/pantry_screen.dart';
 import 'screens/shopping_screen.dart';
 import 'screens/auth_screen.dart';
+import 'screens/recipes_screen.dart';
 import 'theme/app_colors.dart';
 import 'widgets/nearby_supermarkets_modal.dart';
 
@@ -173,7 +174,7 @@ class _MainNavigatorState extends State<MainNavigator> {
                   child: CircularProgressIndicator(color: AppColors.primary)));
         }
 
-        // Array delle 3 schermate principali con i riferimenti incrociati di navigazione
+        // Array delle 4 schermate principali con i riferimenti incrociati di navigazione
         final List<Widget> screens = [
           HomeScreen(
             state: widget.state,
@@ -186,6 +187,11 @@ class _MainNavigatorState extends State<MainNavigator> {
             onCartPressed: () => showNearbySupermarketsModal(context, widget.state),
           ),
           ShoppingScreen(
+            state: widget.state,
+            onHomePressed: () => _navigate(0),
+            onCartPressed: () => showNearbySupermarketsModal(context, widget.state),
+          ),
+          RecipesScreen(
             state: widget.state,
             onHomePressed: () => _navigate(0),
             onCartPressed: () => showNearbySupermarketsModal(context, widget.state),
@@ -244,6 +250,37 @@ class _MainNavigatorState extends State<MainNavigator> {
                       selectedIcon: Icon(Icons.receipt_long_rounded,
                           color: AppColors.primary),
                       label: 'Spesa',
+                    ),
+                    NavigationDestination(
+                      icon: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: Icon(Icons.room_service_outlined, color: AppColors.textSecondary),
+                          ),
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Icon(Icons.star_rounded, size: 12, color: Colors.amber),
+                          ),
+                        ],
+                      ),
+                      selectedIcon: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: Icon(Icons.room_service_rounded, color: AppColors.primary),
+                          ),
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Icon(Icons.star_rounded, size: 12, color: Colors.amber),
+                          ),
+                        ],
+                      ),
+                      label: 'Ricette',
                     ),
                   ],
                 ),
