@@ -34,7 +34,8 @@ class AppColors {
   static Color get error =>
       globalIsDarkMode ? const Color(0xFFF87171) : const Color(0xFFEF4444);
   static Color get errorLight => globalIsDarkMode ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2);
-  static Color get success => globalIsDarkMode ? const Color(0xFF34D399) : const Color(0xFF10B981);
+  static Color get success => globalIsDarkMode ? const Color(0xFF32A173) : const Color(
+      0xFF1FA172);
 
   static Color get warning =>
       globalIsDarkMode ? const Color(0xFFFBBF24) : const Color(0xFFF59E0B);

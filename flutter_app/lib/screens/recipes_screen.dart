@@ -459,7 +459,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
+                    backgroundColor: AppColors.success,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                     padding: const EdgeInsets.symmetric(vertical: 14),

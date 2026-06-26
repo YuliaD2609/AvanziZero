@@ -48,7 +48,7 @@ class AuthService {
     }
   }
 
-  // Effettua il login
+  // Login con Email e Password
   Future<UserModel?> signInWithEmailAndPassword(
       String email, String password) async {
     try {
@@ -66,7 +66,7 @@ class AuthService {
     }
   }
 
-  // Recupera dati utente
+  // Recupera i dati dell'utente dal DB
   Future<UserModel?> getUserData(String uid) async {
     try {
       DocumentSnapshot doc = await _db.collection('users').doc(uid).get();
@@ -79,7 +79,7 @@ class AuthService {
     }
   }
 
-  // Aggiunge gruppo all'utente
+  // Aggiunge un gruppo all'utente
   Future<void> addGroupToUser(String uid, String groupId) async {
     try {
       await _db.collection('users').doc(uid).update({
@@ -124,7 +124,7 @@ class AuthService {
     }
   }
 
-  // Invia reset password
+  // Recupero Password
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
