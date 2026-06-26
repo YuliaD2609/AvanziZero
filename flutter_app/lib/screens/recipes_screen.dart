@@ -1,4 +1,9 @@
-import 'import 'import 'import 'import 'import 'class RecipesScreen extends StatefulWidget {
+import 'package:flutter/material.dart';
+import '../models/app_state.dart';
+import '../services/recipe_matcher_service.dart';
+import '../theme/app_colors.dart';
+
+class RecipesScreen extends StatefulWidget {
   final AppState state;
   final VoidCallback onHomePressed;
   final VoidCallback onCartPressed;
