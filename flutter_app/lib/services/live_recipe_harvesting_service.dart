@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:flutter/foundation.dart';
-import 'recipe_matcher_service.dart';
+import 'ia/recipe_matcher_service.dart';
 
 class LiveRecipeHarvestingService {
   static final List<String> _benedettaSources = [
