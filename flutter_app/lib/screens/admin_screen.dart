@@ -382,9 +382,9 @@ class _AdminScreenState extends State<AdminScreen> {
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary),
                         ),
-                        subtitle: const Text(
+                        subtitle: Text(
                           "Scegli l'orario per i promemoria giornalieri",
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                         ),
                         trailing: Container(
                           padding: const EdgeInsets.symmetric(
@@ -397,7 +397,7 @@ class _AdminScreenState extends State<AdminScreen> {
                             widget.state.notificationTime.format(context),
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.primaryDark),
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.primaryDark),
                           ),
                         ),
                         onTap: () async {
@@ -536,7 +536,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.primaryDark),
+                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.primaryDark),
                                 ),
                               ),
                             ],
@@ -547,16 +547,10 @@ class _AdminScreenState extends State<AdminScreen> {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: AppColors.surfaceLight,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                    color: AppColors.shadowLight,
-                                    blurRadius: 15,
-                                    offset: const Offset(0, 4))
-                              ],
+                              color: AppColors.background,
+                              borderRadius: BorderRadius.circular(24),
                               border: Border.all(
-                                  color: AppColors.primary.withValues(alpha: 0.15)),
+                                  color: AppColors.border),
                             ),
                             child: ListView.separated(
                               shrinkWrap: true,
@@ -704,17 +698,10 @@ class _AdminScreenState extends State<AdminScreen> {
                                   return Container(
                                     padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
-                                      color: AppColors.surfaceLight,
-                                      borderRadius: BorderRadius.circular(20),
-                                      boxShadow: [
-                                        BoxShadow(
-                                            color: AppColors.shadowLight,
-                                            blurRadius: 15,
-                                            offset: const Offset(0, 4))
-                                      ],
+                                      color: AppColors.background,
+                                      borderRadius: BorderRadius.circular(24),
                                       border: Border.all(
-                                          color: AppColors.primary
-                                              .withValues(alpha: 0.15)),
+                                          color: AppColors.border),
                                     ),
                                     child: requests.isEmpty
                                         ? Padding(
@@ -833,12 +820,14 @@ class _AdminScreenState extends State<AdminScreen> {
                                     color: AppColors.textPrimary),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.surfaceLight,
+                                backgroundColor: AppColors.background,
                                 elevation: 0,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16)),
+                                  borderRadius: BorderRadius.circular(24),
+                                  side: BorderSide(color: AppColors.border),
+                                ),
                               ),
                             ),
                           ),
@@ -861,10 +850,12 @@ class _AdminScreenState extends State<AdminScreen> {
                                 ),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.error,
+                                  elevation: 0,
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 16),
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16)),
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
                                 ),
                               ),
                             ),

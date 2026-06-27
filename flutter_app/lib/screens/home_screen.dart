@@ -192,29 +192,21 @@ class HomeScreen extends StatelessWidget {
                   // Sezione warning scadenza
                   Container(
                     height: 200,
+                    margin: const EdgeInsets.only(top: 16),
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceLight,
-                      borderRadius: BorderRadius.circular(20),
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                          color: AppColors.error.withValues(alpha: 0.4), width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                            color: AppColors.shadowLight,
-                            blurRadius: 10,
-                            offset: const Offset(0, 4)),
-                      ],
+                          color: AppColors.error.withValues(alpha: 0.5), width: 1.0),
                     ),
                     child: Column(
                       children: [
                         // Intestazione warning
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color: AppColors.errorLight, // Colore rosso chiaro
-                            borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(18),
-                                topRight: Radius.circular(18)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: const BoxDecoration(
+                            color: Colors.transparent,
                           ),
                           child: Text(
                             "Prodotti in scadenza",
@@ -298,9 +290,9 @@ class HomeScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.border),
+                      color: AppColors.surfaceLight,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.transparent),
                     ),
                     child: Row(
                       children: [
@@ -339,19 +331,13 @@ class HomeScreen extends StatelessWidget {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(24),
       child: Container(
         height: 70, // Altezza bottone
         decoration: BoxDecoration(
-          color: AppColors.surfaceLight,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.primary, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-                color: AppColors.shadowMedium,
-                blurRadius: 8,
-                offset: const Offset(0, 2)),
-          ],
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.border, width: 1.5),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(

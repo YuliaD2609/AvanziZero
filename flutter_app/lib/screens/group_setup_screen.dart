@@ -401,14 +401,14 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                               child: ElevatedButton(
                                 onPressed: _createNewGroup,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      AppColors.primary, // Colore verde
+                                  backgroundColor: AppColors.primary,
                                   foregroundColor: Colors.white,
                                   elevation: 0,
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 32, vertical: 16),
+                                      horizontal: 24, vertical: 14),
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12)),
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
                                 ),
                                 child: const Text(
                                   "Genera Codice e Inizia",
@@ -468,19 +468,17 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                     contentPadding: const EdgeInsets.symmetric(
                                         horizontal: 16, vertical: 14),
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide:
-                                          BorderSide(color: AppColors.border),
+                                      borderRadius: BorderRadius.circular(24),
+                                      borderSide: BorderSide.none,
                                     ),
                                     enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide:
-                                          BorderSide(color: AppColors.border),
+                                      borderRadius: BorderRadius.circular(24),
+                                      borderSide: BorderSide.none,
                                     ),
                                     focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(24),
                                       borderSide: BorderSide(
-                                          color: AppColors.primary, width: 2),
+                                          color: AppColors.primary, width: 1.5),
                                     ),
                                   ),
                                   style: TextStyle(
@@ -504,12 +502,12 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.primary,
                                       foregroundColor: Colors.white,
+                                      elevation: 0,
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 14),
                                       shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12)),
-                                      elevation: 0,
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
                                     ),
                                     child: _isLoading
                                         ? SizedBox(
@@ -673,16 +671,9 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors
-                .shadowMedium, // Ombra morbida
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
