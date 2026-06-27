@@ -23,14 +23,8 @@ class HorizontalHeaderMenu extends StatelessWidget {
       height:
           85, // Altezza menu orizzontale
       decoration: BoxDecoration(
-        color: AppColors.primary,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowDark,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: AppColors.background,
+        border: Border(bottom: BorderSide(color: AppColors.border, width: 1)),
       ),
       child: SafeArea(
         bottom: false,
@@ -43,11 +37,11 @@ class HorizontalHeaderMenu extends StatelessWidget {
               child: Text(
                 title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Outfit',
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   letterSpacing: 0.5,
                 ),
                 maxLines: 1,
@@ -73,7 +67,7 @@ class HorizontalHeaderMenu extends StatelessWidget {
                     : (onCartPressed != null
                         ? IconButton(
                             icon: Icon(Icons.storefront_rounded,
-                                color: Colors.white, size: 28),
+                                color: AppColors.textPrimary, size: 28),
                             onPressed: onCartPressed,
                             tooltip: 'Supermercati nelle vicinanze',
                           )
@@ -292,20 +286,13 @@ class VerticalCategoryMenu extends StatelessWidget {
               height: 50,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColors.primaryDark, // Colore accento
+                color: AppColors.surfaceLight,
+                border: Border(top: BorderSide(color: AppColors.border, width: 1)),
                 borderRadius:
                     const BorderRadius.only(topRight: Radius.circular(12)),
               ),
               child: Center(
-                child: Text(
-                  "+",
-                  style: const TextStyle(
-                    fontFamily: 'Outfit',
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white, // Alto contrasto
-                  ),
-                ),
+                child: Icon(Icons.add_rounded, color: AppColors.textSecondary, size: 28),
               ),
             ),
           ),

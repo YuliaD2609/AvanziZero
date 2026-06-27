@@ -50,7 +50,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
             title: "Lista della spesa",
             onCartPressed: widget.onCartPressed,
             leftAction: IconButton(
-              icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 30),
+              icon: Icon(Icons.menu_rounded, color: AppColors.textPrimary, size: 30),
               onPressed: () {
                 widget.state.toggleSidebar();
               },
@@ -104,16 +104,21 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                 width: 44,
                                 decoration: BoxDecoration(
                                   color: (filteredItems.isNotEmpty && filteredItems.every((item) => _checkedItems.contains(item.id)))
-                                      ? AppColors.primary
+                                      ? AppColors.primaryLight
                                       : Colors.transparent,
-                                  border: Border.all(color: AppColors.primary, width: 2),
+                                  border: Border.all(
+                                    color: (filteredItems.isNotEmpty && filteredItems.every((item) => _checkedItems.contains(item.id)))
+                                        ? AppColors.primaryLight
+                                        : AppColors.border,
+                                    width: 1.5,
+                                  ),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Icon(
                                   Icons.checklist_rounded,
                                   color: (filteredItems.isNotEmpty && filteredItems.every((item) => _checkedItems.contains(item.id)))
-                                      ? Colors.white
-                                      : AppColors.primary,
+                                      ? AppColors.primary
+                                      : AppColors.textSecondary,
                                   size: 24,
                                 ),
                               ),
@@ -208,14 +213,10 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                   ElevatedButton(
                                     onPressed: _handleSpesaFatta,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors
-                                          .primaryLight, // Menta Chiaro
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 24, vertical: 12),
-                                      elevation: 2,
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(16)),
+                                      backgroundColor: AppColors.primaryLight,
+                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                                     ),
                                     child: Text(
                                       "Spesa fatta",
@@ -223,8 +224,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                         fontFamily: 'Outfit',
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: AppColors
-                                            .textPrimary, // Verde Foresta Scuro
+                                        color: AppColors.textPrimary,
                                       ),
                                     ),
                                   ),
@@ -236,39 +236,44 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       // Pulsante predictive
-                                      FloatingActionButton(
-                                        heroTag: "predictive_btn",
-                                        onPressed: () =>
-                                            _showPredictiveShoppingModal(
-                                                context),
-                                        backgroundColor: AppColors.primaryLight,
-                                        elevation: 2,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(16)),
-                                        child: Icon(Icons.auto_awesome_rounded,
-                                            color: globalIsDarkMode ? Colors.white : AppColors.primary),
+                                      ElevatedButton.icon(
+                                        onPressed: () => _showPredictiveShoppingModal(context),
+                                        icon: Icon(Icons.auto_awesome_rounded, color: AppColors.textPrimary, size: 20),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.primaryLight,
+                                          elevation: 0,
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                                        ),
+                                        label: Text("Consigli",
+                                          style: TextStyle(
+                                            fontFamily: 'Outfit',
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.textPrimary,
+                                          ),
+                                        ),
                                       ),
                                       const SizedBox(width: 12),
                                       // Pulsante aggiungi
-                                      ElevatedButton(
+                                      ElevatedButton.icon(
                                         onPressed: () =>
                                             _showAddItemDialog(context),
+                                        icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppColors
-                                              .primaryDark, // Accento Verde Scuro/Teal
+                                          backgroundColor: AppColors.primaryDark,
+                                          elevation: 0,
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 16, vertical: 12),
-                                          elevation: 2,
                                           shape: RoundedRectangleBorder(
                                               borderRadius:
-                                                  BorderRadius.circular(16)),
+                                                  BorderRadius.circular(24)),
                                         ),
-                                        child: Text(
-                                          "Aggiungi un elemento",
-                                          style: const TextStyle(
+                                        label: const Text(
+                                          "Aggiungi",
+                                          style: TextStyle(
                                             fontFamily: 'Outfit',
-                                            fontSize: 16,
+                                            fontSize: 15,
                                             fontWeight: FontWeight.bold,
                                             color: Colors.white,
                                           ),

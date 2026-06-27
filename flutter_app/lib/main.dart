@@ -98,6 +98,12 @@ class _AvanziZeroAppState extends State<AvanziZeroApp> {
               onSurface: AppColors.textPrimary,
               brightness: globalIsDarkMode ? Brightness.dark : Brightness.light,
             ),
+            snackBarTheme: SnackBarThemeData(
+              backgroundColor: AppColors.primary,
+              contentTextStyle: const TextStyle(color: Colors.white, fontFamily: 'Outfit', fontWeight: FontWeight.w500),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              behavior: SnackBarBehavior.floating,
+            ),
             pageTransitionsTheme: const PageTransitionsTheme(
               builders: {
                 TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),

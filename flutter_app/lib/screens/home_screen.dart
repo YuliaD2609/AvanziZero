@@ -39,7 +39,7 @@ class HomeScreen extends StatelessWidget {
               children: [
                 IconButton(
                   icon: Icon(Icons.person_outline_rounded,
-                      color: AppColors.surfaceLight, size: 28),
+                      color: AppColors.textPrimary, size: 28),
                   tooltip: "Area Admin",
                   onPressed: () {
                     Navigator.push(

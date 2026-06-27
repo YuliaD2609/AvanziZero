@@ -47,7 +47,7 @@ class _PantryScreenState extends State<PantryScreen> {
             title: "La tua dispensa",
             onCartPressed: widget.onCartPressed,
             leftAction: IconButton(
-              icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 30),
+              icon: Icon(Icons.menu_rounded, color: AppColors.textPrimary, size: 30),
               onPressed: () {
                 widget.state.toggleSidebar();
               },
@@ -164,34 +164,43 @@ class _PantryScreenState extends State<PantryScreen> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  FloatingActionButton(
-                                    heroTag: 'scanner_fab',
-                                    onPressed: () =>
-                                        _openScannerAndReview(context),
-                                    backgroundColor: AppColors.primaryLight,
-                                    elevation: 2,
-                                    child: Icon(Icons.document_scanner_rounded,
-                                        color: globalIsDarkMode ? Colors.white : AppColors.primary),
+                                  ElevatedButton.icon(
+                                    onPressed: () => _openScannerAndReview(context),
+                                    icon: Icon(Icons.document_scanner_rounded, color: AppColors.textPrimary, size: 20),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primaryLight,
+                                      elevation: 0,
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                                    ),
+                                    label: Text("Scontrino",
+                                      style: TextStyle(
+                                        fontFamily: 'Outfit',
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
                                   ),
                                   const SizedBox(width: 12),
-                                  ElevatedButton(
+                                  ElevatedButton.icon(
                                     onPressed: () =>
                                         _showAddItemDialog(context),
+                                    icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors
-                                          .primaryDark, // Accento Verde Scuro/Teal
+                                      backgroundColor: AppColors.primaryDark,
+                                      elevation: 0,
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 16, vertical: 12),
-                                      elevation: 2,
                                       shape: RoundedRectangleBorder(
                                           borderRadius:
-                                              BorderRadius.circular(16)),
+                                              BorderRadius.circular(24)),
                                     ),
-                                    child: Text(
-                                      "Aggiungi un elemento",
-                                      style: const TextStyle(
+                                    label: const Text(
+                                      "Aggiungi",
+                                      style: TextStyle(
                                         fontFamily: 'Outfit',
-                                        fontSize: 16,
+                                        fontSize: 15,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white,
                                       ),
@@ -477,11 +486,11 @@ class _PantryScreenState extends State<PantryScreen> {
                   onChanged: (val) {
                     int q = int.tryParse(val) ?? 1;
                     if (q < 1) q = 1;
-                    if (selectedDates.length > q) {
-                      setDialogState(() {
+                    setDialogState(() {
+                      if (selectedDates.length > q) {
                         selectedDates = selectedDates.sublist(0, q);
-                      });
-                    }
+                      }
+                    });
                   },
                 ),
                 const SizedBox(height: 12),
@@ -489,8 +498,9 @@ class _PantryScreenState extends State<PantryScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text("Date di Scadenza", style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                    IconButton(
-                      icon: Icon(Icons.add_circle_outline_rounded, color: AppColors.primary),
+                    if (selectedDates.length < (int.tryParse(quantityController.text) ?? 1))
+                      IconButton(
+                        icon: Icon(Icons.add_circle_outline_rounded, color: AppColors.primary),
                       onPressed: () {
                         int q = int.tryParse(quantityController.text) ?? 1;
                         if (selectedDates.length < q) {
@@ -755,11 +765,11 @@ class _PantryScreenState extends State<PantryScreen> {
                   onChanged: (val) {
                     int q = int.tryParse(val) ?? 1;
                     if (q < 1) q = 1;
-                    if (selectedDates.length > q) {
-                      setDialogState(() {
+                    setDialogState(() {
+                      if (selectedDates.length > q) {
                         selectedDates = selectedDates.sublist(0, q);
-                      });
-                    }
+                      }
+                    });
                   },
                 ),
                 const SizedBox(height: 12),
@@ -767,8 +777,9 @@ class _PantryScreenState extends State<PantryScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text("Date di Scadenza", style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                    IconButton(
-                      icon: Icon(Icons.add_circle_outline_rounded, color: AppColors.primary),
+                    if (selectedDates.length < (int.tryParse(quantityController.text) ?? 1))
+                      IconButton(
+                        icon: Icon(Icons.add_circle_outline_rounded, color: AppColors.primary),
                       onPressed: () {
                         int q = int.tryParse(quantityController.text) ?? 1;
                         if (selectedDates.length < q) {

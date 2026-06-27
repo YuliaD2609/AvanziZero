@@ -1,4 +1,4 @@
-# ML Pipeline - FarFromHome (OCR Offline)
+# ML Pipeline - AvanziZero (OCR Offline)
 
 Questa cartella contiene gli script per generare il dataset di scontrini italiani sintetici e addestrare il modello DistilBERT per estrarre prodotti e quantità in modo completamente locale sull'app mobile.
 

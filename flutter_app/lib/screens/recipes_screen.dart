@@ -24,6 +24,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   bool _isRandomMode = false;
   List<RecipeMatch> _recipes = [];
   bool _isLoading = true;
+  bool _showFilters = false;
 
   final List<String> _categories = [
     'Tutte',
@@ -80,10 +81,18 @@ class _RecipesScreenState extends State<RecipesScreen> {
           // Header unificato
           HorizontalHeaderMenu(
             title: _isRandomMode ? 'Ricette Casuali' : 'Ricette',
+            leftAction: IconButton(
+              icon: Icon(Icons.filter_list_rounded, color: AppColors.textPrimary, size: 28),
+              onPressed: () {
+                setState(() {
+                  _showFilters = !_showFilters;
+                });
+              },
+            ),
             customActions: [
               IconButton(
                 tooltip: 'Ricette dalla Dispensa',
-                icon: Icon(Icons.kitchen_outlined, color: !_isRandomMode ? Colors.white : Colors.white60, size: 26),
+                icon: Icon(Icons.kitchen_outlined, color: !_isRandomMode ? AppColors.textPrimary : AppColors.textSecondary, size: 26),
                 onPressed: () {
                   setState(() {
                     _isRandomMode = false;
@@ -93,7 +102,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
               ),
               IconButton(
                 tooltip: '5 Ricette Casuali',
-                icon: Icon(Icons.casino_outlined, color: _isRandomMode ? Colors.white : Colors.white60, size: 26),
+                icon: Icon(Icons.shuffle_rounded, color: _isRandomMode ? AppColors.textPrimary : AppColors.textSecondary, size: 26),
                 onPressed: () {
                   setState(() {
                     _isRandomMode = true;
@@ -104,9 +113,14 @@ class _RecipesScreenState extends State<RecipesScreen> {
               const SizedBox(width: 8),
             ],
           ),
-          // Sezione filtri
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          // Sezione filtri con animazione
+          AnimatedSize(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            child: !_showFilters
+                ? const SizedBox.shrink()
+                : Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: AppColors.surfaceLight,
               boxShadow: [
@@ -203,6 +217,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 ),
               ],
             ),
+          ),
           ),
           // Lista ricette
           Expanded(
@@ -413,12 +428,13 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    backgroundColor: AppColors.background,
+                    foregroundColor: AppColors.textPrimary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     elevation: 0,
                     minimumSize: const Size.fromHeight(45),
+                    side: BorderSide(color: AppColors.primary.withOpacity(0.5), width: 1.0),
                   ),
                   onPressed: () async {
                     final missingNames = recipe.missingIngredients.map((e) => e.name).toList();
@@ -428,7 +444,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            "🛒 ${missingNames.length} ingredienti aggiunti alla tua Lista della Spesa!",
+                            missingNames.length == 1
+                                ? "1 ingrediente aggiunto alla tua Lista della Spesa!"
+                                : "${missingNames.length} ingredienti aggiunti alla tua Lista della Spesa!",
                             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                           ),
                           backgroundColor: AppColors.primary,
@@ -444,11 +462,13 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.shopping_cart_outlined, size: 20),
+                      Icon(Icons.shopping_cart_outlined, size: 20, color: AppColors.textPrimary),
                       const SizedBox(width: 8),
                       Text(
-                        'Aggiungi ${recipe.missingIngredients.length} mancanti alla Spesa',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        recipe.missingIngredients.length == 1
+                            ? 'Aggiungi 1 mancante alla Spesa'
+                            : 'Aggiungi ${recipe.missingIngredients.length} mancanti alla Spesa',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary),
                       ),
                     ],
                   ),
@@ -459,22 +479,22 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.success,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    backgroundColor: AppColors.primary.withOpacity(0.50),
+                    foregroundColor: AppColors.textPrimary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     elevation: 0,
                     minimumSize: const Size.fromHeight(45),
                   ),
                   onPressed: () {}, // Pulsante inattivo ma verde
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.check_circle_outline, size: 20),
+                      Icon(Icons.check_circle_outline, size: 20, color: AppColors.textPrimary),
                       SizedBox(width: 8),
                       Text(
                         'Hai tutti gli ingredienti in dispensa!',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),
                       ),
                     ],
                   ),

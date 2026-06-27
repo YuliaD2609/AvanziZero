@@ -32,7 +32,7 @@ class AppColors {
 
   // Colori di stato
   static Color get error =>
-      globalIsDarkMode ? const Color(0xFFF87171) : const Color(0xFFEF4444);
+      globalIsDarkMode ? const Color(0xFFFF6B6B) : const Color(0xFFE16060);
   static Color get errorLight => globalIsDarkMode ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2);
   static Color get success => globalIsDarkMode ? const Color(0xFF32A173) : const Color(
       0xFF1FA172);
