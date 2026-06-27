@@ -34,7 +34,7 @@ class LocalReceiptParser {
     'cachi': {'name': 'Cachi', 'category': 'Frutta & Verdura'},
     'fichi': {'name': 'Fichi', 'category': 'Frutta & Verdura'},
     'datteri': {'name': 'Datteri', 'category': 'Frutta & Verdura'},
-    
+
     // Agrumi
     'arancia': {'name': 'Arance', 'category': 'Frutta & Verdura'},
     'arance': {'name': 'Arance', 'category': 'Frutta & Verdura'},
@@ -106,7 +106,10 @@ class LocalReceiptParser {
     'cavolo': {'name': 'Cavolo', 'category': 'Frutta & Verdura'},
     'verza': {'name': 'Verza', 'category': 'Frutta & Verdura'},
     'cavolfiore': {'name': 'Cavolfiore', 'category': 'Frutta & Verdura'},
-    'cavolini': {'name': 'Cavolini di Bruxelles', 'category': 'Frutta & Verdura'},
+    'cavolini': {
+      'name': 'Cavolini di Bruxelles',
+      'category': 'Frutta & Verdura'
+    },
     'finocchi': {'name': 'Finocchi', 'category': 'Frutta & Verdura'},
     'cetrioli': {'name': 'Cetrioli', 'category': 'Frutta & Verdura'},
     'champignon': {'name': 'Funghi Champignon', 'category': 'Frutta & Verdura'},
@@ -125,19 +128,25 @@ class LocalReceiptParser {
     'catalogna': {'name': 'Catalogna', 'category': 'Frutta & Verdura'},
     'daikon': {'name': 'Daikon', 'category': 'Frutta & Verdura'},
     'topinambur': {'name': 'Topinambur', 'category': 'Frutta & Verdura'},
-    
+
     // Erbe Aromatiche
     'prezzemolo': {'name': 'Prezzemolo', 'category': 'Frutta & Verdura'},
     'basilico': {'name': 'Basilico', 'category': 'Frutta & Verdura'},
     'salvia': {'name': 'Salvia', 'category': 'Frutta & Verdura'},
     'rosmarino': {'name': 'Rosmarino', 'category': 'Frutta & Verdura'},
     'menta': {'name': 'Menta', 'category': 'Frutta & Verdura'},
-    'erba cipollina': {'name': 'Erba Cipollina', 'category': 'Frutta & Verdura'},
+    'erba cipollina': {
+      'name': 'Erba Cipollina',
+      'category': 'Frutta & Verdura'
+    },
 
     // ================= LATTICINI E UOVA =================
     'latte': {'name': 'Latte', 'category': 'Latticini'},
     'scremato': {'name': 'Latte Scremato', 'category': 'Latticini'},
-    'parzialmente': {'name': 'Latte Parzialmente Scremato', 'category': 'Latticini'},
+    'parzialmente': {
+      'name': 'Latte Parzialmente Scremato',
+      'category': 'Latticini'
+    },
     'intero': {'name': 'Latte Intero', 'category': 'Latticini'},
     'mozzarella': {'name': 'Mozzarella', 'category': 'Latticini'},
     'bufala': {'name': 'Mozzarella di Bufala', 'category': 'Latticini'},
@@ -251,7 +260,7 @@ class LocalReceiptParser {
     'speck': {'name': 'Speck', 'category': 'Carne'},
     'guanciale': {'name': 'Guanciale', 'category': 'Carne'},
     'lardo': {'name': 'Lardo', 'category': 'Carne'},
-    
+
     // Brand Carni e Salumi
     'aia': {'name': 'Aia', 'category': 'Carne'},
     'amadori': {'name': 'Amadori', 'category': 'Carne'},
@@ -331,7 +340,7 @@ class LocalReceiptParser {
     'capasanta': {'name': 'Capasanta', 'category': 'Carne'},
     'tartufo di mare': {'name': 'Tartufo di mare', 'category': 'Carne'},
     'cannolicchio': {'name': 'Cannolicchi', 'category': 'Carne'},
-    
+
     // Brand Surgelati
     'findus': {'name': 'Surgelati Findus', 'category': 'Carne'},
     'frosta': {'name': 'Surgelati Frosta', 'category': 'Carne'},
@@ -367,7 +376,7 @@ class LocalReceiptParser {
     'stelline': {'name': 'Stelline (Pastina)', 'category': 'Secco & Pasta'},
     'filini': {'name': 'Filini (Pastina)', 'category': 'Secco & Pasta'},
     'tempestine': {'name': 'Tempestine (Pastina)', 'category': 'Secco & Pasta'},
-    
+
     // Cereali e Farine
     'riso': {'name': 'Riso', 'category': 'Secco & Pasta'},
     'farro': {'name': 'Farro', 'category': 'Secco & Pasta'},
@@ -403,14 +412,17 @@ class LocalReceiptParser {
     'salsa': {'name': 'Salsa', 'category': 'Secco & Pasta'},
     'rubra': {'name': 'Salsa Rubra', 'category': 'Secco & Pasta'},
     'soia': {'name': 'Salsa di Soia', 'category': 'Secco & Pasta'},
-    
+
     // Spezie ed Aromi
     'pepe': {'name': 'Pepe', 'category': 'Secco & Pasta'},
     'peperoncino': {'name': 'Peperoncino', 'category': 'Secco & Pasta'},
     'origano': {'name': 'Origano', 'category': 'Secco & Pasta'},
     'cannella': {'name': 'Cannella', 'category': 'Secco & Pasta'},
     'noce moscata': {'name': 'Noce Moscata', 'category': 'Secco & Pasta'},
-    'chiodi di garofano': {'name': 'Chiodi di Garofano', 'category': 'Secco & Pasta'},
+    'chiodi di garofano': {
+      'name': 'Chiodi di Garofano',
+      'category': 'Secco & Pasta'
+    },
     'zafferano': {'name': 'Zafferano', 'category': 'Secco & Pasta'},
     'dadi': {'name': 'Dado Brodo', 'category': 'Secco & Pasta'},
     'dado': {'name': 'Dado Brodo', 'category': 'Secco & Pasta'},
@@ -420,7 +432,10 @@ class LocalReceiptParser {
     'olive': {'name': 'Olive', 'category': 'Secco & Pasta'},
     'capperi': {'name': 'Capperi', 'category': 'Secco & Pasta'},
     'sottaceti': {'name': 'Sottaceti', 'category': 'Secco & Pasta'},
-    'carciofini': {'name': 'Carciofini Sott\'olio', 'category': 'Secco & Pasta'},
+    'carciofini': {
+      'name': 'Carciofini Sott\'olio',
+      'category': 'Secco & Pasta'
+    },
     'funghetti': {'name': 'Funghetti', 'category': 'Secco & Pasta'},
     'mais': {'name': 'Mais', 'category': 'Secco & Pasta'},
     'marmellata': {'name': 'Marmellata', 'category': 'Secco & Pasta'},
@@ -497,7 +512,7 @@ class LocalReceiptParser {
     'pandoro': {'name': 'Pandoro', 'category': 'Snack'},
     'panettone': {'name': 'Panettone', 'category': 'Snack'},
     'colomba': {'name': 'Colomba', 'category': 'Snack'},
-    
+
     // Nomi Biscotti e Dolci Iconici
     'savoiardi': {'name': 'Savoiardi', 'category': 'Snack'},
     'pavesini': {'name': 'Pavesini', 'category': 'Snack'},
@@ -687,7 +702,7 @@ class LocalReceiptParser {
     'lucano': {'name': 'Amaro Lucano', 'category': 'Bevande'},
     'jagermeister': {'name': 'Jägermeister', 'category': 'Bevande'},
     'fernet': {'name': 'Fernet', 'category': 'Bevande'},
-    
+
     // Liquori
     'sambuca': {'name': 'Sambuca', 'category': 'Bevande'},
     'molinari': {'name': 'Sambuca Molinari', 'category': 'Bevande'},
@@ -892,7 +907,7 @@ class LocalReceiptParser {
     'lenor': {'name': 'Lenor', 'category': 'Altro'},
     'glade': {'name': 'Glade', 'category': 'Altro'},
     'ammorbidente': {'name': 'Ammorbidente', 'category': 'Altro'},
-    
+
     // Carta e Accessori Casalinghi
     'domopak': {'name': 'Domopak', 'category': 'Altro'},
     'cuki': {'name': 'Cuki', 'category': 'Altro'},
@@ -928,28 +943,37 @@ class LocalReceiptParser {
   static final List<String> _garbageKeywords = [
     // Parole di servizio
     'totale', 'resto', 'contanti', 'bancomat', 'carta', 'euro', 'iva',
-    'scontrino', 'reparto', 'sconto', 'pagamento', 'importo', 'sacchetto', 'sacch', 'ortofrutta',
-    'eur', 'piva', 'via', 'telefono', 'tel', 'grazie', 'arrivederci', 'documento', 'commerciale',
-    'cassa', 'pos', 'transazione', 'bio', 'it', 'prec', 'vendita', 'prestazione', 'descrizione',
-    'prezzo', 'di cui', 'complessivo', 'elettronico', 'pagato', 'sottototale', 'arrotondamento',
-    'corrispettivo', 'c.f.', 'cf', 'partita iva', 's.r.l.', 'srl', 's.p.a.', 'spa', 'viale',
-    'piazza', 'cap', 'prov', 'restante', 'reso', 'scadenza', 'scad', 'lotto', 'barcode', 'codice',
+    'scontrino', 'reparto', 'sconto', 'pagamento', 'importo', 'sacchetto',
+    'sacch', 'ortofrutta',
+    'eur', 'piva', 'via', 'telefono', 'tel', 'grazie', 'arrivederci',
+    'documento', 'commerciale',
+    'cassa', 'pos', 'transazione', 'bio', 'it', 'prec', 'vendita',
+    'prestazione', 'descrizione',
+    'prezzo', 'di cui', 'complessivo', 'elettronico', 'pagato', 'sottototale',
+    'arrotondamento',
+    'corrispettivo', 'c.f.', 'cf', 'partita iva', 's.r.l.', 'srl', 's.p.a.',
+    'spa', 'viale',
+    'piazza', 'cap', 'prov', 'restante', 'reso', 'scadenza', 'scad', 'lotto',
+    'barcode', 'codice',
     'art', 'articolo', 'art.', 'rep', 'rep.',
-    
+
     // Circuiti pagamento
     'mastercard', 'visa', 'maestro', 'pagobancomat', 'american express', 'amex',
 
     // Typo OCR
     'iotale', 'coplesio', 'logo', 'u2s', 'rt eyo', 'rt', 'eyo', 'pt',
-    'vverdeb', 'loriana', 'doc', 'dop', 'igp', 'igt', 'parentesi', '(', ')', '[', ']', 'n.', 'nr',
+    'vverdeb', 'loriana', 'doc', 'dop', 'igp', 'igt', 'parentesi', '(', ')',
+    '[', ']', 'n.', 'nr',
     'q.ta', 'qta', 'quantita', '%',
 
     // Nomi supermercati (Ignorati se in mezzo ad altre parole)
     'coop', 'maxi', 'conad', 'esselunga', 'pam', 'lidl',
     'eurospin', 'carrefour', 'md', 'penny', 'aldi', 'crai', 'despar', 'iper',
     'ipercoop', 'famila', 'tigros', 'unes', 'panorama', 'il gigante', 'deco',
-    'basko', 'sisa', 'todis', 'tuodi', 'incoop', 'offerta', 'promozione', 'promo',
-    'punti', 'fidaty', 'fidelita', 'soci', 'socio', 'auchan', 'bennet', 'iperal', 'tigota',
+    'basko', 'sisa', 'todis', 'tuodi', 'incoop', 'offerta', 'promozione',
+    'promo',
+    'punti', 'fidaty', 'fidelita', 'soci', 'socio', 'auchan', 'bennet',
+    'iperal', 'tigota',
     'acquaesapone', 'maury', 'basko', 'peq', 'supermercato', 'minimarket'
   ];
 
@@ -997,7 +1021,32 @@ class LocalReceiptParser {
 
       // 1. Filtraggio Garbage Totale (Riga interamente da scartare)
       bool isGarbageLine = false;
-      List<String> discardWords = ['sconto', 'totale', 'resto', 'contanti', 'bancomat', 'carta', 'pagamento', 'sacchetto', 'sacch', 'transazione', 'cassa', 'iva', 'iotale', 'coplesio', 'logo', 'u2s', 'rt eyo', 'rt', 'documento', 'commerciale', 'vendita', 'prestazione', 'descrizione', 'prezzo'];
+      List<String> discardWords = [
+        'sconto',
+        'totale',
+        'resto',
+        'contanti',
+        'bancomat',
+        'carta',
+        'pagamento',
+        'sacchetto',
+        'sacch',
+        'transazione',
+        'cassa',
+        'iva',
+        'iotale',
+        'coplesio',
+        'logo',
+        'u2s',
+        'rt eyo',
+        'rt',
+        'documento',
+        'commerciale',
+        'vendita',
+        'prestazione',
+        'descrizione',
+        'prezzo'
+      ];
       for (String garbage in discardWords) {
         if (cleanLine.contains(garbage)) {
           isGarbageLine = true;
@@ -1010,9 +1059,10 @@ class LocalReceiptParser {
 
       // Pulisce prezzi e codici
       String textWithoutPrice = cleanLine
-          .replaceAll(RegExp(r'\s*\d+[,\.]\d{2}\s*(€|eur|e)?\s*[a-zA-Z]?\s*$'), '')
+          .replaceAll(
+              RegExp(r'\s*\d+[,\.]\d{2}\s*(€|eur|e)?\s*[a-zA-Z]?\s*$'), '')
           .trim();
-          
+
       // Rimuove pesi e calibri
       textWithoutPrice = textWithoutPrice
           .replaceAll(RegExp(r'\b\d+-\d+\b'), '')
@@ -1027,16 +1077,21 @@ class LocalReceiptParser {
       int quantity = _extractQuantity(textWithoutPrice);
 
       String productNameRaw = textWithoutPrice
-          .replaceAll(RegExp(r'\b\d+[\s]*[xX]?\b'), '') // Rimuove quantità dal nome
+          .replaceAll(
+              RegExp(r'\b\d+[\s]*[xX]?\b'), '') // Rimuove quantità dal nome
           .trim();
 
       // Rimuove parole spazzatura
       for (String garbage in _garbageKeywords) {
-        productNameRaw = productNameRaw.replaceAll(RegExp(r'\b' + garbage + r'\b'), ' ').trim();
+        productNameRaw = productNameRaw
+            .replaceAll(RegExp(r'\b' + garbage + r'\b'), ' ')
+            .trim();
       }
 
-      productNameRaw =
-          productNameRaw.replaceAll(RegExp(r'[^a-z0-9\s]'), '').replaceAll(RegExp(r'\s+'), ' ').trim();
+      productNameRaw = productNameRaw
+          .replaceAll(RegExp(r'[^a-z0-9\s]'), '')
+          .replaceAll(RegExp(r'\s+'), ' ')
+          .trim();
 
       if (productNameRaw.isEmpty || productNameRaw.length < 3) continue;
 

@@ -72,10 +72,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
         final liveRecipes =
             await LiveRecipeHarvestingService.harvestLiveRecipes(pantryItems);
 
-        int newCount = 0;
         for (var rec in liveRecipes) {
           await RecipeMatcherService.insertRecipeFromLiveWeb(rec);
-          newCount++;
         }
 
         // Toast informativi rimossi per migliorare l'esperienza utente
@@ -596,7 +594,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
                   const SizedBox(height: 12),
                   Text(
                     'Procedimento:',
@@ -683,7 +681,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.check_circle_outline, size: 20, color: AppColors.textPrimary),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text(
                             'Hai tutti gli ingredienti in dispensa!',
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),

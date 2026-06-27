@@ -87,7 +87,7 @@ class SmartPantryAI {
 
       // Dispensa attuale
       var pItems = pantryByName[nameKey] ?? [];
-      int currentQty = pItems.fold(0, (sum, item) => sum + item.quantity);
+      int currentQty = pItems.fold(0, (acc, item) => acc + item.quantity);
       String originalName = pItems.isNotEmpty ? pItems.first.name : (logs.first['name'] ?? nameKey);
 
       bool triggered = false;
@@ -158,7 +158,7 @@ class SmartPantryAI {
             triggered = true;
             motivo = "Frequenza di acquisto (Comprato ogni ~${avgDaysBetweenPurchases.toStringAsFixed(0)} giorni)";
             confidenza = mathMin(100, 75 + (logs.length * 3));
-          } else if (avgDaysBetweenPurchases == -1 && logs.length >= 1) {
+          } else if (avgDaysBetweenPurchases == -1 && logs.isNotEmpty) {
             // Esaurito dopo acquisto
              triggered = true;
              motivo = "Esaurimento imminente (Soglia: 0 rimanenti)";

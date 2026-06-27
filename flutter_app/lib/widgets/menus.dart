@@ -150,7 +150,7 @@ class VerticalCategoryMenu extends StatelessWidget {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12)),
                         ),
-                        child: Text("Ho capito",
+                        child: const Text("Ho capito",
                             style: TextStyle(
                                 color: Colors.white,
                                 fontFamily: 'Outfit')),

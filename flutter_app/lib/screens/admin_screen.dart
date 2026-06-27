@@ -443,6 +443,42 @@ class _AdminScreenState extends State<AdminScreen> {
               ),
               const SizedBox(height: 28),
 
+              // Sezione animazione di avvio
+              _buildSectionTitle("Impostazioni di Avvio"),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceLight,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                        color: AppColors.shadowLight,
+                        blurRadius: 15,
+                        offset: const Offset(0, 4)),
+                  ],
+                  border:
+                      Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
+                ),
+                child: SwitchListTile(
+                  title: Text(
+                    "Rimuovi animazione di avvio",
+                    style: TextStyle(
+                        fontFamily: 'Outfit',
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary),
+                  ),
+                  subtitle: const Text(
+                    "Salta la sequenza iniziale e vai subito alle funzioni",
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  activeThumbColor: AppColors.primary,
+                  value: widget.state.skipStartupAnimation,
+                  onChanged: (val) async {
+                    await widget.state.setSkipStartupAnimation(val);
+                  },
+                ),
+              ),
+              const SizedBox(height: 28),
+
               // Sezione logout
               SizedBox(
                 width: double.infinity,

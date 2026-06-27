@@ -215,6 +215,19 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  bool _skipStartupAnimation = false;
+  bool get skipStartupAnimation => _skipStartupAnimation;
+
+  Future<void> setSkipStartupAnimation(bool skip) async {
+    _skipStartupAnimation = skip;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('skipStartupAnimation', skip);
+    } catch (e) {
+    }
+  }
+
   bool _notificationsEnabled = true;
   bool get notificationsEnabled => _notificationsEnabled;
 
@@ -224,6 +237,7 @@ class AppState extends ChangeNotifier {
   Future<void> loadNotificationPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      _skipStartupAnimation = prefs.getBool('skipStartupAnimation') ?? false;
       _notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
       int hour = prefs.getInt('notificationHour') ?? 9;
       int minute = prefs.getInt('notificationMinute') ?? 0;

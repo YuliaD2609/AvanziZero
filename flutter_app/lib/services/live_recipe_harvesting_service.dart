@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart';
 import 'package:html/parser.dart' as html_parser;
-import 'package:flutter/foundation.dart';
 import 'ia/recipe_matcher_service.dart';
 
 class LiveRecipeHarvestingService {
@@ -414,7 +412,7 @@ class LiveRecipeHarvestingService {
 
       final tempId = 200000 + tempIndex++;
       final cleanDesc = desc.isNotEmpty ? desc : 'Deliziosa ricetta di Fatto in Casa da Benedetta.';
-      final cleanInst = 'Segui il procedimento dettagliato e guarda le foto passo-passo sulla pagina ufficiale di Fatto in Casa da Benedetta aprendo il link della ricetta.';
+      const cleanInst = 'Segui il procedimento dettagliato e guarda le foto passo-passo sulla pagina ufficiale di Fatto in Casa da Benedetta aprendo il link della ricetta.';
 
       liveMatches.add(RecipeMatch(
         id: tempId,
