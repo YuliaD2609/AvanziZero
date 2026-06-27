@@ -56,22 +56,6 @@ Gli strumenti informali attualmente impiegati per il coordinamento domestico pre
 
 ---
 
-## Architettura di Intelligenza Artificiale
-
-Il sistema si fonda su un modello architetturale di Edge Computing, eseguendo l'elaborazione neurale direttamente sull'hardware del terminale mobile. Tale approccio garantisce l'assenza di latenze di rete e l'eliminazione dei costi legati al transito su API di terze parti.
-
-```mermaid
-flowchart TD
-    subgraph Pipeline On-Device
-        A[Acquisizione Fotografia Scontrino] -->|Google ML Kit| B[Motore OCR Text Recognition]
-        B -->|Testo Decodificato| C[DistilBERT su TFLite]
-        C -->|Fuzzy Matching & Categorizzazione| D[Estrazione Prodotto e Scadenza]
-        D --> E[Database Strutturato Dispensa]
-        E -->|Analisi Serie Storiche| F[Motore Predittivo Smart Pantry]
-        F -->|Identificazione Esaurimento| G[Integrazione Lista Spesa]
-    end
-```
-
 ### Estrazione OCR e Analisi Semantica (DistilBERT)
 
 L'importazione automatizzata dei prodotti si articola su una pipeline a tre livelli:
@@ -89,18 +73,6 @@ L'integrazione di un motore logico di apprendimento comportamentale consente l'a
 ---
 
 ## Moduli e Funzionalità Principali
-
-```mermaid
-flowchart TD
-    subgraph Ecosistema Architetturale
-        A[Acquisizione Scontrino OCR] -->|Estrazione Prodotto/Scadenza| B(Modulo Dispensa Condivisa)
-        B -->|Trigger Scadenza| C{Motore Assegnazione Ricette}
-        C -->|Query SQLite + Web Scraping| D[Catalogo AvanziZero]
-        D -->|Validazione Ingredienti| E(Modulo Spesa Collaborativa)
-        B -->|Rilevamento Esaurimento Predittivo| E
-        E -->|Query Servizi Georeferenziati| B
-    end
-```
 
 ### 1. Dispensa Condivisa in Tempo Reale
 Gestione strutturata degli inventari fisici con sincronizzazione centralizzata.
@@ -130,15 +102,6 @@ Coordinamento multi-client per l'ottimizzazione del ciclo di fornitura.
 ---
 
 ### 4. Motore Ricette e Scraping Distribuito
-Piattaforma di query avanzata per il riutilizzo ottimale dei generi alimentari residui.
-
-```mermaid
-flowchart LR
-    A[Scorte Deperibili] --> B[Algoritmo Ottimizzazione]
-    B --> C[Scraping Asincrono su Sorgenti Web]
-    C --> D[Filtro Operativo: Modalità Cottura]
-    D --> E[Proposta Ricetta Target]
-```
 
 * **Prioritizzazione di Sostenibilità:** Calcolo algoritmico del punteggio di pertinenza per mostrare in cima ai risultati le preparazioni che impiegano precisamente i prodotti in imminente deperimento.
 * **Integrazione Dati Asincrona (Web Harvesting):** Accesso dinamico e strutturato ai contenuti della piattaforma culinaria "Fatto in casa da Benedetta". Il parser estrae le immagini, i tempi di esecuzione e le istruzioni sequenziali, formattandole in modo normalizzato.
