@@ -2,13 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/app_state.dart';
-import '../services/ai_scanner_service.dart';
+import '../services/ia/ai_scanner_service.dart';
 import '../theme/app_colors.dart';
 
-/// Modale avanzato per l'acquisizione di scontrini tramite Intelligenza Artificiale.
-/// Integra l'accesso nativo all'hardware del dispositivo (Fotocamera e Galleria)
-/// tramite il pacchetto ufficiale [image_picker], predisponendo l'immagine
-/// per l'invio al backend di inferenza OCR e classificazione LLM.
+// Modale scanner OCR
 class OcrScannerModal extends StatefulWidget {
   final AppState state;
   const OcrScannerModal({super.key, required this.state});
@@ -31,19 +28,19 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
   bool _isAnalyzing = false;
   final ImagePicker _picker = ImagePicker();
 
-  /// Avvia l'acquisizione di un'immagine nativa dalla sorgente desiderata
+  // Avvia acquisizione immagine
   Future<void> _captureImage(ImageSource source) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: source,
-        imageQuality: 85, // Compressione ottimale per OCR via rete
+        imageQuality: 85, // Compressione OCR
         maxWidth: 1800,
       );
 
       if (pickedFile != null) {
         setState(() {
           _capturedImage = File(pickedFile.path);
-          // Rimosso finto caricamento qui. Lo spostiamo sul pulsante di invio.
+          // Sposta caricamento
         });
       }
     } catch (e) {
@@ -71,7 +68,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
       ),
       child: Column(
         children: [
-          // Barra superiore di trascinamento
+          // Barra trascinamento
           Container(
             margin: const EdgeInsets.only(top: 12, bottom: 8),
             width: 40,
@@ -82,7 +79,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
             ),
           ),
 
-          // Intestazione Modale
+          // Intestazione modale
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Row(
@@ -114,20 +111,20 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
           ),
           Divider(color: AppColors.border, height: 1),
 
-          // Contenuto Principale
+          // Contenuto principale
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Area Anteprima Fotocamera / Scontrino Reale
+                  // Anteprima immagine
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     height: 260,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: AppColors.background, // Avorio soft
+                      color: AppColors.background, // Colore sfondo
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: _capturedImage != null
@@ -146,7 +143,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                   _capturedImage!,
                                   fit: BoxFit.cover,
                                 ),
-                                // Overlay scuro durante l'analisi
+                                // Overlay analisi
                                 if (_isAnalyzing)
                                   Container(
                                     color: Colors.black.withValues(alpha: 0.6),
@@ -200,11 +197,11 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Descrizione e coerenza con il feedback utente sul modello
+                  // Descrizione modello
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryLight, // Menta chiaro
+                      color: AppColors.primaryLight, // Colore sfondo
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -228,7 +225,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                   ),
                   const Spacer(),
 
-                  // Pulsanti di Azione
+                  // Pulsanti azione
                   if (_capturedImage == null) ...[
                     Row(
                       children: [
@@ -269,7 +266,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
-                                  AppColors.primary, // Verde Salvia Intenso
+                                  AppColors.primary, // Colore verde
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               elevation: 2,
                               shape: RoundedRectangleBorder(
@@ -314,7 +311,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                           await AIScannerService.scanReceipt(
                                               XFile(_capturedImage!.path));
                                       if (context.mounted) {
-                                        // Passiamo la lista di prodotti indietro al chiamante
+                                        // Ritorna prodotti
                                         Navigator.pop(context, items);
                                       }
                                     } catch (e) {
@@ -336,7 +333,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                   },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors
-                                  .primaryDark, // Accento Verde Scuro/Teal
+                                  .primaryDark, // Colore accento
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               elevation: 0,
                               shape: RoundedRectangleBorder(

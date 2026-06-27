@@ -1,20 +1,19 @@
 import os
 os.environ["TF_USE_LEGACY_KERAS"] = "1"
-import json
 import numpy as np
 import tensorflow as tf
 from transformers import AutoTokenizer
 
-# Mappa etichette
+# Definisce le etichette
 tags_to_ids = {"O": 0, "B-PROD": 1, "I-PROD": 2, "B-QTY": 3}
 ids_to_tags = {v: k for k, v in tags_to_ids.items()}
 
-# Carica tokenizer e modello TFLite
+# Inizializza tokenizer e modello TFLite
 print("Caricamento tokenizer...")
 tokenizer = AutoTokenizer.from_pretrained("./pytorch_model")
 
 print("Caricamento modello TFLite...")
-interpreter = tf.lite.Interpreter(model_path="models/receipt_ner_distilbert.tflite")
+interpreter = tf.lite.Interpreter(model_path="ai_models/receipt_ner_distilbert.tflite")
 interpreter.allocate_tensors()
 
 input_details = interpreter.get_input_details()
@@ -31,7 +30,7 @@ def predict(text):
     input_ids = tf.cast(tokenized["input_ids"], tf.int32)
     attention_mask = tf.cast(tokenized["attention_mask"], tf.int32)
     
-    # In TFLite, gli input devono corrispondere all'indice esatto
+    # Assegna gli input all'indice TFLite esatto
     for detail in input_details:
         if "input_ids" in detail['name']:
             interpreter.set_tensor(detail['index'], input_ids)

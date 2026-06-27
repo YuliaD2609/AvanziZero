@@ -33,7 +33,7 @@ class WordPieceTokenizer {
   String decode(List<int> ids) {
     String result = "";
     for (int id in ids) {
-      if (id <= 102) continue; // Skip special tokens like PAD, UNK, CLS, SEP
+      if (id <= 102) continue; // Ignora token speciali
       String token = _invVocab[id] ?? "";
       if (token.startsWith("##")) {
         result += token.substring(2);
@@ -47,11 +47,11 @@ class WordPieceTokenizer {
   bool get isLoaded => _isLoaded;
 
   List<String> basicTokenize(String text) {
-    // Basic whitespace and punctuation split keeping punctuation as separate tokens
+    // Divide testo base
     text = text.trim();
     if (text.isEmpty) return [];
     
-    // Inseriamo spazi prima e dopo la punteggiatura per separarla
+    // Isola punteggiatura
     text = text.replaceAllMapped(RegExp(r'([^\w\s])'), (match) => ' ${match.group(1)} ');
     return text.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
   }
@@ -104,13 +104,13 @@ class WordPieceTokenizer {
 
     tokenIds.add(_sepTokenId);
 
-    // Truncate
+    // Tronca token
     if (tokenIds.length > maxLen) {
       tokenIds = tokenIds.sublist(0, maxLen);
-      tokenIds[maxLen - 1] = _sepTokenId; // Assicurati che finisca sempre con SEP
+      tokenIds[maxLen - 1] = _sepTokenId; // Aggiunge SEP finale
     }
 
-    // Pad
+    // Aggiunge padding
     while (tokenIds.length < maxLen) {
       tokenIds.add(_padTokenId);
     }

@@ -6,10 +6,7 @@ import '../main.dart'; // Per accedere a MainNavigator
 import 'admin_screen.dart';
 import '../theme/app_colors.dart';
 
-/// Schermata iniziale ordinata ed elegante per la configurazione del gruppo casa.
-/// Permette di avviare un nuovo ambiente di co-living generando un codice univoco,
-/// oppure di collegarsi istantaneamente alla dispensa di coinquilini esistenti
-/// inserendo il codice di condivisione, con gestione della cronologia gruppi visitati.
+// Schermata setup gruppo
 class GroupSetupScreen extends StatefulWidget {
   final AppState state;
 
@@ -30,7 +27,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
     super.dispose();
   }
 
-  /// Genera un codice casa casuale, semplice e facilmente condivisibile (es. "CASA-7B4D")
+  // Genera codice casuale
   String _generateRandomCode() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final rnd = Random();
@@ -40,11 +37,11 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
     return 'CASA-$randomPart';
   }
 
-  /// Flusso di creazione di un nuovo gruppo domestico
+  // Crea nuovo gruppo
   Future<void> _createNewGroup() async {
     final newCode = _generateRandomCode();
 
-    // Esecuzione in background (senza await)
+    // Esecuzione background
     if (widget.state.currentUserAuth != null) {
       widget.state.authService
           .addGroupToUser(widget.state.currentUserAuth!.uid, newCode);
@@ -57,7 +54,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
 
     if (!mounted) return;
 
-    // Naviga alla dashboard principale
+    // Naviga a dashboard
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -65,7 +62,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
       ),
     );
 
-    // Mostra il codice generato in una comoda notifica visiva
+    // Mostra codice generato
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -73,7 +70,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
           style:
               const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        backgroundColor: AppColors.primary, // Verde Salvia Intenso
+        backgroundColor: AppColors.primary, // Colore verde
         duration: const Duration(seconds: 8),
         action: SnackBarAction(
           label: 'OK',
@@ -84,7 +81,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
     );
   }
 
-  /// Flusso di unione a un gruppo domestico esistente tramite immissione codice
+  // Unisciti a gruppo
   Future<void> _joinExistingGroup() async {
     final inputCode = _codeController.text.trim().toUpperCase();
 
@@ -104,23 +101,23 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
     final userData = widget.state.currentUserData;
 
     if (uid != null && userData != null) {
-      // 1. Controllo anti-spam in memoria locale
+      // Controllo anti-spam
       if (userData.pendingGroupIds.contains(inputCode)) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
                 "Hai già inviato una richiesta per $inputCode. Attendi l'approvazione."),
-            backgroundColor: AppColors.warning, // Giallo Ambra
+            backgroundColor: AppColors.warning, // Colore giallo
           ),
         );
         setState(() => _isLoading = false);
         return;
       }
 
-      // 2. Controllo se sei già membro
+      // Controllo membro
       if (userData.groupIds.contains(inputCode)) {
-        // Inizializza lo stato con il nuovo gruppo e attendi che Firebase completi il setup iniziale
+        // Inizializza stato gruppo
         await widget.state.setGroupId(inputCode);
 
         if (!mounted) return;
@@ -132,16 +129,16 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
         return;
       }
 
-      // 3. Verifica l'esistenza del gruppo su Firebase e controlla membri
+      // Verifica esistenza gruppo
       try {
         final groupDoc = await FirebaseFirestore.instance
             .collection('groups')
             .doc(inputCode)
             .get();
         if (!groupDoc.exists) {
-          // Se cliccato dai recenti (o inserito manualmente) e non esiste, mostriamo il banner
+          // Mostra banner eliminato
           widget.state.groupWasDeleted = true;
-          // E lo rimuoviamo dai recenti
+          // Rimuove da recenti
           widget.state.removeSavedGroup(inputCode);
           if (userData.groupIds.contains(inputCode)) {
             userData.groupIds.remove(inputCode);
@@ -155,7 +152,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
 
         final members = List<String>.from(groupDoc.data()?['members'] ?? []);
         if (members.contains(uid)) {
-          // Sei già membro (magari aggiunto da un admin ma appState non è aggiornato)
+          // Aggiunge gruppo utente
           widget.state.authService.addGroupToUser(uid, inputCode);
           userData.groupIds.add(inputCode);
           widget.state.setGroupId(inputCode);
@@ -168,7 +165,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
           );
           return;
         } else {
-          // 4. Invia richiesta
+          // Invia richiesta
           await widget.state.authService
               .sendJoinRequest(uid, inputCode, userData.name, userData.email);
           userData.pendingGroupIds.add(inputCode);
@@ -222,7 +219,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
           ),
         );
       });
-      // Resetta subito il flag per evitare dialoghi multipli durante eventuali rebuild
+      // Resetta flag eliminazione
       widget.state.groupWasDeleted = false;
     }
 
@@ -232,11 +229,11 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
         final userName = widget.state.currentUserData?.name ?? "";
 
         return Scaffold(
-          backgroundColor: AppColors.background, // Avorio Soft
+          backgroundColor: AppColors.background, // Colore sfondo
           body: SafeArea(
             child: Stack(
               children: [
-                // Sfondi decorativi per renderla più estetica
+                // Sfondi decorativi
                 Positioned(
                   top: -80,
                   right: -80,
@@ -268,7 +265,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Intestazione con Benvenuto e Logout
+                        // Intestazione benvenuto
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -318,7 +315,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                         ),
                         const SizedBox(height: 40),
 
-                        // Logo / Icona premium
+                        // Logo
                         Image.asset(
                           'assets/images/logo.png',
                           width: 100,
@@ -327,7 +324,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Intestazione di Benvenuto
+                        // Intestazione benvenuto
                         Text(
                           "AvanziZero",
                           textAlign: TextAlign.center,
@@ -335,7 +332,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                             fontFamily: 'Outfit',
                             fontSize: 32,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary, // Verde Foresta Scuro
+                            color: AppColors.textPrimary, // Colore verde scuro
                             letterSpacing: -0.5,
                           ),
                         ),
@@ -346,13 +343,13 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                           style: TextStyle(
                             fontFamily: 'Outfit',
                             fontSize: 15,
-                            color: AppColors.textSecondary, // Salvia Desaturato
+                            color: AppColors.textSecondary, // Colore salvia
                             height: 1.3,
                           ),
                         ),
                         const SizedBox(height: 36),
 
-                        // Visualizzazione di caricamento generale
+                        // Caricamento generale
                         if (_isLoading) ...[
                           Center(
                             child: CircularProgressIndicator(
@@ -366,7 +363,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                 color: AppColors.textSecondary, fontSize: 14),
                           ),
                         ] else ...[
-                          // Banner Utente Rimosso
+                          // Banner rimosso
                           if (widget.state.userWasKicked)
                             Container(
                               margin: const EdgeInsets.only(bottom: 24),
@@ -394,7 +391,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                               ),
                             ),
 
-                          // Card 1: Crea un Nuovo Gruppo
+                          // Card crea gruppo
                           _buildCard(
                             title: "Crea un Nuovo Gruppo",
                             subtitle:
@@ -404,14 +401,14 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                               child: ElevatedButton(
                                 onPressed: _createNewGroup,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      AppColors.primary, // Verde Salvia Intenso
+                                  backgroundColor: AppColors.primary,
                                   foregroundColor: Colors.white,
                                   elevation: 0,
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 32, vertical: 16),
+                                      horizontal: 24, vertical: 14),
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12)),
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
                                 ),
                                 child: const Text(
                                   "Genera Codice e Inizia",
@@ -425,7 +422,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          // Divisore grafico
+                          // Divisore
                           Row(
                             children: [
                               Expanded(
@@ -449,7 +446,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          // Card 2: Unisciti a un Gruppo Esistente
+                          // Card unisciti gruppo
                           _buildCard(
                             title: "Unisciti a un Gruppo",
                             subtitle:
@@ -471,19 +468,17 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                     contentPadding: const EdgeInsets.symmetric(
                                         horizontal: 16, vertical: 14),
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide:
-                                          BorderSide(color: AppColors.border),
+                                      borderRadius: BorderRadius.circular(24),
+                                      borderSide: BorderSide.none,
                                     ),
                                     enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide:
-                                          BorderSide(color: AppColors.border),
+                                      borderRadius: BorderRadius.circular(24),
+                                      borderSide: BorderSide.none,
                                     ),
                                     focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(24),
                                       borderSide: BorderSide(
-                                          color: AppColors.primary, width: 2),
+                                          color: AppColors.primary, width: 1.5),
                                     ),
                                   ),
                                   style: TextStyle(
@@ -507,12 +502,12 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.primary,
                                       foregroundColor: Colors.white,
+                                      elevation: 0,
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 14),
                                       shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12)),
-                                      elevation: 0,
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
                                     ),
                                     child: _isLoading
                                         ? SizedBox(
@@ -531,7 +526,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 16),
-                                // Pannello Richieste in Attesa
+                                // Pannello richieste
                                 if (widget.state.currentUserData
                                         ?.pendingGroupIds.isNotEmpty ??
                                     false)
@@ -586,7 +581,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                             ),
                           ),
 
-                          // Sezione Cronologia: Gruppi Visitati Di Recente
+                          // Sezione cronologia
                           if (widget.state.savedGroups.isNotEmpty) ...[
                             const SizedBox(height: 28),
                             Text(
@@ -666,7 +661,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
     );
   }
 
-  /// Costruisce una scheda elegante e modulare conforme al Design System
+  // Costruisce card
   Widget _buildCard({
     required String title,
     required String subtitle,
@@ -676,17 +671,9 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors
-                .shadowMedium, // 5% di opacità per un'ombra morbida e naturale
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

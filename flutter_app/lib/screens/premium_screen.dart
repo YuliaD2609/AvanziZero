@@ -16,7 +16,7 @@ class PremiumScreen extends StatelessWidget {
             Stack(
               children: [
                 Container(
-                  height: 130, // Altezza ridotta
+                  height: 130, // Altezza
                   decoration: BoxDecoration(
                     color: AppColors.primary,
                     borderRadius: const BorderRadius.only(
@@ -30,7 +30,7 @@ class PremiumScreen extends StatelessWidget {
                       children: [
                         const Icon(
                           Icons.workspace_premium_rounded,
-                          size: 48, // Icona rimpicciolita
+                          size: 48, // Icona
                           color: Colors.white,
                         ),
                         const SizedBox(height: 8),
@@ -38,7 +38,7 @@ class PremiumScreen extends StatelessWidget {
                           'Passa a Premium!',
                           style: TextStyle(
                             fontFamily: 'Outfit',
-                            fontSize: 24, // Testo rimpicciolito
+                            fontSize: 24, // Testo
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                             shadows: [
@@ -81,7 +81,7 @@ class PremiumScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // Lista dei vantaggi (distribuiti uniformemente nello spazio per non scrollare)
+            // Lista vantaggi
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),

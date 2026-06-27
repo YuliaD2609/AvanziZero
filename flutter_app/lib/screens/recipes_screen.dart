@@ -3,19 +3,18 @@ import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/app_state.dart';
-import '../services/recipe_matcher_service.dart';
+import '../services/ia/recipe_matcher_service.dart';
 import '../services/live_recipe_harvesting_service.dart';
 import '../theme/app_colors.dart';
+import '../widgets/menus.dart';
 
 class RecipesScreen extends StatefulWidget {
   final AppState state;
-  final VoidCallback onHomePressed;
   final VoidCallback onCartPressed;
 
   const RecipesScreen({
     super.key,
     required this.state,
-    required this.onHomePressed,
     required this.onCartPressed,
   });
 
@@ -25,11 +24,12 @@ class RecipesScreen extends StatefulWidget {
 
 class _RecipesScreenState extends State<RecipesScreen> {
   String _selectedCategory = 'Tutte';
-  bool? _withOven; // null = tutti, true = con forno, false = senza forno
+  bool? _withOven; // Opzione forno
   bool _isRandomMode = false;
   bool _isOffline = false;
   List<RecipeMatch> _recipes = [];
   bool _isLoading = true;
+  bool _showFilters = false;
 
   final List<String> _categories = [
     'Tutte',
@@ -201,58 +201,52 @@ class _RecipesScreenState extends State<RecipesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.surfaceLight,
-        elevation: 0,
-        title: Row(
-          children: [
-            ChefHatIcon(color: AppColors.primary, size: 28),
-            const SizedBox(width: 10),
-            Text(
-              _isRandomMode ? 'Ricette Casuali' : 'Ricette',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            tooltip: 'Ricette dalla Dispensa',
-            icon: Icon(Icons.kitchen_outlined,
-                color: !_isRandomMode
-                    ? AppColors.primary
-                    : AppColors.textSecondary,
-                size: 26),
-            onPressed: () {
-              setState(() {
-                _isRandomMode = false;
-              });
-              _loadRecipes();
-            },
-          ),
-          IconButton(
-            tooltip: 'Ricette Casuali dal Web',
-            icon: Icon(Icons.casino_outlined,
-                color:
-                    _isRandomMode ? AppColors.primary : AppColors.textSecondary,
-                size: 26),
-            onPressed: () {
-              setState(() {
-                _isRandomMode = true;
-              });
-              _loadRecipes();
-            },
-          ),
-        ],
-      ),
+
       body: Column(
         children: [
-          // Sezione Filtri: Categorie ed opzione Forno
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          // Header unificato
+          HorizontalHeaderMenu(
+            title: _isRandomMode ? 'Ricette Casuali' : 'Ricette',
+            leftAction: IconButton(
+              icon: Icon(Icons.filter_list_rounded, color: AppColors.textPrimary, size: 28),
+              onPressed: () {
+                setState(() {
+                  _showFilters = !_showFilters;
+                });
+              },
+            ),
+            customActions: [
+              IconButton(
+                tooltip: 'Ricette dalla Dispensa',
+                icon: Icon(Icons.kitchen_outlined, color: !_isRandomMode ? AppColors.textPrimary : AppColors.textSecondary, size: 26),
+                onPressed: () {
+                  setState(() {
+                    _isRandomMode = false;
+                  });
+                  _loadRecipes();
+                },
+              ),
+              IconButton(
+                tooltip: '5 Ricette Casuali',
+                icon: Icon(Icons.shuffle_rounded, color: _isRandomMode ? AppColors.textPrimary : AppColors.textSecondary, size: 26),
+                onPressed: () {
+                  setState(() {
+                    _isRandomMode = true;
+                  });
+                  _loadRecipes();
+                },
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
+          // Sezione filtri con animazione
+          AnimatedSize(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            child: !_showFilters
+                ? const SizedBox.shrink()
+                : Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: AppColors.surfaceLight,
               boxShadow: [
@@ -266,7 +260,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Chip Categorie
+                // Chip categorie
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -300,7 +294,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                // Checkbox Forno / Senza Forno
+                // Filtri forno
                 Row(
                   children: [
                     Text(
@@ -312,7 +306,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // Checkbox Con Forno
+                    // Con forno
                     FilterChip(
                       selected: _withOven == true,
                       label: const Text('Con Forno'),
@@ -333,7 +327,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       },
                     ),
                     const SizedBox(width: 8),
-                    // Checkbox Senza Forno
+                    // Senza forno
                     FilterChip(
                       selected: _withOven == false,
                       label: const Text('Senza Forno'),
@@ -357,6 +351,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 ),
               ],
             ),
+          ),
           ),
           // Banner dinamico Modalità Offline se non c'è rete
           if (_isOffline)
@@ -388,7 +383,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 ],
               ),
             ),
-          // Lista delle Ricette
+          // Lista ricette
           Expanded(
             child: _isLoading
                 ? Center(
@@ -446,12 +441,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
       decoration: BoxDecoration(
         color: AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border, width: 1),
+        border: Border.all(color: AppColors.primary.withOpacity(0.3), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -460,7 +455,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Intestazione Card: Nome
+            // Intestazione card
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -506,7 +501,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 ],
               ),
             ),
-            // Info su Tempo, Difficoltà e Forno
+            // Info cottura
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
@@ -539,7 +534,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
               ),
             ),
             const Divider(height: 1),
-            // Sezione Ingredienti
+            // Sezione ingredienti
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -628,49 +623,45 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    recipe.instructions,
-                    style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 14,
-                        height: 1.4),
+                    recipe.instructions.replaceAllMapped(RegExp(r'\s+(\d+\.)'), (match) => '\n${match.group(1)}'),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.4),
                   ),
                 ],
               ),
             ),
             // Area Pulsanti di Azione
-            Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-              child: Column(
-                children: [
-                  if (!isReadyToCook) ...[
-                    ElevatedButton(
+            Column(
+              children: [
+                if (!isReadyToCook)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                    child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15)),
+                        backgroundColor: AppColors.background,
+                        foregroundColor: AppColors.textPrimary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         elevation: 0,
                         minimumSize: const Size.fromHeight(45),
+                        side: BorderSide(color: AppColors.primary.withOpacity(0.5), width: 1.0),
                       ),
                       onPressed: () async {
-                        final missingNames = recipe.missingIngredients
-                            .map((e) => e.name)
-                            .toList();
-                        await widget.state
-                            .addMissingIngredientsToShoppingList(missingNames);
-
+                        final missingNames = recipe.missingIngredients.map((e) => e.name).toList();
+                        await widget.state.addMissingIngredientsToShoppingList(missingNames);
+                        
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                "🛒 ${missingNames.length} ingredienti aggiunti alla tua Lista della Spesa!",
-                                style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
+                                missingNames.length == 1
+                                    ? "1 ingrediente aggiunto alla tua Lista della Spesa!"
+                                    : "${missingNames.length} ingredienti aggiunti alla tua Lista della Spesa!",
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                               ),
-                              backgroundColor: AppColors.primaryDark,
-                              duration: const Duration(seconds: 3),
+                              backgroundColor: AppColors.primary,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              margin: const EdgeInsets.all(16),
                             ),
                           );
                           _loadRecipes();
@@ -679,53 +670,53 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.add_shopping_cart_rounded, size: 20),
+                          Icon(Icons.shopping_cart_outlined, size: 20, color: AppColors.textPrimary),
                           const SizedBox(width: 8),
                           Text(
-                            'Aggiungi ${recipe.missingIngredients.length} mancanti alla Spesa',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 15),
+                            recipe.missingIngredients.length == 1
+                                ? 'Aggiungi 1 mancante alla Spesa'
+                                : 'Aggiungi ${recipe.missingIngredients.length} mancanti alla Spesa',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                  ] else ...[
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(color: Colors.green, width: 1),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary.withOpacity(0.50),
+                        foregroundColor: AppColors.textPrimary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        minimumSize: const Size.fromHeight(45),
                       ),
-                      child: const Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.check_circle_outline_rounded,
-                                color: Colors.green),
-                            SizedBox(width: 8),
-                            Text(
-                              'Hai tutti gli ingredienti in Dispensa!',
-                              style: TextStyle(
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14),
-                            ),
-                          ],
-                        ),
+                      onPressed: () {},
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.check_circle_outline, size: 20, color: AppColors.textPrimary),
+                          SizedBox(width: 8),
+                          Text(
+                            'Hai tutti gli ingredienti in dispensa!',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                  ],
-                  // Nuovo pulsante per aprire il sito della ricetta
-                  ElevatedButton(
+                  ),
+                // Nuovo pulsante per aprire il sito della ricetta
+                Padding(
+                  padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                  child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.surfaceLight,
                       foregroundColor: AppColors.primary,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
+                        borderRadius: BorderRadius.circular(24),
                         side: BorderSide(color: AppColors.primary, width: 1.5),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -738,15 +729,13 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         final sourceLower = url.toLowerCase();
                         final encName = Uri.encodeComponent(recipe.name);
                         if (sourceLower.contains('giallozafferano')) {
-                          url =
-                              'https://www.giallozafferano.it/ricerca-ricette/$encName';
+                          url = 'https://www.giallozafferano.it/ricerca-ricette/$encName';
                         } else if (sourceLower.contains('cucchiaio')) {
                           url = 'https://www.cucchiaio.it/ricerca/?q=$encName';
                         } else if (sourceLower.contains('tavolartegusto')) {
                           url = 'https://www.tavolartegusto.it/?s=$encName';
                         } else if (sourceLower.contains('benedetta')) {
-                          url =
-                              'https://www.fattoincasadabenedetta.it/?s=$encName';
+                          url = 'https://www.fattoincasadabenedetta.it/?s=$encName';
                         } else if (sourceLower.contains('misya')) {
                           url = 'https://www.misya.info/?s=$encName';
                         } else if (sourceLower.contains('chiarapassion')) {
@@ -758,17 +747,14 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         } else if (sourceLower.contains('food.com')) {
                           url = 'https://www.food.com/search/$encName';
                         } else {
-                          url =
-                              'https://www.giallozafferano.it/ricerca-ricette/$encName'; // Link diretto di fallback
+                          url = 'https://www.giallozafferano.it/ricerca-ricette/$encName';
                         }
                       }
                       final uri = Uri.parse(url);
                       try {
-                        await launchUrl(uri,
-                            mode: LaunchMode.externalApplication);
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
                       } catch (e) {
-                        Fluttertoast.showToast(
-                            msg: 'Impossibile aprire il link della ricetta.');
+                        Fluttertoast.showToast(msg: 'Impossibile aprire il link della ricetta.');
                       }
                     },
                     child: const Row(
@@ -778,14 +764,13 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         SizedBox(width: 8),
                         Text(
                           'Vai al sito della ricetta',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 15),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),
@@ -825,14 +810,14 @@ class _ChefHatPainter extends CustomPainter {
 
     final path = Path();
 
-    // Base del cappello (fascia inferiore stilizzata)
+    // Base cappello
     path.moveTo(size.width * 0.25, size.height * 0.85);
     path.lineTo(size.width * 0.75, size.height * 0.85);
 
     path.moveTo(size.width * 0.25, size.height * 0.70);
     path.lineTo(size.width * 0.75, size.height * 0.70);
 
-    // Contorno superiore a nuvola stilizzato (3 arcate morbide e continue)
+    // Contorno superiore
     path.moveTo(size.width * 0.25, size.height * 0.70);
     path.cubicTo(size.width * 0.05, size.height * 0.60, size.width * 0.15,
         size.height * 0.30, size.width * 0.35, size.height * 0.35);

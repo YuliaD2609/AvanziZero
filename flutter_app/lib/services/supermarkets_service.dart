@@ -44,7 +44,7 @@ class SupermarketsService {
         return null;
       }
 
-      // Overpass API Query
+      // Query Overpass API
       final query = '''
       [out:json][timeout:25];
       (
@@ -94,10 +94,10 @@ class SupermarketsService {
           });
         }
 
-        // Raggruppamento per catena di supermercati
+        // Raggruppa per catena
         List<Map<String, dynamic>> groupedSupermarkets = [];
 
-        // Ordiniamo per lunghezza del nome: i nomi più corti (es. "Conad") vengono valutati per primi e faranno da "radice"
+        // Ordina per nome corto
         tempSupermarkets.sort((a, b) =>
             a['name'].toString().length.compareTo(b['name'].toString().length));
 
@@ -113,7 +113,7 @@ class SupermarketsService {
             String cLower = currentName.toLowerCase();
             String gLower = groupName.toLowerCase();
 
-            // Evitiamo che tag troppo generici raggruppino catene diverse
+            // Evita tag generici
             bool isGeneric = (cLower == "supermercato" ||
                 cLower == "market" ||
                 gLower == "supermercato" ||
@@ -132,17 +132,17 @@ class SupermarketsService {
                     gLower.contains(cLower) ||
                     firstWordMatch)) {
               if (cLower.contains(gLower) || gLower.contains(cLower)) {
-                // Tieni il nome più breve come richiesto
+                // Mantiene nome breve
                 if (currentName.length < groupName.length) {
                   groupedSupermarkets[i]['name'] = currentName;
                 }
               } else if (firstWordMatch) {
-                // Es. "Carrefour Market" e "Carrefour Express", raggruppa sotto "Carrefour"
+                // Raggruppa nome comune
                 groupedSupermarkets[i]['name'] =
                     currentName.split(RegExp(r'\s+'))[0];
               }
 
-              // Mantiene la distanza minore (quello più vicino) e il suo relativo indirizzo
+              // Mantiene distanza minore
               if (currentDist < groupDist) {
                 groupedSupermarkets[i]['distance'] = currentDist;
                 groupedSupermarkets[i]['address'] = sm['address'];
@@ -158,7 +158,7 @@ class SupermarketsService {
           }
         }
 
-        // Ora ordiniamo i gruppi finali per distanza crescente
+        // Ordina per distanza
         groupedSupermarkets.sort((a, b) =>
             (a['distance'] as double).compareTo(b['distance'] as double));
 

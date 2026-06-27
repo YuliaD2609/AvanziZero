@@ -18,25 +18,25 @@ final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
 void main() async {
-  // Garantisce che il binding nativo di Flutter sia pronto prima dell'inizializzazione cloud
+  // Inizializza i binding di Flutter
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inizializza il motore delle notifiche locali
+  // Inizializza le notifiche locali
   await NotificationService().init();
 
-  // Caricamento variabili d'ambiente
+  // Carica le variabili di ambiente
   try {
     await dotenv.load(fileName: ".env");
   } catch (e) {
       }
 
   try {
-    // Inizializza Firebase nativamente usando le options generate da FlutterFire CLI
+    // Inizializza Firebase
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    // Abilita la persistenza offline e il caching per consentire il merge locale delle modifiche
+    // Abilita la persistenza offline
     FirebaseFirestore.instance.settings = const Settings(
       persistenceEnabled: true,
       cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
@@ -56,15 +56,15 @@ class AvanziZeroApp extends StatefulWidget {
 }
 
 class _AvanziZeroAppState extends State<AvanziZeroApp> {
-  // Gestore di stato globale istanziato alla radice
+  // Gestore dello stato globale
   final AppState _appState = AppState();
 
   @override
   void initState() {
     super.initState();
-    // Carica la cronologia dei gruppi salvati all'avvio dell'app
+    // Carica i gruppi salvati
     _appState.loadSavedGroups();
-    // Carica preferenze notifiche
+    // Carica le preferenze notifiche
     _appState.loadNotificationPreferences();
   }
 
@@ -84,19 +84,25 @@ class _AvanziZeroAppState extends State<AvanziZeroApp> {
           title: 'AvanziZero',
           debugShowCheckedModeBanner: false,
 
-          // Tema globale basato sui token Pastel Sage & Soft Mint
+          // Configura il tema globale
           theme: ThemeData(
             useMaterial3: true,
-            primaryColor: AppColors.primary, // Verde Salvia Intenso
-            scaffoldBackgroundColor: AppColors.background, // Avorio Soft
+            primaryColor: AppColors.primary,
+            scaffoldBackgroundColor: AppColors.background,
             fontFamily: 'Outfit',
             colorScheme: ColorScheme.fromSeed(
               seedColor: AppColors.primary,
               primary: AppColors.primary,
-              secondary: AppColors.primaryDark, // Verde Scuro/Teal
+              secondary: AppColors.primaryDark,
               surface: AppColors.background,
-              onSurface: AppColors.textPrimary, // Verde Foresta Scuro
+              onSurface: AppColors.textPrimary,
               brightness: globalIsDarkMode ? Brightness.dark : Brightness.light,
+            ),
+            snackBarTheme: SnackBarThemeData(
+              backgroundColor: AppColors.primary,
+              contentTextStyle: const TextStyle(color: Colors.white, fontFamily: 'Outfit', fontWeight: FontWeight.w500),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              behavior: SnackBarBehavior.floating,
             ),
             pageTransitionsTheme: const PageTransitionsTheme(
               builders: {
@@ -106,7 +112,7 @@ class _AvanziZeroAppState extends State<AvanziZeroApp> {
             ),
           ),
 
-          // Routing dinamico basato sull'autenticazione e sul Codice Gruppo
+          // Configura il routing dinamico
           home: _appState.currentUserAuth == null
               ? const AuthScreen()
               : _appState.isInitializingUser
@@ -157,7 +163,7 @@ class _MainNavigatorState extends State<MainNavigator> {
     return AnimatedBuilder(
       animation: widget.state,
       builder: (context, child) {
-        // Se il gruppo viene eliminato mentre l'utente è dentro, rimandalo alla home (GroupSetupScreen)
+        // Torna alla home se il gruppo non esiste più
         if (widget.state.groupId == null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
@@ -174,7 +180,7 @@ class _MainNavigatorState extends State<MainNavigator> {
                   child: CircularProgressIndicator(color: AppColors.primary)));
         }
 
-        // Array delle 4 schermate principali con i riferimenti incrociati di navigazione
+        // Definisce le schermate principali
         final List<Widget> screens = [
           HomeScreen(
             state: widget.state,
@@ -183,17 +189,17 @@ class _MainNavigatorState extends State<MainNavigator> {
           ),
           PantryScreen(
             state: widget.state,
-            onHomePressed: () => _navigate(0),
+
             onCartPressed: () => showNearbySupermarketsModal(context, widget.state),
           ),
           ShoppingScreen(
             state: widget.state,
-            onHomePressed: () => _navigate(0),
+
             onCartPressed: () => showNearbySupermarketsModal(context, widget.state),
           ),
           RecipesScreen(
             state: widget.state,
-            onHomePressed: () => _navigate(0),
+
             onCartPressed: () => showNearbySupermarketsModal(context, widget.state),
           ),
         ];
@@ -209,7 +215,7 @@ class _MainNavigatorState extends State<MainNavigator> {
             child: Scaffold(
               body: screens[_currentIndex],
 
-              // Barra di navigazione inferiore fluida e moderna
+              // Configura la barra di navigazione inferiore
               bottomNavigationBar: Container(
                 decoration: BoxDecoration(
                   boxShadow: [
@@ -224,8 +230,7 @@ class _MainNavigatorState extends State<MainNavigator> {
                   selectedIndex: _currentIndex,
                   onDestinationSelected: _navigate,
                   backgroundColor: AppColors.surfaceLight,
-                  indicatorColor:
-                      AppColors.primaryLight, // Menta Chiaro per tab attiva
+                  indicatorColor: AppColors.primaryLight,
                   elevation: 0,
                   height: 65,
                   labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,

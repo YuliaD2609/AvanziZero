@@ -2,19 +2,17 @@ import 'package:flutter/material.dart';
 import '../models/app_state.dart';
 import '../widgets/menus.dart';
 import '../theme/app_colors.dart';
-import '../services/smart_pantry_ai.dart';
+import '../services/ia/smart_pantry_ai.dart';
 import '../widgets/ocr_scanner_modal.dart';
 import 'dart:math';
 
 class ShoppingScreen extends StatefulWidget {
   final AppState state;
-  final VoidCallback onHomePressed;
   final VoidCallback onCartPressed;
 
   const ShoppingScreen({
     super.key,
     required this.state,
-    required this.onHomePressed,
     required this.onCartPressed,
   });
 
@@ -29,7 +27,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Filtra la lista della spesa per categoria attiva e query di ricerca
+    // Filtra lista spesa
     final filteredItems = widget.state.allItems.where((item) {
       if (!item.isShopping) return false;
       final matchesCategory =
@@ -44,28 +42,26 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
         .sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     return Scaffold(
-      backgroundColor: AppColors.background, // Avorio soft
+      backgroundColor: AppColors.background, // Colore sfondo
       body: Column(
         children: [
-          // Menu Orizzontale Superiore
+          // Menu superiore
           HorizontalHeaderMenu(
             title: "Lista della spesa",
-            onHomePressed: widget.onHomePressed,
             onCartPressed: widget.onCartPressed,
-            showHome: false,
             leftAction: IconButton(
-              icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 30),
+              icon: Icon(Icons.menu_rounded, color: AppColors.textPrimary, size: 30),
               onPressed: () {
                 widget.state.toggleSidebar();
               },
             ),
           ),
 
-          // Corpo della schermata: Categorie a sinistra, Ricerca/Lista a destra
+          // Corpo schermata
           Expanded(
             child: Row(
               children: [
-                // Menu Verticale sinistro (Categorie List lasciate intatte)
+                // Menu laterale
                 AnimatedSize(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
@@ -78,16 +74,16 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                       : const SizedBox(width: 0),
                 ),
 
-                // Colonna destra: Barra di ricerca, Predictive badge, Lista Prodotti e Pulsanti
+                // Colonna destra
                 Expanded(
                   child: Column(
                     children: [
-                      // Barra di Ricerca (search_bar) e Seleziona Tutto
+                      // Barra ricerca
                       Padding(
                         padding: const EdgeInsets.all(12),
                         child: Row(
                           children: [
-                            // Pulsante Seleziona/Deseleziona Tutto
+                            // Pulsante seleziona tutto
                             InkWell(
                               onTap: () {
                                 setState(() {
@@ -108,16 +104,21 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                 width: 44,
                                 decoration: BoxDecoration(
                                   color: (filteredItems.isNotEmpty && filteredItems.every((item) => _checkedItems.contains(item.id)))
-                                      ? AppColors.primary
+                                      ? AppColors.primaryLight
                                       : Colors.transparent,
-                                  border: Border.all(color: AppColors.primary, width: 2),
+                                  border: Border.all(
+                                    color: (filteredItems.isNotEmpty && filteredItems.every((item) => _checkedItems.contains(item.id)))
+                                        ? AppColors.primaryLight
+                                        : AppColors.border,
+                                    width: 1.5,
+                                  ),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Icon(
                                   Icons.checklist_rounded,
                                   color: (filteredItems.isNotEmpty && filteredItems.every((item) => _checkedItems.contains(item.id)))
-                                      ? Colors.white
-                                      : AppColors.primary,
+                                      ? AppColors.primary
+                                      : AppColors.textSecondary,
                                   size: 24,
                                 ),
                               ),
@@ -166,11 +167,11 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                         ),
                       ),
 
-                      // Area principale: Lista della spesa e Pulsanti sovrapposti
+                      // Area principale
                       Expanded(
                         child: Stack(
                           children: [
-                            // 1. Lista della spesa scrollabile dietro i pulsanti
+                            // Lista spesa
                             Positioned.fill(
                               child: filteredItems.isEmpty
                                   ? Center(
@@ -191,7 +192,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                           left: 12,
                                           right: 12,
                                           bottom:
-                                              130), // Padding extra per scrollare oltre i pulsanti
+                                              130), // Padding scroll
                                       itemCount: filteredItems.length,
                                       itemBuilder: (context, index) {
                                         final item = filteredItems[index];
@@ -200,7 +201,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                     ),
                             ),
 
-                            // 2. Pulsanti flottanti in basso a destra
+                            // Pulsanti flottanti
                             Positioned(
                               bottom: 12,
                               right: 12,
@@ -208,18 +209,14 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  // Pulsante Spesa fatta
+                                  // Pulsante spesa fatta
                                   ElevatedButton(
                                     onPressed: _handleSpesaFatta,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors
-                                          .primaryLight, // Menta Chiaro
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 24, vertical: 12),
-                                      elevation: 2,
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(16)),
+                                      backgroundColor: AppColors.primaryLight,
+                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                                     ),
                                     child: Text(
                                       "Spesa fatta",
@@ -227,8 +224,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                         fontFamily: 'Outfit',
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: AppColors
-                                            .textPrimary, // Verde Foresta Scuro
+                                        color: AppColors.textPrimary,
                                       ),
                                     ),
                                   ),
@@ -239,40 +235,45 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                   Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      // Pulsante Predictive Shopping
-                                      FloatingActionButton(
-                                        heroTag: "predictive_btn",
-                                        onPressed: () =>
-                                            _showPredictiveShoppingModal(
-                                                context),
-                                        backgroundColor: AppColors.primaryLight,
-                                        elevation: 2,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(16)),
-                                        child: Icon(Icons.auto_awesome_rounded,
-                                            color: globalIsDarkMode ? Colors.white : AppColors.primary),
+                                      // Pulsante predictive
+                                      ElevatedButton.icon(
+                                        onPressed: () => _showPredictiveShoppingModal(context),
+                                        icon: Icon(Icons.auto_awesome_rounded, color: AppColors.textPrimary, size: 20),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.primaryLight,
+                                          elevation: 0,
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                                        ),
+                                        label: Text("Consigli",
+                                          style: TextStyle(
+                                            fontFamily: 'Outfit',
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.textPrimary,
+                                          ),
+                                        ),
                                       ),
                                       const SizedBox(width: 12),
-                                      // Pulsante Aggiungi un Elemento
-                                      ElevatedButton(
+                                      // Pulsante aggiungi
+                                      ElevatedButton.icon(
                                         onPressed: () =>
                                             _showAddItemDialog(context),
+                                        icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppColors
-                                              .primaryDark, // Accento Verde Scuro/Teal
+                                          backgroundColor: AppColors.primaryDark,
+                                          elevation: 0,
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 16, vertical: 12),
-                                          elevation: 2,
                                           shape: RoundedRectangleBorder(
                                               borderRadius:
-                                                  BorderRadius.circular(16)),
+                                                  BorderRadius.circular(24)),
                                         ),
-                                        child: Text(
-                                          "Aggiungi un elemento",
-                                          style: const TextStyle(
+                                        label: const Text(
+                                          "Aggiungi",
+                                          style: TextStyle(
                                             fontFamily: 'Outfit',
-                                            fontSize: 16,
+                                            fontSize: 15,
                                             fontWeight: FontWeight.bold,
                                             color: Colors.white,
                                           ),
@@ -297,7 +298,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
     );
   }
 
-  // Costruisce la riga prodotto lista spesa
+  // Riga prodotto
   Widget _buildShoppingItemCard(ItemModel item) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -317,7 +318,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
       ),
       child: Row(
         children: [
-          // Checkbox di selezione
+          // Checkbox
           InkWell(
             onTap: () {
               setState(() {
@@ -346,7 +347,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
           ),
           const SizedBox(width: 12),
 
-          // Nome del prodotto
+          // Nome prodotto
           Expanded(
             child: Text(
               item.name,
@@ -371,7 +372,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
             const SizedBox(width: 8),
           ],
 
-          // Quantità e Controlli (+ / -) come da layout
+          // Controlli quantità
           Row(
             children: [
               InkWell(
@@ -859,7 +860,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
       builder: (context) => OcrScannerModal(state: widget.state),
     );
 
-    if (scannedItems == null) return; // Utente ha annullato
+    if (scannedItems == null) return; // Utente annulla
 
     List<ItemModel> mergedItems = [];
     List<ItemModel> checkedItemsList = widget.state.allItems
@@ -876,11 +877,11 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
 
         String cleanCheckedName = checked.name.toLowerCase().trim();
 
-        // Match esatto, contenuto, o similarity > 60%
+        // Verifica match
         if (cleanScannedName.contains(cleanCheckedName) ||
             cleanCheckedName.contains(cleanScannedName) ||
             _similarityScore(cleanScannedName, cleanCheckedName) > 0.6) {
-          // Priorità Lista Spesa (Nome, Categoria), ma Quantità dallo Scontrino
+          // Unisci dati
           mergedItems.add(ItemModel(
             id: DateTime.now().millisecondsSinceEpoch.toString() +
                 checked.name.hashCode.toString(),
@@ -903,7 +904,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
       }
     }
 
-    // Aggiungiamo i non matchati della lista spesa
+    // Elementi non matchati
     for (var checked in checkedItemsList) {
       if (!matchedShoppingItemIds.contains(checked.id)) {
         mergedItems.add(ItemModel(
@@ -1172,7 +1173,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                     for (var item in items) {
                       widget.state.addItem(item);
                     }
-                    // Cancelliamo gli elementi dalla lista della spesa che erano spuntati
+                    // Rimuovi elementi uniti
                     for (var id in _checkedItems) {
                       widget.state.deleteItem(id);
                     }

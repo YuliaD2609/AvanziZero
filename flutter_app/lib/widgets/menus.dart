@@ -4,76 +4,75 @@ import '../theme/app_colors.dart';
 
 class HorizontalHeaderMenu extends StatelessWidget {
   final String title;
-  final VoidCallback onHomePressed;
-  final VoidCallback onCartPressed;
-  final bool showHome;
+  final VoidCallback? onCartPressed;
   final Widget? leftAction;
+  final List<Widget>? customActions;
 
   const HorizontalHeaderMenu({
     super.key,
     required this.title,
-    required this.onHomePressed,
-    required this.onCartPressed,
-    this.showHome = true,
+    this.onCartPressed,
     this.leftAction,
+    this.customActions,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Implementa il layout di horizontal_menu.xml con stile Pastel Sage
+    // Layout menu orizzontale
     return Container(
       height:
-          85, // Altezza proporzionata per il mobile (leggermente ingrandito)
+          85, // Altezza menu orizzontale
       decoration: BoxDecoration(
-        color: AppColors.primary,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowDark,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: AppColors.background,
+        border: Border(bottom: BorderSide(color: AppColors.border, width: 1)),
       ),
       child: SafeArea(
         bottom: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Stack(
+          alignment: Alignment.center,
           children: [
-            // Pulsante Home o leftAction a sinistra come da layout nativo
-            leftAction != null
-                ? leftAction!
-                : (showHome
-                    ? IconButton(
-                        icon: Icon(Icons.home_rounded,
-                            color: Colors.white, size: 30),
-                        onPressed: onHomePressed,
-                        tooltip: 'Torna alla Home',
-                      )
-                    : const SizedBox(width: 48)),
-
-            // Titolo della sezione al centro
-            Expanded(
+            // Titolo sezione centrale perfettamente centrato
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 60), // Margine per non sovrapporsi alle icone
               child: Text(
                 title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Outfit',
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   letterSpacing: 0.5,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+            
+            // Azioni (Row per distanziarli agli estremi)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Azione sinistra (es. menu laterale) o spazio vuoto
+                leftAction != null
+                    ? leftAction!
+                    : const SizedBox(width: 48),
 
-            // Pulsante Supermercati Vicini a destra
-            IconButton(
-              icon: Icon(Icons.storefront_rounded,
-                  color: Colors.white, size: 28),
-              onPressed: onCartPressed,
-              tooltip: 'Supermercati nelle vicinanze',
+                // Azioni a destra
+                customActions != null
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: customActions!,
+                      )
+                    : (onCartPressed != null
+                        ? IconButton(
+                            icon: Icon(Icons.storefront_rounded,
+                                color: AppColors.textPrimary, size: 28),
+                            onPressed: onCartPressed,
+                            tooltip: 'Supermercati nelle vicinanze',
+                          )
+                        : const SizedBox(width: 48)),
+              ],
             ),
           ],
         ),
@@ -92,7 +91,7 @@ class VerticalCategoryMenu extends StatelessWidget {
     required this.section,
   });
 
-  // Finestra di dialogo per aggiungere una nuova categoria
+  // Dialogo nuova categoria
   void _showAddCategoryDialog(BuildContext context) {
     final TextEditingController catController = TextEditingController();
     final String title = section == 'pantry' ? "Nuova Categoria Dispensa" : "Nuova Categoria Spesa";
@@ -170,9 +169,9 @@ class VerticalCategoryMenu extends StatelessWidget {
     );
   }
 
-  // Finestra di dialogo per eliminare una categoria personalizzata
+  // Dialogo elimina categoria
   void _showDeleteCategoryDialog(BuildContext context, String category) {
-    if (category == "Tutti") return; // Non è possibile eliminare "Tutti"
+    if (category == "Tutti") return; // Impedisce eliminazione Tutti
 
     showDialog(
       context: context,
@@ -206,7 +205,7 @@ class VerticalCategoryMenu extends StatelessWidget {
         ? state.selectedPantryCategory 
         : state.selectedShoppingCategory;
 
-    // Implementa vertical_menu.xml: colonna laterale sinistra con la lista delle categorie
+    // Layout menu verticale
     return Container(
       width: 85,
       decoration: BoxDecoration(
@@ -224,7 +223,7 @@ class VerticalCategoryMenu extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Lista scrollabile delle categorie
+          // Lista categorie scrollabile
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -255,7 +254,7 @@ class VerticalCategoryMenu extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Solo testo per la categoria come richiesto
+                        // Testo categoria
                         Text(
                           category,
                           textAlign: TextAlign.center,
@@ -280,27 +279,20 @@ class VerticalCategoryMenu extends StatelessWidget {
             ),
           ),
 
-          // Pulsante (+) in fondo per aggiungere una nuova categoria (addCategory)
+          // Pulsante aggiungi categoria
           InkWell(
             onTap: () => _showAddCategoryDialog(context),
             child: Container(
               height: 50,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColors.primaryDark, // Accento Verde Scuro/Teal
+                color: AppColors.surfaceLight,
+                border: Border(top: BorderSide(color: AppColors.border, width: 1)),
                 borderRadius:
                     const BorderRadius.only(topRight: Radius.circular(12)),
               ),
               child: Center(
-                child: Text(
-                  "+",
-                  style: const TextStyle(
-                    fontFamily: 'Outfit',
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white, // Alto contrasto
-                  ),
-                ),
+                child: Icon(Icons.add_rounded, color: AppColors.textSecondary, size: 28),
               ),
             ),
           ),

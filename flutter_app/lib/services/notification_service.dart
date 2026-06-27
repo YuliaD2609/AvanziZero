@@ -13,7 +13,9 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  // Inizializza il plugin delle notifiche
   Future<void> init() async {
+    // Carica i fusi orari
     tz.initializeTimeZones();
     try {
       final timeZone = await FlutterTimezone.getLocalTimezone();
@@ -22,6 +24,7 @@ class NotificationService {
       print('Errore caricamento fuso orario locale: $e');
     }
 
+    // Imposta l'icona Android per le notifiche
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const InitializationSettings initializationSettings =
@@ -31,6 +34,7 @@ class NotificationService {
         settings: initializationSettings);
   }
 
+  // Richiede i permessi all'utente
   Future<void> requestPermissions() async {
     final androidImplementation =
         flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
@@ -41,15 +45,18 @@ class NotificationService {
     }
   }
 
+  // Pianifica il controllo giornaliero della dispensa
   Future<void> scheduleDailyPantryCheck(
       TimeOfDay time, List<ItemModel> items) async {
     await requestPermissions();
     await flutterLocalNotificationsPlugin.cancelAll();
 
+    // Filtra gli elementi in scadenza
     final expiringItems =
         items.where((i) => i.urgencyLevel >= 1 && i.isPantry).toList();
     if (expiringItems.isEmpty) return;
 
+    // Calcola la data programmata
     final now = tz.TZDateTime.now(tz.local);
     tz.TZDateTime scheduledDate = tz.TZDateTime(
         tz.local, now.year, now.month, now.day, time.hour, time.minute);
@@ -58,6 +65,7 @@ class NotificationService {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
 
+    // Costruisce il messaggio della notifica
     String body =
         "Hai ${expiringItems.length} prodotti vicini alla scadenza! Controlla la dispensa per non sprecare cibo.";
     if (expiringItems.length <= 2) {
@@ -65,6 +73,7 @@ class NotificationService {
           "Attenzione, in scadenza: ${expiringItems.map((e) => e.name).join(', ')}.";
     }
 
+    // Definisce i dettagli del canale Android
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'pantry_expiration_channel',
@@ -76,6 +85,7 @@ class NotificationService {
     const NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
 
+    // Schedula la notifica ricorrente
     await flutterLocalNotificationsPlugin.zonedSchedule(
       id: 0,
       title: 'AvanziZero - Promemoria Scadenze 🚨',
@@ -87,6 +97,7 @@ class NotificationService {
     );
   }
 
+  // Annulla tutte le notifiche programmate
   Future<void> cancelNotifications() async {
     await flutterLocalNotificationsPlugin.cancelAll();
   }

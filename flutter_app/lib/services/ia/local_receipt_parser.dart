@@ -1,5 +1,5 @@
 import 'dart:math';
-import '../models/app_state.dart';
+import '../../models/app_state.dart';
 
 class LocalReceiptParser {
   // Dizionario OMNICOMPRENSIVO ispirato a dataset OpenFoodFacts e cataloghi GDO Italiani (Esselunga, Coop, Conad)
@@ -1008,29 +1008,29 @@ class LocalReceiptParser {
 
       if (RegExp(r'^[\d\s\W]+$').hasMatch(cleanLine)) continue;
 
-      // 2. Pulizia Prezzi, IVA e Codici di Calibro (es. 14-2, 7585) dal testo puro
+      // Pulisce prezzi e codici
       String textWithoutPrice = cleanLine
           .replaceAll(RegExp(r'\s*\d+[,\.]\d{2}\s*(€|eur|e)?\s*[a-zA-Z]?\s*$'), '')
           .trim();
           
-      // Rimuove pesi e calibri (es. 14-2, 75-85, 250g, 400g, ml, cl, litri)
+      // Rimuove pesi e calibri
       textWithoutPrice = textWithoutPrice
           .replaceAll(RegExp(r'\b\d+-\d+\b'), '')
-          .replaceAll(RegExp(r'\b\d{4,}\b'), '') // Rimuove numeri grossi come 7585
+          .replaceAll(RegExp(r'\b\d{4,}\b'), '') // Rimuove numeri grandi
           .replaceAll(RegExp(r'\b\d+\s*(g|kg|gr|ml|cl|l|litri)\b'), '')
           .replaceAll(RegExp(r'\(.*\)'), '') // Rimuove parentesi tonde
           .replaceAll(RegExp(r'\[.*\]'), '') // Rimuove parentesi quadre
           .replaceAll('%', '')
           .trim();
 
-      // 3. Estrazione Quantità (dopo aver rimosso calibri e codici)
+      // Estrae quantità
       int quantity = _extractQuantity(textWithoutPrice);
 
       String productNameRaw = textWithoutPrice
-          .replaceAll(RegExp(r'\b\d+[\s]*[xX]?\b'), '') // Rimuove la quantità estratta dal nome
+          .replaceAll(RegExp(r'\b\d+[\s]*[xX]?\b'), '') // Rimuove quantità dal nome
           .trim();
 
-      // Rimuove garbage words specifiche dal nome prodotto
+      // Rimuove parole spazzatura
       for (String garbage in _garbageKeywords) {
         productNameRaw = productNameRaw.replaceAll(RegExp(r'\b' + garbage + r'\b'), ' ').trim();
       }
@@ -1040,14 +1040,14 @@ class LocalReceiptParser {
 
       if (productNameRaw.isEmpty || productNameRaw.length < 3) continue;
 
-      // 4. Intelligenza Artificiale Matematica (Fuzzy Matching)
+      // Esegue fuzzy matching
       String finalName = productNameRaw;
       String finalCategory = 'Altro';
 
       double bestSimilarity = 0.0;
       String bestMatchKey = '';
 
-      // Confrontiamo la riga "sporca" con tutte le parole del dizionario
+      // Confronta con dizionario
       for (String dictKey in _productDictionary.keys) {
         List<String> words = productNameRaw.split(' ');
         for (String word in words) {
@@ -1060,12 +1060,12 @@ class LocalReceiptParser {
         }
       }
 
-      // Se c'è una similarità > 70% consideriamo la parola corretta
+      // Valuta similarità
       if (bestSimilarity >= 0.70) {
         finalName = _productDictionary[bestMatchKey]!['name']!;
         finalCategory = _productDictionary[bestMatchKey]!['category']!;
       } else {
-        // Fallback: capitalizza il nome originale
+        // Fallback nome originale
         finalName = finalName
             .split(' ')
             .map((w) => w.isNotEmpty ? w[0].toUpperCase() + w.substring(1) : '')
@@ -1083,7 +1083,7 @@ class LocalReceiptParser {
       ));
     }
 
-    // 5. Raggruppamento duplicati
+    // Raggruppa duplicati
     Map<String, ItemModel> groupedItems = {};
     for (var item in extractedItems) {
       if (groupedItems.containsKey(item.name)) {

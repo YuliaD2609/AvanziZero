@@ -1,4 +1,4 @@
-# ML Pipeline - FarFromHome (OCR Offline)
+# ML Pipeline - AvanziZero (OCR Offline)
 
 Questa cartella contiene gli script per generare il dataset di scontrini italiani sintetici e addestrare il modello DistilBERT per estrarre prodotti e quantità in modo completamente locale sull'app mobile.
 
@@ -24,8 +24,8 @@ python train.py
 *(Nota: Potresti visualizzare dei log di TensorFlow che annunciano l'uso della tua GPU, è del tutto normale).*
 Questo script farà il fine-tuning di `distilbert-base-multilingual-cased` per poche epoche, poi congelerà i pesi e comprimerà tutto usando la quantizzazione.
 
-Il risultato finale apparirà in `models/receipt_ner_distilbert.tflite`.
+Il risultato finale apparirà in `ai_models/receipt_ner_distilbert.tflite`.
 
 ## Step 3: Integrazione in Flutter
-Una volta ottenuto il file `.tflite`, copialo nella cartella dell'app Flutter in `assets/models/` (assicurati che sia dichiarato in `pubspec.yaml`).
+Una volta ottenuto il file `.tflite`, copialo nella cartella dell'app Flutter in `assets/ai_models/` (assicurati che sia dichiarato in `pubspec.yaml`).
 Il modulo Dart (`LocalReceiptScanner`) lo caricherà automaticamente per analizzare gli scontrini!

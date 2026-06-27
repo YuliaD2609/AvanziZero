@@ -3,9 +3,9 @@ class UserModel {
   final String email;
   final String name;
   final List<String>
-      groupIds; // Elenco degli ID delle case a cui appartiene l'utente
+      groupIds; // Definisce le case dell'utente
   final List<String>
-      pendingGroupIds; // Richieste di ingresso in sospeso (anti-spam)
+      pendingGroupIds; // Definisce le richieste in sospeso
 
   UserModel({
     required this.id,

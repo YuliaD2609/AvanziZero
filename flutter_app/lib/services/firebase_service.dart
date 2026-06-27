@@ -1,24 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_state.dart';
 
-/// Servizio centralizzato per la gestione della persistenza e del real-time su Firebase Firestore.
-/// Tutte le collezioni sono raggruppate e isolate tramite un [groupId] univoco,
-/// garantendo la separazione dei dati per ciascuna casa/appartamento condiviso.
+// Gestisce Firebase Firestore
 class FirebaseService {
   final String groupId;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   FirebaseService({required this.groupId});
 
-  // Riferimenti alle sotto-collezioni del gruppo corrente
+  // Definisce riferimenti alle collezioni
   CollectionReference get _itemsRef =>
       _db.collection('groups').doc(groupId).collection('items');
 
-  // ===========================================================================
-  // STREAM IN TEMPO REALE (REAL-TIME READS)
-  // ===========================================================================
+  // Letture in tempo reale
 
-  /// Ascolta in tempo reale tutti i prodotti (Dispensa, Spesa) del gruppo.
+  // Ascolta prodotti in tempo reale
   Stream<List<ItemModel>> getItemsStream() {
     return _itemsRef.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
@@ -38,14 +34,12 @@ class FirebaseService {
     });
   }
 
-  // ===========================================================================
-  // SCRITTURE (WRITES & UPDATES)
-  // ===========================================================================
+  // Scritture e aggiornamenti
 
-  /// Aggiunge o sovrascrive un prodotto su Firestore.
+  // Salva un prodotto
   Future<void> saveItem(ItemModel item) async {
     try {
-      // Se l'id generato localmente è utilizzabile, lo usiamo come document ID
+      // Usa ID generato localmente
       final docRef =
           item.id.isNotEmpty ? _itemsRef.doc(item.id) : _itemsRef.doc();
       await docRef.set({
@@ -63,7 +57,7 @@ class FirebaseService {
           }
   }
 
-  /// Aggiorna solo la quantità di un prodotto esistente.
+  // Aggiorna la quantità
   Future<void> updateItemQuantity(String itemId, int newQuantity) async {
     try {
       await _itemsRef.doc(itemId).update({
@@ -74,7 +68,7 @@ class FirebaseService {
           }
   }
 
-  /// Elimina un prodotto dal cloud.
+  // Elimina un prodotto
   Future<void> deleteItem(String itemId) async {
     try {
       await _itemsRef.doc(itemId).delete();
@@ -84,11 +78,11 @@ class FirebaseService {
 
 
 
-  /// Inizializza un nuovo gruppo con dati demo se vuoto
+  // Inizializza gruppo vuoto
   Future<void> seedInitialDataIfNeeded(List<ItemModel> initialItems,
       {String? uid}) async {
     try {
-      // Assicura che il documento del gruppo esista per poterlo vedere chiaramente nel db
+      // Crea documento del gruppo
       final groupDoc = await _db.collection('groups').doc(groupId).get();
       if (!groupDoc.exists) {
         await _db.collection('groups').doc(groupId).set({
@@ -101,7 +95,7 @@ class FirebaseService {
 
       final itemsSnap = await _itemsRef.limit(1).get();
       if (itemsSnap.docs.isEmpty) {
-        // Popola Articoli
+        // Popola articoli iniziali
         for (var item in initialItems) {
           final docRef = _itemsRef.doc(item.id);
           await docRef.set({
@@ -141,25 +135,25 @@ class FirebaseService {
     }
   }
 
-  /// Elimina definitivamente il gruppo e tutti i suoi dati (wipe completo)
+  // Elimina gruppo definitivamente
   Future<void> deleteGroup() async {
     try {
-      // 1. Elimina tutti i documenti nella subcollection 'items'
+      // Elimina articoli
       final itemsSnap = await _itemsRef.get();
       final batch = _db.batch();
       for (var doc in itemsSnap.docs) {
         batch.delete(doc.reference);
       }
-      // Esegui il batch per cancellare gli items
+      // Esegue il batch
       await batch.commit();
 
-      // 2. Elimina il documento del gruppo
+      // Elimina documento gruppo
       await _db.collection('groups').doc(groupId).delete();
     } catch (e) {
           }
   }
 
-  /// Registra il consumo di un prodotto nello storico leggero
+  // Registra consumo prodotto
   Future<void> logConsumption(String itemName, int quantityConsumed) async {
     try {
       final docRef = _db
@@ -176,7 +170,7 @@ class FirebaseService {
           }
   }
 
-  /// Recupera gli ultimi log di consumo
+  // Recupera storico consumi
   Future<List<Map<String, dynamic>>> getConsumptionHistory() async {
     try {
       final snap = await _db
@@ -185,7 +179,7 @@ class FirebaseService {
           .collection('consumption_history')
           .get();
 
-      // Ordiniamo in locale per non perdere i log pending (dove timestamp potrebbe essere null localmente)
+      // Ordina i log in locale
       final docs = snap.docs.map((d) => d.data()).toList();
       return docs;
     } catch (e) {

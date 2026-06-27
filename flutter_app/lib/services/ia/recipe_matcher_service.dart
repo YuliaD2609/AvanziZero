@@ -62,7 +62,7 @@ class RecipeMatcherService {
   static Database? _database;
   static bool _isUpdatingFromCloud = false;
 
-  /// Inizializza il database copiandolo dagli asset se non esiste
+  // Inizializza database sqlite
   static Future<Database> getDatabase() async {
     if (_database != null) return _database!;
 
@@ -85,13 +85,13 @@ class RecipeMatcherService {
 
     _database = await openDatabase(path, version: 1);
     
-    // Avvia l'aggiornamento silente da Firebase Storage in background
+    // Avvia aggiornamento silente
     _updateDatabaseFromCloudInBackground(path);
 
     return _database!;
   }
 
-  /// Scarica e sostituisce il database da Firebase Storage in background se c'è una versione aggiornata
+  // Sostituisce database da cloud
   static Future<void> _updateDatabaseFromCloudInBackground(String localPath) async {
     if (_isUpdatingFromCloud) return;
     _isUpdatingFromCloud = true;
@@ -104,7 +104,7 @@ class RecipeMatcherService {
 
       await ref.writeToFile(tempFile);
 
-      // Chiudi il vecchio DB e sostituiscilo con il nuovo scaricato
+      // Chiude vecchio db
       if (_database != null) {
         await _database!.close();
         _database = null;
@@ -122,7 +122,7 @@ class RecipeMatcherService {
     }
   }
 
-  /// Interroga il database SQLite e calcola la differenza degli ingredienti per trovare le ricette compatibili
+  // Trova ricette compatibili
   static Future<List<RecipeMatch>> findMatchingRecipes(
     List<String> pantryItems, {
     List<String>? expiringPantryItems,
@@ -131,7 +131,7 @@ class RecipeMatcherService {
   }) async {
     final db = await getDatabase();
 
-    // Costruzione query dinamica in base ai filtri
+    // Costruisce query dinamica
     String whereClause = '1 = 1';
     List<dynamic> whereArgs = [];
 
@@ -151,7 +151,7 @@ class RecipeMatcherService {
       whereArgs: whereArgs,
     );
 
-    // Normalizziamo i nomi dei prodotti in dispensa in minuscolo
+    // Normalizza nomi prodotti
     final normalizedPantry = pantryItems.map((e) => e.trim().toLowerCase()).toList();
 
     List<RecipeMatch> matches = [];
@@ -159,7 +159,7 @@ class RecipeMatcherService {
     for (var map in maps) {
       final recipeId = map['id'] as int;
 
-      // Recuperiamo gli ingredienti per la ricetta
+      // Recupera ingredienti ricetta
       final List<Map<String, dynamic>> ingredientMaps = await db.query(
         'recipe_ingredients',
         where: 'recipe_id = ?',
@@ -232,7 +232,7 @@ class RecipeMatcherService {
     return matches;
   }
 
-  /// Interroga il database SQLite per ottenere ricette casuali in base ai filtri, ignorando il limite di ingredienti mancanti
+  // Trova ricette casuali
   static Future<List<RecipeMatch>> findRandomRecipes(
     List<String> pantryItems, {
     String? selectedCategory,

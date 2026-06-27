@@ -1,5 +1,6 @@
 import os
-os.environ["TF_USE_LEGACY_KERAS"] = "1" # Obbligatorio per TF 2.16+ e Transformers
+# Imposta le variabili di ambiente
+os.environ["TF_USE_LEGACY_KERAS"] = "1"
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:32"
 
 import json
@@ -11,7 +12,7 @@ from transformers import TFAutoModelForTokenClassification
 import tensorflow as tf
 import argparse
 
-# Mappa etichette (BIO)
+# Definisce la mappa etichette
 tags_to_ids = {"O": 0, "B-PROD": 1, "I-PROD": 2, "B-QTY": 3}
 ids_to_tags = {v: k for k, v in tags_to_ids.items()}
 NUM_LABELS = len(tags_to_ids)
@@ -42,7 +43,8 @@ class ReceiptDataset(Dataset):
         
         for word_idx in word_ids:
             if word_idx is None:
-                label_ids.append(-100) # Ignora nel calcolo della loss PyTorch
+                # Ignora il token per il calcolo della loss
+                label_ids.append(-100)
             elif word_idx != previous_word_idx:
                 label_ids.append(tags_to_ids[ner_tags[word_idx]])
             else:
@@ -74,7 +76,7 @@ def main():
     with open("receipt_dataset.json", "r", encoding="utf-8") as f:
         data = json.load(f)
         
-    # Split 90/10
+    # Divide il dataset in training e validation
     np.random.shuffle(data)
     split_idx = int(len(data) * 0.9)
     train_data = data[:split_idx]
@@ -124,7 +126,7 @@ def main():
     
     print("\n--- INIZIO FASE DI ESPORTAZIONE IN TFLITE ---\n")
     print("1. Caricamento pesi PyTorch dentro TensorFlow (Ponte TF)...")
-    # L'opzione from_pt=True è la magia che carica i tensori PyTorch nel grafo Keras
+    # Carica i pesi PyTorch nel modello Keras
     tf_model = TFAutoModelForTokenClassification.from_pretrained("./pytorch_model", from_pt=True)
     
     print("2. Creazione della funzione di serving per TFLite...")
@@ -144,8 +146,8 @@ def main():
     
     tflite_model = converter.convert()
     
-    os.makedirs("models", exist_ok=True)
-    tflite_path = os.path.join("models", "receipt_ner_distilbert.tflite")
+    os.makedirs("ai_models", exist_ok=True)
+    tflite_path = os.path.join("ai_models", "receipt_ner_distilbert.tflite")
     with open(tflite_path, "wb") as f:
         f.write(tflite_model)
         
