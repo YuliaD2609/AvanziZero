@@ -121,6 +121,8 @@ class SmartPantryAI {
         triggered = true;
         if (minDaysToExpiration < 0) {
           motivo = "Prodotto scaduto da ${minDaysToExpiration.abs()} giorni";
+        } else if (minDaysToExpiration == 0) {
+          motivo = "Scadenza imminente (Scade tra poche ore)";
         } else {
           motivo = "Scadenza imminente (Scade tra $minDaysToExpiration giorni)";
         }
