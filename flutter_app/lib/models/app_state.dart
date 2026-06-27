@@ -1,49 +1,122 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firebase_service.dart';
+import '../services/auth_service.dart';
+import '../services/notification_service.dart';
+import '../main.dart';
+import 'user_model.dart';
+
+bool globalIsDarkMode = false;
 
 class ItemModel {
   final String id;
   String name;
-  String expireDate; // Formato testuale "gg/mm/aaaa" come da layout nativo
+  String expireDate; // Definisce formato data di scadenza
+  List<String> expireDates; // Definisce date di scadenza multiple
   int quantity;
   String category;
   bool isPantry;
   bool isShopping;
-  bool isSuitcase;
+  String? ownerId;
 
   ItemModel({
     required this.id,
     required this.name,
-    required this.expireDate,
-    required this.quantity,
+    this.expireDate = "-",
+    List<String>? expireDates,
+    this.quantity = 1,
     required this.category,
     this.isPantry = false,
     this.isShopping = false,
-    this.isSuitcase = false,
-  });
+    this.ownerId,
+  }) : expireDates = expireDates ?? (expireDate != "-" && expireDate != "Data: N/A" && expireDate.isNotEmpty ? [expireDate] : []);
 
-  // Livello di urgenza "Zero Spreco"
-  int get urgencyLevel {
-    if (expireDate.contains('Oggi') || expireDate.contains('Domani')) return 2; // Rosso
-    if (expireDate.contains('giorni')) return 1; // Giallo
-    return 0; // Verde / Fresco
+  String get _cleanDateText => expireDate
+      .replaceAll("In scadenza: ", "")
+      .replaceAll("Scadenza: ", "")
+      .trim();
+
+  DateTime? get parsedExpireDate {
+    final cleanText = _cleanDateText;
+    if (cleanText == "-" || cleanText.isEmpty) return null;
+
+    final dateParts = cleanText.split('/');
+    if (dateParts.length == 3) {
+      final day = int.tryParse(dateParts[0]);
+      final month = int.tryParse(dateParts[1]);
+      final year = int.tryParse(dateParts[2]);
+      if (day != null && month != null && year != null) {
+        return DateTime(year, month, day);
+      }
+    }
+    
+    final match = RegExp(r'tra (\d+) giorn[io]').firstMatch(cleanText);
+    if (match != null) {
+      final days = int.parse(match.group(1)!);
+      final now = DateTime.now();
+      return DateTime(now.year, now.month, now.day).add(Duration(days: days));
+    }
+    
+    if (cleanText.toLowerCase().contains('oggi')) {
+      final now = DateTime.now();
+      return DateTime(now.year, now.month, now.day);
+    }
+    if (cleanText.toLowerCase().contains('domani')) {
+      final now = DateTime.now();
+      return DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+    }
+
+    return null;
   }
-}
 
-class RoommateExpense {
-  final String id;
-  final String description;
-  final double amount;
-  final String paidBy;
+  bool get isExpired {
+    final expDate = parsedExpireDate;
+    if (expDate == null) return false;
+    final today = DateTime.now();
+    final todayStart = DateTime(today.year, today.month, today.day);
+    return expDate.isBefore(todayStart);
+  }
 
-  RoommateExpense({
-    required this.id,
-    required this.description,
-    required this.amount,
-    required this.paidBy,
-  });
+  int get urgencyLevel {
+    final cleanText = _cleanDateText;
+    if (cleanText == "-" || cleanText.isEmpty) return 0;
+
+    final expDate = parsedExpireDate;
+    if (expDate != null) {
+      final today = DateTime.now();
+      final todayStart = DateTime(today.year, today.month, today.day);
+      final difference = expDate.difference(todayStart).inDays;
+
+      if (difference <= 1) return 2;
+      if (difference <= 7) return 1;
+      return 0;
+    }
+
+    return 0;
+  }
+
+  String get formattedDateForUI {
+    final cleanText = _cleanDateText;
+    if (cleanText == "-" || cleanText.isEmpty) return "-";
+
+    final expDate = parsedExpireDate;
+    if (expDate != null) {
+      final today = DateTime.now();
+      final todayStart = DateTime(today.year, today.month, today.day);
+      final difference = expDate.difference(todayStart).inDays;
+
+      if (difference == 0) return 'Oggi';
+      if (difference == 1) return 'Domani';
+      if (difference < 0) return cleanText;
+
+      return "${expDate.day.toString().padLeft(2, '0')}/${expDate.month.toString().padLeft(2, '0')}/${expDate.year}";
+    }
+    return cleanText;
+  }
 }
 
 class SupermarketModel {
@@ -51,100 +124,467 @@ class SupermarketModel {
   final String distance;
   final String address;
 
-  SupermarketModel({required this.name, required this.distance, required this.address});
+  SupermarketModel(
+      {required this.name, required this.distance, required this.address});
 }
 
 class AppState extends ChangeNotifier {
-  // ===========================================================================
-  // GESTIONE CLOUD & SINCRO REAL-TIME (FIREBASE)
-  // ===========================================================================
+  // Gestione cloud e sincronizzazione
+  final AuthService authService = AuthService();
+  UserModel? currentUserData;
+  User? currentUserAuth;
+
   String? groupId;
-  List<String> savedGroups = []; // Cronologia locale dei codici gruppo visitati
+  List<String> savedGroups = []; // Definisce cronologia gruppi locali
+  List<UserModel> groupMembers = []; // Definisce utenti nel gruppo
+
+  // Traccia feedback IA
+  Map<String, Map<String, int>> aiFeedback = {};
+
+
+  // Calcola prodotti in scadenza
+  List<ItemModel> get expiringItems {
+    final items = allItems.where((i) => i.isPantry && i.urgencyLevel > 0).toList();
+    items.sort((a, b) {
+      if (a.parsedExpireDate == null && b.parsedExpireDate == null) return 0;
+      if (a.parsedExpireDate == null) return 1;
+      if (b.parsedExpireDate == null) return -1;
+      return a.parsedExpireDate!.compareTo(b.parsedExpireDate!);
+    });
+    return items;
+  }
+
+  Color getMemberColor(String uid) {
+    if (groupId == null) return Colors.grey;
+    final List<Color> palette = [
+      Colors.red,
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+      Colors.teal,
+      Colors.pink,
+      Colors.indigo,
+      Colors.brown,
+      Colors.cyan,
+      Colors.amber,
+      Colors.deepOrange
+    ];
+    int hash = (uid + groupId!).hashCode;
+    return palette[hash.abs() % palette.length];
+  }
+
+  bool _isPredictiveBannerClosed = false;
+  bool get isPredictiveBannerClosed => _isPredictiveBannerClosed;
+
+  bool _isDarkMode = false;
+  bool get isDarkMode => _isDarkMode;
+
+  bool _isSidebarVisible = true;
+  bool get isSidebarVisible => _isSidebarVisible;
+
+  Future<void> _loadThemePreference() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _isDarkMode = prefs.getBool('isDarkMode') ?? false;
+      _isSidebarVisible = prefs.getBool('isSidebarVisible') ?? true;
+      globalIsDarkMode = _isDarkMode;
+      notifyListeners();
+    } catch (e) {
+          }
+  }
+
+  Future<void> toggleDarkMode() async {
+    _isDarkMode = !_isDarkMode;
+    globalIsDarkMode = _isDarkMode;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isDarkMode', _isDarkMode);
+    } catch (e) {
+          }
+  }
+
+  Future<void> toggleSidebar() async {
+    _isSidebarVisible = !_isSidebarVisible;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isSidebarVisible', _isSidebarVisible);
+    } catch (e) {
+    }
+  }
+
+  bool _skipStartupAnimation = false;
+  bool get skipStartupAnimation => _skipStartupAnimation;
+
+  Future<void> setSkipStartupAnimation(bool skip) async {
+    _skipStartupAnimation = skip;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('skipStartupAnimation', skip);
+    } catch (e) {
+    }
+  }
+
+  bool _notificationsEnabled = true;
+  bool get notificationsEnabled => _notificationsEnabled;
+
+  TimeOfDay _notificationTime = const TimeOfDay(hour: 9, minute: 0);
+  TimeOfDay get notificationTime => _notificationTime;
+
+  Future<void> loadNotificationPreferences() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _skipStartupAnimation = prefs.getBool('skipStartupAnimation') ?? false;
+      _notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
+      int hour = prefs.getInt('notificationHour') ?? 9;
+      int minute = prefs.getInt('notificationMinute') ?? 0;
+      _notificationTime = TimeOfDay(hour: hour, minute: minute);
+      _scheduleNotifications();
+      notifyListeners();
+    } catch (e) {
+          }
+  }
+
+  Future<void> setNotificationsEnabled(bool enabled) async {
+    _notificationsEnabled = enabled;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('notificationsEnabled', enabled);
+      _scheduleNotifications();
+    } catch (e) {
+          }
+  }
+
+  Future<void> setNotificationTime(TimeOfDay time) async {
+    _notificationTime = time;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('notificationHour', time.hour);
+      await prefs.setInt('notificationMinute', time.minute);
+      _scheduleNotifications();
+    } catch (e) {
+          }
+  }
+
+  void _scheduleNotifications() {
+    if (_notificationsEnabled) {
+      NotificationService()
+          .scheduleDailyPantryCheck(_notificationTime, allItems);
+    } else {
+      NotificationService().cancelNotifications();
+    }
+  }
+
+  bool _categoryDeleteHintShown = false;
+  bool get categoryDeleteHintShown => _categoryDeleteHintShown;
+
+  Future<void> _checkCategoryDeleteHint() async {
+    final userId = currentUserAuth?.uid;
+    final group = groupId;
+    if (userId == null || group == null) {
+      _categoryDeleteHintShown = false;
+      notifyListeners();
+      return;
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _categoryDeleteHintShown =
+          prefs.getBool('category_delete_hint_shown_${userId}_$group') ?? false;
+      notifyListeners();
+    } catch (e) {
+          }
+  }
+
+  Future<void> markCategoryDeleteHintShown() async {
+    final userId = currentUserAuth?.uid;
+    final group = groupId;
+    if (userId == null || group == null) return;
+
+    _categoryDeleteHintShown = true;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('category_delete_hint_shown_${userId}_$group', true);
+    } catch (e) {
+          }
+  }
+
+  Future<void> _checkPredictiveBannerStatus() async {
+    final userId = currentUserAuth?.uid;
+    final group = groupId;
+    if (userId == null || group == null) {
+      _isPredictiveBannerClosed = false;
+      notifyListeners();
+      return;
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _isPredictiveBannerClosed =
+          prefs.getBool('predictive_banner_closed_${userId}_$group') ?? false;
+      notifyListeners();
+    } catch (e) {
+          }
+  }
+
+  Future<void> closePredictiveBannerPermanent() async {
+    final userId = currentUserAuth?.uid;
+    final group = groupId;
+    if (userId == null || group == null) return;
+
+    _isPredictiveBannerClosed = true;
+    notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('predictive_banner_closed_${userId}_$group', true);
+    } catch (e) {
+          }
+  }
+
+  AppState() {
+    _loadThemePreference();
+    _checkCategoryDeleteHint();
+    authService.authStateChanges.listen((User? user) async {
+      isInitializingUser = true;
+      notifyListeners();
+
+      currentUserAuth = user;
+      if (user != null) {
+        _userDocSubscription?.cancel();
+        _userDocSubscription = FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .snapshots()
+            .listen((doc) async {
+          if (doc.exists) {
+            currentUserData =
+                UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+
+            // Carica cronologia utente
+            await loadSavedGroups();
+
+            // Logga automaticamente l'utente al gruppo
+            try {
+              final prefs = await SharedPreferences.getInstance();
+              final lastActive =
+                  prefs.getString('lastActiveGroupId_${user.uid}');
+              if (lastActive != null &&
+                  currentUserData!.groupIds.contains(lastActive)) {
+                if (groupId != lastActive) setGroupId(lastActive); // Esegue in background
+              }
+            } catch (e) {
+                          }
+
+            isInitializingUser = false;
+            notifyListeners();
+          }
+        });
+      } else {
+        _userDocSubscription?.cancel();
+        currentUserData = null;
+        savedGroups.clear();
+        savedGroupNames.clear();
+        isInitializingUser = false;
+        await leaveGroup();
+      }
+      await _checkPredictiveBannerStatus();
+      await _checkCategoryDeleteHint();
+      notifyListeners();
+    });
+  }
+
   FirebaseService? _firebaseService;
+  FirebaseService? get firebaseService => _firebaseService;
   StreamSubscription<List<ItemModel>>? _itemsSubscription;
-  StreamSubscription<List<RoommateExpense>>? _expensesSubscription;
+  StreamSubscription<DocumentSnapshot>? _groupSubscription;
+  StreamSubscription<DocumentSnapshot>? _userDocSubscription;
 
+  bool isInitializingUser =
+      true; // Mostra caricamento all'avvio
   bool isLoading = false;
+  bool groupWasDeleted = false; // Definisce eliminazione gruppo
+  bool userWasKicked = false; // Definisce rimozione dal gruppo
+  String? groupName;
+  Map<String, String> savedGroupNames = {}; // Mappa codice a nome gruppo
 
-  /// Carica la cronologia dei gruppi visitati dalla memoria persistente
+  // Carica i gruppi visitati
   Future<void> loadSavedGroups() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      savedGroups = prefs.getStringList('savedGroups') ?? [];
+      final key = 'savedGroups_${currentUserAuth?.uid ?? ''}';
+      savedGroups = prefs.getStringList(key) ?? [];
+      final groupNamesJson = prefs.getString('savedGroupNames');
+      if (groupNamesJson != null) {
+        try {
+          final Map<String, dynamic> decoded = jsonDecode(groupNamesJson);
+          savedGroupNames =
+              decoded.map((key, value) => MapEntry(key, value.toString()));
+        } catch (e) {
+                  }
+      }
       notifyListeners();
     } catch (e) {
-      print("Errore nel caricamento della cronologia gruppi: $e");
-    }
+          }
   }
 
-  /// Imposta il codice del gruppo (Casa), avvia la sincronizzazione e lo salva nella cronologia.
+  // Imposta il gruppo e avvia sincronizzazione
   Future<void> setGroupId(String newGroupId) async {
     if (newGroupId.trim().isEmpty) return;
-    
+
     final code = newGroupId.trim().toUpperCase();
     groupId = code;
     isLoading = true;
+    groupWasDeleted = false;
+    userWasKicked = false;
     notifyListeners();
 
-    // Aggiunge alla cronologia se non presente e salva localmente
-    if (!savedGroups.contains(code)) {
+    await _checkPredictiveBannerStatus();
+    await _checkCategoryDeleteHint();
+
+    // Aggiorna la cronologia gruppi
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      savedGroups.remove(code);
       savedGroups.insert(0, code);
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setStringList('savedGroups', savedGroups);
-      } catch (e) {
-        print("Errore salvataggio cronologia: $e");
-      }
-    }
+      final key = 'savedGroups_${currentUserAuth?.uid ?? ''}';
+      await prefs.setStringList(key, savedGroups);
+      await prefs.setString(
+          'lastActiveGroupId_${currentUserAuth?.uid ?? ''}', code);
+    } catch (e) {
+          }
 
     _firebaseService = FirebaseService(groupId: groupId!);
 
-    // Copia i dati demo iniziali su Firestore se il gruppo è appena stato creato
-    await _firebaseService!.seedInitialDataIfNeeded(_initialDemoItems, _initialDemoExpenses);
+    // Carica dati iniziali in modo sincrono per evitare conflitti
+    await _firebaseService!
+        .seedInitialDataIfNeeded(_initialDemoItems, uid: currentUserAuth?.uid);
 
-    // Cancella eventuali sottoscrizioni precedenti
+    // Cancella le vecchie sottoscrizioni
     await _itemsSubscription?.cancel();
-    await _expensesSubscription?.cancel();
+    await _groupSubscription?.cancel();
 
-    // Sottoscrizione allo stream degli articoli
+    // Sottoscrive allo stream articoli
     _itemsSubscription = _firebaseService!.getItemsStream().listen(
       (itemsFromCloud) {
-        if (itemsFromCloud.isNotEmpty) {
-          allItems = itemsFromCloud;
-        }
+        allItems = itemsFromCloud;
         isLoading = false;
         notifyListeners();
+        _scheduleNotifications();
       },
       onError: (error) {
-        print("Errore stream articoli: $error");
-        isLoading = false;
+                isLoading = false;
         notifyListeners();
       },
     );
 
-    // Sottoscrizione allo stream delle spese condivise
-    _expensesSubscription = _firebaseService!.getExpensesStream().listen(
-      (expensesFromCloud) {
-        if (expensesFromCloud.isNotEmpty) {
-          expenses = expensesFromCloud;
+    bool groupDidExist = false;
+    _groupSubscription = _firebaseService!.getGroupStream().listen((doc) {
+      if (doc.exists) {
+        groupDidExist = true;
+        final data = doc.data() as Map<String, dynamic>? ?? {};
+
+        groupName = data['name'];
+        if (groupName != null && groupName!.isNotEmpty && groupId != null) {
+          savedGroupNames[groupId!] = groupName!;
+          SharedPreferences.getInstance().then((prefs) {
+            prefs.setString('savedGroupNames', jsonEncode(savedGroupNames));
+          });
+        }
+
+        if (data.containsKey('aiFeedback')) {
+          final Map<String, dynamic> rawFeedback = data['aiFeedback'];
+          aiFeedback = rawFeedback.map((key, value) {
+            return MapEntry(
+              key, 
+              (value as Map<String, dynamic>).map((k, v) => MapEntry(k, v as int))
+            );
+          });
+        }
+
+        if (data.containsKey('categories')) {
+          final List<dynamic> loaded = data['categories'];
+          categories = loaded.map((e) => e.toString()).toList();
+        } else {
+          // Unisce le categorie migrate
+          Set<String> merged = {
+            "Tutti",
+            "Altro",
+            "Frutta & Verdura",
+            "Latticini",
+            "Carne",
+            "Bevande",
+            "Snack"
+          };
+          if (data.containsKey('pantryCategories')) {
+            merged.addAll(
+                (data['pantryCategories'] as List).map((e) => e.toString()));
+          }
+          if (data.containsKey('shoppingCategories')) {
+            merged.addAll(
+                (data['shoppingCategories'] as List).map((e) => e.toString()));
+          }
+          categories = merged.toList();
+
+          // Sincronizza categorie unificate su Firebase
+          if (groupDidExist && _firebaseService != null) {
+            _firebaseService!.updateCategories(categories);
+          }
+        }
+        if (data.containsKey('members')) {
+          final List<dynamic> loadedMembers = data['members'];
+          final memberStrings = loadedMembers.map((e) => e.toString()).toList();
+
+          if (currentUserAuth != null &&
+              !memberStrings.contains(currentUserAuth!.uid)) {
+            leaveGroup(kicked: true);
+            return;
+          }
+
+          _fetchGroupMembers(memberStrings);
         }
         notifyListeners();
-      },
-      onError: (error) => print("Errore stream spese: $error"),
-    );
+      } else if (!doc.exists && groupId != null && groupDidExist) {
+        // Esce se il gruppo è eliminato
+        leaveGroup(deleted: true);
+      }
+    });
   }
 
-  /// Rimuove un gruppo specifico dalla cronologia locale
+  Future<void> _fetchGroupMembers(List<String> uids) async {
+    List<UserModel> members = [];
+    for (String uid in uids) {
+      try {
+        final doc =
+            await FirebaseFirestore.instance.collection('users').doc(uid).get();
+        if (doc.exists) {
+          members.add(
+              UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id));
+        }
+      } catch (e) {
+              }
+    }
+    groupMembers = members;
+    notifyListeners();
+  }
+
+  // Rimuove un gruppo salvato
   Future<void> removeSavedGroup(String code) async {
     savedGroups.remove(code);
+    savedGroupNames.remove(code);
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setStringList('savedGroups', savedGroups);
+      final key = 'savedGroups_${currentUserAuth?.uid ?? ''}';
+      await prefs.setStringList(key, savedGroups);
+      await prefs.setString('savedGroupNames', jsonEncode(savedGroupNames));
     } catch (e) {
-      print("Errore rimozione gruppo da SharedPreferences: $e");
-    }
-    
-    // Se elimino il gruppo in cui mi trovo attualmente, esco dal gruppo
+          }
+
+    // Esce dal gruppo corrente se è stato rimosso
     if (groupId == code) {
       await leaveGroup();
     } else {
@@ -152,18 +592,68 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  /// Esce dal gruppo corrente, scollega gli stream e ripristina la UI in modalità base.
-  Future<void> leaveGroup() async {
-    groupId = null;
-    await _itemsSubscription?.cancel();
-    await _expensesSubscription?.cancel();
-    _itemsSubscription = null;
-    _expensesSubscription = null;
-    _firebaseService = null;
+  Future<void> deleteGroup() async {
+    await _firebaseService?.deleteGroup();
+  }
 
-    // Ripristina le liste di default per permettere l'ingresso pulito in un altro gruppo
-    allItems = List.from(_initialDemoItems);
-    expenses = List.from(_initialDemoExpenses);
+  Future<void> updateGroupName(String newName) async {
+    if (groupId != null) {
+      await FirebaseFirestore.instance
+          .collection('groups')
+          .doc(groupId)
+          .update({
+        'name': newName.trim(),
+      });
+    }
+  }
+
+  Future<void> leaveGroup({bool deleted = false, bool kicked = false}) async {
+    // Segnala eliminazione o espulsione all'interfaccia
+    if (deleted) groupWasDeleted = true;
+    if (kicked) userWasKicked = true;
+
+    if (deleted || kicked) {
+      if (groupId != null) {
+        savedGroups.remove(groupId);
+        savedGroupNames.remove(groupId);
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          final key = 'savedGroups_${currentUserAuth?.uid ?? ''}';
+          await prefs.setStringList(key, savedGroups);
+          await prefs.setString('savedGroupNames', jsonEncode(savedGroupNames));
+        } catch (e) {
+                  }
+
+        if (currentUserData != null) {
+          currentUserData!.groupIds.remove(groupId);
+        }
+      }
+    }
+
+    // Attende la scrittura pendente su Firestore
+    try {
+      await FirebaseFirestore.instance
+          .waitForPendingWrites()
+          .timeout(const Duration(seconds: 3));
+    } catch (e) {
+          }
+
+    groupId = null;
+    groupName = null;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('lastActiveGroupId_${currentUserAuth?.uid ?? ''}');
+    } catch (e) {
+          }
+    await _itemsSubscription?.cancel();
+    _itemsSubscription = null;
+    await _groupSubscription?.cancel();
+    _groupSubscription = null;
+    _isPredictiveBannerClosed = false;
+
+    // Ripristina liste di base
+    allItems.clear();
+    allItems.addAll(_initialDemoItems);
 
     notifyListeners();
   }
@@ -171,161 +661,372 @@ class AppState extends ChangeNotifier {
   @override
   void dispose() {
     _itemsSubscription?.cancel();
-    _expensesSubscription?.cancel();
+    _groupSubscription?.cancel();
+    _userDocSubscription?.cancel();
     super.dispose();
   }
 
-  // ===========================================================================
-  // CATEGORIE
-  // ===========================================================================
-  List<String> pantryCategories = [
+  // Stato interfaccia e filtri
+  List<String> categories = [
     "Tutti",
+    "Altro",
     "Frutta & Verdura",
     "Latticini",
-    "Carne & Pesce",
-    "Secco & Pasta",
+    "Carne",
     "Bevande",
-  ];
-
-  List<String> shoppingCategories = [
-    "Tutti",
-    "Frutta & Verdura",
-    "Latticini",
-    "Carne & Pesce",
-    "Secco & Pasta",
-    "Igiene Casa",
-  ];
-
-  List<String> suitcaseCategories = [
-    "Tutti",
-    "Vestiti",
-    "Libri & Studio",
-    "Cavi & Tech",
-    "Beauty & Igiene",
+    "Snack"
   ];
 
   String selectedPantryCategory = "Tutti";
   String selectedShoppingCategory = "Tutti";
-  String selectedSuitcaseCategory = "Tutti";
 
-  // ===========================================================================
-  // LISTE DI BACKUP / DEMO INIZIALI
-  // ===========================================================================
-  final List<ItemModel> _initialDemoItems = [
-    ItemModel(id: '1', name: 'Latte Parzialmente Scremato', expireDate: 'In scadenza: Oggi', quantity: 1, category: 'Latticini', isPantry: true),
-    ItemModel(id: '2', name: 'Insalata Mista Busta', expireDate: 'Scadenza: Domani', quantity: 2, category: 'Frutta & Verdura', isPantry: true),
-    ItemModel(id: '3', name: 'Pasta Spaghetti 1kg', expireDate: 'Scadenza: 12/10/2026', quantity: 4, category: 'Secco & Pasta', isPantry: true),
-    ItemModel(id: '4', name: 'Passata di Pomodoro', expireDate: 'Scadenza: 25/08/2026', quantity: 3, category: 'Secco & Pasta', isPantry: true),
-    ItemModel(id: '5', name: 'Petti di Pollo', expireDate: 'Scadenza: tra 3 giorni', quantity: 1, category: 'Carne & Pesce', isPantry: true),
-    ItemModel(id: '6', name: 'Olio Extravergine', expireDate: '-', quantity: 1, category: 'Secco & Pasta', isShopping: true),
-    ItemModel(id: '7', name: 'Detersivo Piatti', expireDate: '-', quantity: 2, category: 'Igiene Casa', isShopping: true),
-    ItemModel(id: '8', name: 'Mele Golden', expireDate: '-', quantity: 6, category: 'Frutta & Verdura', isShopping: true),
-    ItemModel(id: '9', name: 'Magliette di ricambio', expireDate: '-', quantity: 5, category: 'Vestiti', isSuitcase: true),
-    ItemModel(id: '10', name: 'Caricabatterie PC e Telefono', expireDate: '-', quantity: 2, category: 'Cavi & Tech', isSuitcase: true),
-    ItemModel(id: '11', name: 'Appunti ed Esami passati', expireDate: '-', quantity: 3, category: 'Libri & Studio', isSuitcase: true),
-  ];
+  // Dati demo iniziali
+  final List<ItemModel> _initialDemoItems = [];
 
-  final List<RoommateExpense> _initialDemoExpenses = [
-    RoommateExpense(id: 'e1', description: 'Spesa settimanale Esselunga', amount: 64.50, paidBy: 'Tu'),
-    RoommateExpense(id: 'e2', description: 'Detersivi e Spugne', amount: 12.80, paidBy: 'Marco (Coinquilino)'),
-    RoommateExpense(id: 'e3', description: 'Ricarica Acqua e Bevande', amount: 15.00, paidBy: 'Giulia (Coinquilina)'),
-  ];
-
-  // Liste attive (inizializzate con i dati demo per fallback)
+  // Liste attive con dati di fallback
   late List<ItemModel> allItems = List.from(_initialDemoItems);
-  late List<RoommateExpense> expenses = List.from(_initialDemoExpenses);
 
-  // ===========================================================================
-  // SUPERMERCATI NELLE VICINANZE
-  // ===========================================================================
-  List<SupermarketModel> nearbySupermarkets = [
-    SupermarketModel(name: 'Conad City (Convenzionato Studenti)', distance: '120m', address: 'Via dell\'Università, 14'),
-    SupermarketModel(name: 'Esselunga Superstore', distance: '450m', address: 'Viale dello Sport, 88'),
-    SupermarketModel(name: 'Lidl (Offerte Fuorisede)', distance: '600m', address: 'Via Roma, 212'),
-  ];
+  // Mappa dei supermercati vicini
+  List<SupermarketModel> nearbySupermarkets = [];
 
-  // ===========================================================================
-  // LOGICA E AZIONI SINCRO
-  // ===========================================================================
-  
+  // Logica e azioni di sincronizzazione
+
   void selectCategory(String category, String section) {
     if (section == 'pantry') selectedPantryCategory = category;
     if (section == 'shopping') selectedShoppingCategory = category;
-    if (section == 'suitcase') selectedSuitcaseCategory = category;
     notifyListeners();
   }
 
   void addCustomCategory(String newCategory, String section) {
     if (newCategory.trim().isEmpty) return;
-    if (section == 'pantry' && !pantryCategories.contains(newCategory)) {
-      pantryCategories.add(newCategory);
-      selectedPantryCategory = newCategory;
-    } else if (section == 'shopping' && !shoppingCategories.contains(newCategory)) {
-      shoppingCategories.add(newCategory);
-      selectedShoppingCategory = newCategory;
-    } else if (section == 'suitcase' && !suitcaseCategories.contains(newCategory)) {
-      suitcaseCategories.add(newCategory);
-      selectedSuitcaseCategory = newCategory;
+    bool updated = false;
+
+    if (!categories.contains(newCategory)) {
+      categories.add(newCategory);
+      updated = true;
     }
-    notifyListeners();
+
+    if (section == 'pantry') selectedPantryCategory = newCategory;
+    if (section == 'shopping') selectedShoppingCategory = newCategory;
+
+    if (updated) {
+      notifyListeners();
+      _firebaseService?.updateCategories(categories);
+    }
   }
 
-  void updateQuantity(String itemId, int delta) {
+  void removeCustomCategory(String categoryToRemove, String section) {
+    if (categoryToRemove == "Tutti")
+      return; // "Tutti" non può mai essere eliminato
+      bool removed = categories.remove(categoryToRemove);
+
+    if (selectedPantryCategory == categoryToRemove) {
+      selectedPantryCategory = "Tutti";
+    }
+    if (selectedShoppingCategory == categoryToRemove) {
+      selectedShoppingCategory = "Tutti";
+    }
+
+    if (removed) {
+      // Aggiorna gli elementi della categoria rimossa
+      for (var item in allItems) {
+        if (item.category == categoryToRemove) {
+          item.category = 'Altro';
+          _firebaseService?.saveItem(item);
+        }
+      }
+      notifyListeners();
+      _firebaseService?.updateCategories(categories);
+    }
+  }
+
+  Future<void> _checkAndAutoAddShopping(ItemModel item) async {
+    final history = await _firebaseService?.getConsumptionHistory() ?? [];
+    int consumedCount = 0;
+    String targetName = item.name.toLowerCase().trim();
+
+    for (var log in history) {
+      if ((log['name'] ?? '').toString().toLowerCase().trim() == targetName) {
+        consumedCount += (log['quantity'] ?? 1) as int;
+      }
+    }
+
+    if (consumedCount >= 3) {
+      bool alreadyInShopping = allItems.any(
+          (i) => i.isShopping && i.name.toLowerCase().trim() == targetName);
+      if (!alreadyInShopping) {
+        ItemModel newItem = ItemModel(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          name: item.name,
+          expireDate: "-",
+          quantity: 1,
+          category: item.category,
+          isShopping: true,
+        );
+        newItem.isPantry = false;
+        allItems.add(newItem);
+        notifyListeners();
+        await _firebaseService?.saveItem(newItem);
+
+        rootScaffoldMessengerKey.currentState?.showSnackBar(
+          SnackBar(
+            content: Text(
+                "IA: ${item.name} sta finendo ed è stato aggiunto alla Spesa automatica!"),
+            backgroundColor: const Color(0xFF4A7C59),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> updateQuantity(String itemId, int delta) async {
     try {
       final item = allItems.firstWhere((i) => i.id == itemId);
       item.quantity += delta;
-      
+
+      if (delta < 0 && item.isPantry) {
+        _firebaseService?.logConsumption(item.name, -delta);
+        if (item.expireDates.length > item.quantity) {
+          item.expireDates.removeAt(0);
+          item.expireDate = item.expireDates.isNotEmpty ? item.expireDates.first : "-";
+        }
+      }
+
       if (item.quantity <= 0) {
         allItems.remove(item);
-        _firebaseService?.deleteItem(itemId);
+        notifyListeners();
+        await _firebaseService?.deleteItem(itemId);
+        if (item.isPantry) _checkAndAutoAddShopping(item);
       } else {
-        _firebaseService?.updateItemQuantity(itemId, item.quantity);
+        notifyListeners();
+        await _firebaseService?.saveItem(item);
+        if (item.quantity == 1 && item.isPantry && delta < 0) {
+          _checkAndAutoAddShopping(item);
+        }
       }
-      notifyListeners();
     } catch (e) {
-      print("Prodotto non trovato localmente: $e");
-    }
+          }
   }
 
-  void deleteItem(String itemId) {
+  Future<void> deleteItem(String itemId) async {
     try {
+      final item = allItems.firstWhere((i) => i.id == itemId);
+      if (item.isPantry) {
+        _firebaseService?.logConsumption(item.name, item.quantity);
+      }
+
       allItems.removeWhere((i) => i.id == itemId);
-      _firebaseService?.deleteItem(itemId);
       notifyListeners();
+      await _firebaseService?.deleteItem(itemId);
     } catch (e) {
-      print("Errore eliminazione locale: $e");
+          }
+  }
+
+  Future<void> addItem(ItemModel newItem) async {
+    try {
+      // Cerca prodotto identico
+      final existingItem = allItems.firstWhere(
+        (i) =>
+            i.name.trim().toLowerCase() == newItem.name.trim().toLowerCase() &&
+            i.isPantry == newItem.isPantry &&
+            i.isShopping == newItem.isShopping,
+      );
+
+      // Aggiorna la quantità
+      await updateQuantity(existingItem.id, newItem.quantity);
+    } catch (e) {
+      // Aggiunge nuovo elemento
+      allItems.add(newItem);
+      notifyListeners();
+      await _firebaseService?.saveItem(newItem);
     }
   }
 
-  void addItem(ItemModel newItem) {
-    allItems.add(newItem);
-    _firebaseService?.saveItem(newItem);
-    notifyListeners();
-  }
+  Future<void> updateItem(ItemModel updatedItem) async {
+    final index = allItems.indexWhere((i) => i.id == updatedItem.id);
+    if (index != -1) {
+      allItems[index] = updatedItem;
 
-  void markShoppingDone() {
-    for (var item in allItems.where((i) => i.isShopping).toList()) {
-      item.isShopping = false;
-      item.isPantry = true;
-      item.expireDate = "Scadenza: Fresco (30 gg)";
+      if (updatedItem.isPantry && updatedItem.expireDate != "-" && updatedItem.expireDate != "Data: N/A" && updatedItem.expireDate.isNotEmpty) {
+        final otherIndex = allItems.indexWhere((i) => i.isPantry && i.id != updatedItem.id && i.name.trim().toLowerCase() == updatedItem.name.trim().toLowerCase());
+        if (otherIndex != -1) {
+          final otherItem = allItems[otherIndex];
+          
+          if (otherItem.expireDates.isEmpty && otherItem.expireDate != "-" && otherItem.expireDate != "Data: N/A" && otherItem.expireDate.isNotEmpty) {
+            otherItem.expireDates.add(otherItem.expireDate);
+          }
+          if (updatedItem.expireDates.isEmpty && updatedItem.expireDate != "-" && updatedItem.expireDate != "Data: N/A" && updatedItem.expireDate.isNotEmpty) {
+            updatedItem.expireDates.add(updatedItem.expireDate);
+          }
+
+          otherItem.quantity += updatedItem.quantity;
+          otherItem.expireDates.addAll(updatedItem.expireDates);
+
+          otherItem.expireDates.sort((a, b) {
+            final pA = a.split('/');
+            final pB = b.split('/');
+            if (pA.length != 3 || pB.length != 3) return 0;
+            final dA = DateTime(int.parse(pA[2]), int.parse(pA[1]), int.parse(pA[0]));
+            final dB = DateTime(int.parse(pB[2]), int.parse(pB[1]), int.parse(pB[0]));
+            return dA.compareTo(dB);
+          });
+          if (otherItem.expireDates.isNotEmpty) {
+            otherItem.expireDate = otherItem.expireDates.first;
+          }
+
+          allItems.removeWhere((i) => i.id == updatedItem.id);
+          final oIdx = allItems.indexWhere((i) => i.id == otherItem.id);
+          if (oIdx != -1) allItems[oIdx] = otherItem;
+          notifyListeners();
+
+          await _firebaseService?.deleteItem(updatedItem.id);
+          await _firebaseService?.saveItem(otherItem);
+          return;
+        }
+      }
+
+      notifyListeners();
+      await _firebaseService?.saveItem(updatedItem);
     }
-    _firebaseService?.markShoppingDone();
-    notifyListeners();
   }
 
-  void addExpense(String description, double amount, String paidBy) {
-    final newExp = RoommateExpense(
+  Future<void> moveToShoppingList(ItemModel oldItem) async {
+    // Aggiunge alla spesa
+    final newItem = ItemModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      description: description,
-      amount: amount,
-      paidBy: paidBy,
+      name: oldItem.name,
+      expireDate: "-",
+      quantity: 1,
+      category: oldItem.category,
+      isPantry: false,
+      isShopping: true,
     );
-    expenses.add(newExp);
-    _firebaseService?.addExpense(newExp);
+    await addItem(newItem);
+
+    // Rimuove dalla dispensa
+    await deleteItem(oldItem.id);
+  }
+
+  Future<void> markSelectedShoppingDone(List<String> selectedItemIds) async {
+    for (var item in allItems
+        .where((i) => i.isShopping && selectedItemIds.contains(i.id))
+        .toList()) {
+      final existingPantryItems = allItems.where((i) => i.isPantry && i.name.trim().toLowerCase() == item.name.trim().toLowerCase()).toList();
+      ItemModel? existingWithoutExpire;
+      for (var pItem in existingPantryItems) {
+        if (pItem.expireDate == "-" || pItem.expireDate == "Data: N/A" || pItem.expireDate.isEmpty) {
+          existingWithoutExpire = pItem;
+          break;
+        }
+      }
+
+      if (existingWithoutExpire != null) {
+        existingWithoutExpire.quantity += item.quantity;
+        if (item.ownerId != null) {
+          existingWithoutExpire.ownerId = item.ownerId;
+        }
+        await _firebaseService?.saveItem(existingWithoutExpire);
+        allItems.remove(item);
+        await _firebaseService?.deleteItem(item.id);
+      } else {
+        item.isShopping = false;
+        item.isPantry = true;
+        item.expireDate = "-";
+        item.expireDates = [];
+        await _firebaseService?.saveItem(item);
+      }
+    }
     notifyListeners();
   }
 
-  double get totalExpenses => expenses.fold(0, (sum, e) => sum + e.amount);
+  Future<void> markShoppingDone() async {
+    for (var item in allItems.where((i) => i.isShopping).toList()) {
+      final existingPantryItems = allItems.where((i) => i.isPantry && i.name.trim().toLowerCase() == item.name.trim().toLowerCase()).toList();
+      ItemModel? existingWithoutExpire;
+      for (var pItem in existingPantryItems) {
+        if (pItem.expireDate == "-" || pItem.expireDate == "Data: N/A" || pItem.expireDate.isEmpty) {
+          existingWithoutExpire = pItem;
+          break;
+        }
+      }
 
-  double get myPaidExpenses => expenses.where((e) => e.paidBy == 'Tu').fold(0, (sum, e) => sum + e.amount);
+      if (existingWithoutExpire != null) {
+        existingWithoutExpire.quantity += item.quantity;
+        if (item.ownerId != null) {
+          existingWithoutExpire.ownerId = item.ownerId;
+        }
+        await _firebaseService?.saveItem(existingWithoutExpire);
+        allItems.remove(item);
+        await _firebaseService?.deleteItem(item.id);
+      } else {
+        item.isShopping = false;
+        item.isPantry = true;
+        item.expireDate = "-";
+        item.expireDates = [];
+        await _firebaseService?.saveItem(item);
+      }
+    }
+    notifyListeners();
+  }
+
+  Future<void> updateProfileName(String newName) async {
+    try {
+      final user = currentUserAuth;
+      if (user != null) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .update({
+          'name': newName,
+        });
+        currentUserData = UserModel(
+          id: user.uid,
+          email: user.email ?? "",
+          name: newName,
+          groupIds: currentUserData?.groupIds ?? [],
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+          }
+  }
+
+  Future<void> acceptAISuggestion(String productName) async {
+    final name = productName.toLowerCase().trim();
+    aiFeedback.putIfAbsent(name, () => {'acceptCount': 0, 'rejectCount': 0});
+    aiFeedback[name]!['acceptCount'] = (aiFeedback[name]!['acceptCount'] ?? 0) + 1;
+    notifyListeners();
+    await _firebaseService?.updateAIFeedback(aiFeedback);
+  }
+
+  Future<void> rejectAISuggestion(String productName) async {
+    final name = productName.toLowerCase().trim();
+    aiFeedback.putIfAbsent(name, () => {'acceptCount': 0, 'rejectCount': 0});
+    aiFeedback[name]!['rejectCount'] = (aiFeedback[name]!['rejectCount'] ?? 0) + 1;
+    notifyListeners();
+    await _firebaseService?.updateAIFeedback(aiFeedback);
+  }
+
+  Future<void> addMissingIngredientsToShoppingList(List<String> ingredients) async {
+    for (var ingName in ingredients) {
+      final cleanName = ingName.trim();
+      bool alreadyInShopping = allItems.any((i) => i.isShopping && i.name.trim().toLowerCase() == cleanName.toLowerCase());
+      if (!alreadyInShopping) {
+        final newItem = ItemModel(
+          id: DateTime.now().millisecondsSinceEpoch.toString() + cleanName.hashCode.toString(),
+          name: cleanName,
+          expireDate: "-",
+          quantity: 1,
+          category: "Altro",
+          isPantry: false,
+          isShopping: true,
+          ownerId: currentUserAuth?.uid,
+        );
+        allItems.add(newItem);
+        await _firebaseService?.saveItem(newItem);
+      }
+    }
+    notifyListeners();
+  }
 }

@@ -5,17 +5,16 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:far_from_home/main.dart';
+import 'package:avanzizero/main.dart';
 
 void main() {
-  testWidgets('FarFromHome smoke test', (WidgetTester tester) async {
+  testWidgets('AvanziZero smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const FarFromHomeApp());
+    await tester.pumpWidget(const AvanziZeroApp());
 
     // Verify that the title is present.
-    expect(find.text('FarFromHome'), findsOneWidget);
+    expect(find.text('AvanziZero'), findsOneWidget);
   });
 }

@@ -13,3 +13,17 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# VS Code
+.vscode/
+
+*.safetensors
+*.tflite
+
+receipt_dataset.json
+
+*.safetensors
+*.tflite
+receipt_dataset.json
+basedir.txt
+documentazione/canvas.html

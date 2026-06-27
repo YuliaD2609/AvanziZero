@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "far_from_home" "\0"
+            VALUE "FileDescription", "avanzizero" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "far_from_home" "\0"
+            VALUE "InternalName", "avanzizero" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "far_from_home.exe" "\0"
-            VALUE "ProductName", "far_from_home" "\0"
+            VALUE "OriginalFilename", "avanzizero.exe" "\0"
+            VALUE "ProductName", "avanzizero" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
