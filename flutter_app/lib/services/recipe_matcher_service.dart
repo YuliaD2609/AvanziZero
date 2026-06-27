@@ -67,12 +67,12 @@ class RecipeMatcherService {
     if (_database != null) return _database!;
 
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'recipes_catalog.db');
+    final path = join(dbPath, 'recipes_catalog_v5.db');
 
     final exists = await databaseExists(path);
 
     if (!exists) {
-      debugPrint('Copia del database SQLite ricette dagli asset...');
+      debugPrint('Copia del database SQLite ricette dagli asset (v5)...');
       try {
         await Directory(dirname(path)).create(recursive: true);
         ByteData data = await rootBundle.load('assets/db/recipes_catalog.db');
@@ -98,7 +98,7 @@ class RecipeMatcherService {
 
     try {
       debugPrint('Controllo aggiornamenti del catalogo ricette da Firebase Storage in background...');
-      final ref = FirebaseStorage.instance.ref('db/recipes_catalog.db');
+      final ref = FirebaseStorage.instance.ref('db/recipes_catalog_v5.db');
       final tempPath = '$localPath.temp';
       final tempFile = File(tempPath);
 
@@ -125,6 +125,7 @@ class RecipeMatcherService {
   /// Interroga il database SQLite e calcola la differenza degli ingredienti per trovare le ricette compatibili
   static Future<List<RecipeMatch>> findMatchingRecipes(
     List<String> pantryItems, {
+    List<String>? expiringPantryItems,
     String? selectedCategory,
     bool? withOven,
   }) async {
@@ -189,34 +190,45 @@ class RecipeMatcherService {
         }
       }
 
-      matches.add(RecipeMatch(
-        id: recipeId,
-        name: map['name'] as String,
-        description: (map['description'] as String?) ?? '',
-        source: map['source'] as String,
-        category: map['category'] as String,
-        prepTime: map['prep_time'] as String,
-        prepTimeMin: map['prep_time_min'] as int,
-        difficulty: map['difficulty'] as String,
-        withOven: (map['with_oven'] as int) == 1,
-        instructions: map['instructions'] as String,
-        allIngredients: allIngredients,
-        missingIngredients: missingIngredients,
-        toleratedIngredients: toleratedIngredients,
-      ));
+      if (missingIngredients.length <= 3) {
+        matches.add(RecipeMatch(
+          id: recipeId,
+          name: map['name'] as String,
+          description: (map['description'] as String?) ?? '',
+          source: map['source'] as String,
+          category: map['category'] as String,
+          prepTime: map['prep_time'] as String,
+          prepTimeMin: map['prep_time_min'] as int,
+          difficulty: map['difficulty'] as String,
+          withOven: (map['with_oven'] as int) == 1,
+          instructions: map['instructions'] as String,
+          allIngredients: allIngredients,
+          missingIngredients: missingIngredients,
+          toleratedIngredients: toleratedIngredients,
+        ));
+      }
     }
 
-    // Ranking per studenti: prima le ricette con meno ingredienti mancanti, poi le più veloci
+    // Ranking per studenti: prima le ricette con meno ingredienti mancanti,
+    // poi PRIORITIZZA le ricette che usano prodotti in dispensa vicini alla scadenza, infine le più veloci
     matches.sort((a, b) {
       int missingCompare = a.missingIngredients.length.compareTo(b.missingIngredients.length);
       if (missingCompare != 0) return missingCompare;
+
+      int aExpiringCount = 0;
+      int bExpiringCount = 0;
+      if (expiringPantryItems != null && expiringPantryItems.isNotEmpty) {
+        final expList = expiringPantryItems.map((e) => e.trim().toLowerCase()).toList();
+        aExpiringCount = a.allIngredients.where((ing) => expList.any((exp) => ing.normalizedName.contains(exp) || exp.contains(ing.normalizedName))).length;
+        bExpiringCount = b.allIngredients.where((ing) => expList.any((exp) => ing.normalizedName.contains(exp) || exp.contains(ing.normalizedName))).length;
+      }
+      int expiringCompare = bExpiringCount.compareTo(aExpiringCount); // ordine decrescente (più prodotti in scadenza = prima)
+      if (expiringCompare != 0) return expiringCompare;
+
       return a.prepTimeMin.compareTo(b.prepTimeMin);
     });
 
-    if (matches.length > 5) {
-      matches = matches.sublist(0, 5);
-    }
-
+    // Rimosso il limite sublist(0, 5): mostra TUTTE le ricette compatibili con la dispensa!
     return matches;
   }
 
@@ -225,7 +237,7 @@ class RecipeMatcherService {
     List<String> pantryItems, {
     String? selectedCategory,
     bool? withOven,
-    int count = 5,
+    int count = 50,
   }) async {
     final db = await getDatabase();
 
@@ -303,5 +315,45 @@ class RecipeMatcherService {
     }
 
     return matches;
+  }
+
+  /// Memorizza permanentemente nel database SQLite locale una ricetta recuperata in tempo reale dal web
+  static Future<int> insertRecipeFromLiveWeb(RecipeMatch recipe) async {
+    final db = await getDatabase();
+
+    // Evita duplicati controllando se esiste già una ricetta con lo stesso nome
+    final existing = await db.query(
+      'recipes',
+      columns: ['id'],
+      where: 'name = ?',
+      whereArgs: [recipe.name],
+    );
+
+    if (existing.isNotEmpty) {
+      return existing.first['id'] as int;
+    }
+
+    final newRecipeId = await db.insert('recipes', {
+      'name': recipe.name,
+      'description': recipe.description,
+      'source': recipe.source,
+      'category': recipe.category,
+      'prep_time': recipe.prepTime,
+      'prep_time_min': recipe.prepTimeMin,
+      'difficulty': recipe.difficulty,
+      'with_oven': recipe.withOven ? 1 : 0,
+      'instructions': recipe.instructions,
+    });
+
+    for (var ing in recipe.allIngredients) {
+      await db.insert('recipe_ingredients', {
+        'recipe_id': newRecipeId,
+        'name': ing.name,
+        'quantity': ing.quantity,
+        'normalized_name': ing.normalizedName,
+      });
+    }
+
+    return newRecipeId;
   }
 }

@@ -921,6 +921,9 @@ class AppState extends ChangeNotifier {
 
       if (existingWithoutExpire != null) {
         existingWithoutExpire.quantity += item.quantity;
+        if (item.ownerId != null) {
+          existingWithoutExpire.ownerId = item.ownerId;
+        }
         await _firebaseService?.saveItem(existingWithoutExpire);
         allItems.remove(item);
         await _firebaseService?.deleteItem(item.id);
@@ -948,6 +951,9 @@ class AppState extends ChangeNotifier {
 
       if (existingWithoutExpire != null) {
         existingWithoutExpire.quantity += item.quantity;
+        if (item.ownerId != null) {
+          existingWithoutExpire.ownerId = item.ownerId;
+        }
         await _firebaseService?.saveItem(existingWithoutExpire);
         allItems.remove(item);
         await _firebaseService?.deleteItem(item.id);

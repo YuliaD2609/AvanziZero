@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/app_state.dart';
 import '../services/recipe_matcher_service.dart';
+import '../services/live_recipe_harvesting_service.dart';
 import '../theme/app_colors.dart';
 
 class RecipesScreen extends StatefulWidget {
@@ -23,6 +27,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   String _selectedCategory = 'Tutte';
   bool? _withOven; // null = tutti, true = con forno, false = senza forno
   bool _isRandomMode = false;
+  bool _isOffline = false;
   List<RecipeMatch> _recipes = [];
   bool _isLoading = true;
 
@@ -38,6 +43,67 @@ class _RecipesScreenState extends State<RecipesScreen> {
   void initState() {
     super.initState();
     _loadRecipes();
+    _checkNetworkAndFetchLive();
+  }
+
+  Future<void> _checkNetworkAndFetchLive() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Controllo connettività e presenza rete reale
+      final response = await http
+          .get(Uri.parse('https://www.google.com'))
+          .timeout(const Duration(seconds: 3));
+      if (response.statusCode == 200) {
+        if (mounted) {
+          setState(() {
+            _isOffline =
+                false; // Rete presente! Rimuoviamo l'indicatore offline dinamicamente
+          });
+        }
+
+        final pantryItems = widget.state.allItems
+            .where((i) => i.isPantry)
+            .map((i) => i.name)
+            .toList();
+
+        final liveRecipes =
+            await LiveRecipeHarvestingService.harvestLiveRecipes(pantryItems);
+
+        int newCount = 0;
+        for (var rec in liveRecipes) {
+          await RecipeMatcherService.insertRecipeFromLiveWeb(rec);
+          newCount++;
+        }
+
+        if (mounted && newCount > 0) {
+          Fluttertoast.showToast(
+            msg: 'Trovate $newCount nuove ricette dal web!',
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: AppColors.primary,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _isOffline = true;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isOffline = true;
+        });
+      }
+    }
+
+    await _loadRecipes();
   }
 
   Future<void> _loadRecipes() async {
@@ -50,17 +116,76 @@ class _RecipesScreenState extends State<RecipesScreen> {
         .map((i) => i.name)
         .toList();
 
-    List<RecipeMatch> matches;
+    final expiringPantryItems = widget.state.allItems
+        .where((i) => i.isPantry && i.urgencyLevel >= 1)
+        .map((i) => i.name)
+        .toList();
+
+    List<RecipeMatch> matches = [];
     if (_isRandomMode) {
-      matches = await RecipeMatcherService.findRandomRecipes(
-        pantryItems,
-        selectedCategory: _selectedCategory,
-        withOven: _withOven,
-        count: 5,
-      );
+      try {
+        // Cerca prima le ricette live dal web come prioritario
+        final liveRecipes =
+            await LiveRecipeHarvestingService.harvestLiveRecipes(pantryItems);
+        if (liveRecipes.isNotEmpty) {
+          var filteredLive = liveRecipes.where((rec) {
+            if (_selectedCategory != 'Tutte' && rec.category != _selectedCategory) {
+              return false;
+            }
+            if (_withOven != null && rec.withOven != _withOven) {
+              return false;
+            }
+            return true;
+          }).toList();
+
+          filteredLive.shuffle();
+          final selectedLive = filteredLive.sublist(
+              0, filteredLive.length > 200 ? 200 : filteredLive.length);
+          for (var rec in selectedLive) {
+            final newId =
+                await RecipeMatcherService.insertRecipeFromLiveWeb(rec);
+            matches.add(RecipeMatch(
+              id: newId,
+              name: rec.name,
+              description: rec.description,
+              source: rec.source,
+              category: rec.category,
+              prepTime: rec.prepTime,
+              prepTimeMin: rec.prepTimeMin,
+              difficulty: rec.difficulty,
+              withOven: rec.withOven,
+              instructions: rec.instructions,
+              allIngredients: rec.allIngredients,
+              missingIngredients: rec.missingIngredients,
+              toleratedIngredients: rec.toleratedIngredients,
+            ));
+          }
+          Fluttertoast.showToast(
+            msg: 'Mostrando fino a 200 ricette casuali',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: AppColors.primary,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
+        }
+      } catch (e) {
+        // Fallback silenzioso
+      }
+
+      // Se non si trovano ricette live (es. offline), passa al DB locale
+      if (matches.isEmpty) {
+        matches = await RecipeMatcherService.findRandomRecipes(
+          pantryItems,
+          selectedCategory: _selectedCategory,
+          withOven: _withOven,
+          count: 200,
+        );
+      }
     } else {
       matches = await RecipeMatcherService.findMatchingRecipes(
         pantryItems,
+        expiringPantryItems: expiringPantryItems,
         selectedCategory: _selectedCategory,
         withOven: _withOven,
       );
@@ -96,7 +221,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
         actions: [
           IconButton(
             tooltip: 'Ricette dalla Dispensa',
-            icon: Icon(Icons.kitchen_outlined, color: !_isRandomMode ? AppColors.primary : AppColors.textSecondary, size: 26),
+            icon: Icon(Icons.kitchen_outlined,
+                color: !_isRandomMode
+                    ? AppColors.primary
+                    : AppColors.textSecondary,
+                size: 26),
             onPressed: () {
               setState(() {
                 _isRandomMode = false;
@@ -105,8 +234,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
             },
           ),
           IconButton(
-            tooltip: '5 Ricette Casuali',
-            icon: Icon(Icons.casino_outlined, color: _isRandomMode ? AppColors.primary : AppColors.textSecondary, size: 26),
+            tooltip: 'Ricette Casuali dal Web',
+            icon: Icon(Icons.casino_outlined,
+                color:
+                    _isRandomMode ? AppColors.primary : AppColors.textSecondary,
+                size: 26),
             onPressed: () {
               setState(() {
                 _isRandomMode = true;
@@ -146,8 +278,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           selected: isSelected,
                           label: Text(cat),
                           labelStyle: TextStyle(
-                            color: isSelected ? Colors.white : AppColors.textSecondary,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            color: isSelected
+                                ? Colors.white
+                                : AppColors.textSecondary,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                           ),
                           backgroundColor: AppColors.background,
                           selectedColor: AppColors.primary,
@@ -181,7 +317,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       selected: _withOven == true,
                       label: const Text('Con Forno'),
                       labelStyle: TextStyle(
-                        color: _withOven == true ? Colors.white : AppColors.textSecondary,
+                        color: _withOven == true
+                            ? Colors.white
+                            : AppColors.textSecondary,
                         fontSize: 13,
                       ),
                       backgroundColor: AppColors.background,
@@ -200,7 +338,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       selected: _withOven == false,
                       label: const Text('Senza Forno'),
                       labelStyle: TextStyle(
-                        color: _withOven == false ? Colors.white : AppColors.textSecondary,
+                        color: _withOven == false
+                            ? Colors.white
+                            : AppColors.textSecondary,
                         fontSize: 13,
                       ),
                       backgroundColor: AppColors.background,
@@ -218,6 +358,36 @@ class _RecipesScreenState extends State<RecipesScreen> {
               ],
             ),
           ),
+          // Banner dinamico Modalità Offline se non c'è rete
+          if (_isOffline)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              color: Colors.orange.shade600,
+              child: Row(
+                children: [
+                  const Icon(Icons.wifi_off_rounded,
+                      color: Colors.white, size: 18),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Modalità Offline: Rete assente. Mostrando le ricette salvate in locale.',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _checkNetworkAndFetchLive,
+                    child: const Text('Riprova',
+                        style: TextStyle(
+                            color: Colors.white,
+                            decoration: TextDecoration.underline)),
+                  ),
+                ],
+              ),
+            ),
           // Lista delle Ricette
           Expanded(
             child: _isLoading
@@ -229,27 +399,38 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.no_meals_rounded, size: 64, color: AppColors.textSecondary.withOpacity(0.5)),
+                            Icon(Icons.no_meals_rounded,
+                                size: 64,
+                                color:
+                                    AppColors.textSecondary.withOpacity(0.5)),
                             const SizedBox(height: 16),
                             Text(
                               'Nessuna ricetta compatibile trovata.',
-                              style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'Aggiungi più ingredienti alla tua dispensa!',
-                              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                              style: TextStyle(
+                                  color: AppColors.textSecondary, fontSize: 14),
                             ),
                           ],
                         ),
                       )
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _recipes.length,
-                        itemBuilder: (context, index) {
-                          final recipe = _recipes[index];
-                          return _buildRecipeCard(recipe);
-                        },
+                    : RefreshIndicator(
+                        color: AppColors.primary,
+                        onRefresh: _checkNetworkAndFetchLive,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _recipes.length,
+                          itemBuilder: (context, index) {
+                            final recipe = _recipes[index];
+                            return _buildRecipeCard(recipe);
+                          },
+                        ),
                       ),
           ),
         ],
@@ -279,12 +460,15 @@ class _RecipesScreenState extends State<RecipesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Intestazione Card: Nome e Tag Fonte
+            // Intestazione Card: Nome
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isReadyToCook ? AppColors.primary.withOpacity(0.15) : AppColors.background,
-                border: Border(bottom: BorderSide(color: AppColors.border, width: 1)),
+                color: isReadyToCook
+                    ? AppColors.primary.withOpacity(0.15)
+                    : AppColors.background,
+                border: Border(
+                    bottom: BorderSide(color: AppColors.border, width: 1)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -293,13 +477,20 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          recipe.name,
-                          style: TextStyle(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                          ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                recipe.name,
+                                style: TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -320,17 +511,30 @@ class _RecipesScreenState extends State<RecipesScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
-                  Icon(Icons.access_time_rounded, color: AppColors.textSecondary, size: 18),
+                  Icon(Icons.access_time_rounded,
+                      color: AppColors.textSecondary, size: 18),
                   const SizedBox(width: 4),
-                  Text(recipe.prepTime, style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+                  Text(recipe.prepTime,
+                      style: TextStyle(
+                          color: AppColors.textSecondary, fontSize: 14)),
                   const SizedBox(width: 16),
-                  Icon(Icons.trending_up_rounded, color: AppColors.textSecondary, size: 18),
+                  Icon(Icons.trending_up_rounded,
+                      color: AppColors.textSecondary, size: 18),
                   const SizedBox(width: 4),
-                  Text(recipe.difficulty, style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+                  Text(recipe.difficulty,
+                      style: TextStyle(
+                          color: AppColors.textSecondary, fontSize: 14)),
                   const SizedBox(width: 16),
-                  Icon(recipe.withOven ? Icons.microwave_rounded : Icons.pan_tool_rounded, color: AppColors.textSecondary, size: 18),
+                  Icon(
+                      recipe.withOven
+                          ? Icons.microwave_rounded
+                          : Icons.pan_tool_rounded,
+                      color: AppColors.textSecondary,
+                      size: 18),
                   const SizedBox(width: 4),
-                  Text(recipe.withOven ? 'Con Forno' : 'In Padella', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+                  Text(recipe.withOven ? 'Con Forno' : 'In Padella',
+                      style: TextStyle(
+                          color: AppColors.textSecondary, fontSize: 14)),
                 ],
               ),
             ),
@@ -343,13 +547,17 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 children: [
                   Text(
                     'Ingredienti Richiesti:',
-                    style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16),
                   ),
                   const SizedBox(height: 8),
                   ...recipe.allIngredients.map((ing) {
                     final isMissing = recipe.missingIngredients.contains(ing);
-                    final isTolerated = recipe.toleratedIngredients.contains(ing);
-                    
+                    final isTolerated =
+                        recipe.toleratedIngredients.contains(ing);
+
                     IconData iconData;
                     Color iconColor;
                     String statusText = '';
@@ -400,7 +608,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                             const SizedBox(width: 8),
                             Text(
                               statusText,
-                              style: TextStyle(color: textColor, fontSize: 12, fontStyle: FontStyle.italic),
+                              style: TextStyle(
+                                  color: textColor,
+                                  fontSize: 12,
+                                  fontStyle: FontStyle.italic),
                             ),
                           ]
                         ],
@@ -410,87 +621,172 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   const SizedBox(height: 12),
                   Text(
                     'Procedimento:',
-                    style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     recipe.instructions,
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.4),
+                    style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                        height: 1.4),
                   ),
                 ],
               ),
             ),
-            // Pulsante di Azione (Aggiungi Mancanti alla Spesa)
-            if (!isReadyToCook)
-              Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    elevation: 0,
-                    minimumSize: const Size.fromHeight(45),
-                  ),
-                  onPressed: () async {
-                    final missingNames = recipe.missingIngredients.map((e) => e.name).toList();
-                    await widget.state.addMissingIngredientsToShoppingList(missingNames);
-                    
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            "🛒 ${missingNames.length} ingredienti aggiunti alla tua Lista della Spesa!",
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                          backgroundColor: AppColors.primaryDark,
-                          duration: const Duration(seconds: 3),
-                        ),
-                      );
-                      // Ricarica per aggiornare lo stato
-                      _loadRecipes();
-                    }
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.add_shopping_cart_rounded, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Aggiungi ${recipe.missingIngredients.length} mancanti alla Spesa',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            // Area Pulsanti di Azione
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+              child: Column(
+                children: [
+                  if (!isReadyToCook) ...[
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        minimumSize: const Size.fromHeight(45),
                       ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: Colors.green, width: 1),
-                  ),
-                  child: const Center(
-                    child: Row(
+                      onPressed: () async {
+                        final missingNames = recipe.missingIngredients
+                            .map((e) => e.name)
+                            .toList();
+                        await widget.state
+                            .addMissingIngredientsToShoppingList(missingNames);
+
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "🛒 ${missingNames.length} ingredienti aggiunti alla tua Lista della Spesa!",
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              backgroundColor: AppColors.primaryDark,
+                              duration: const Duration(seconds: 3),
+                            ),
+                          );
+                          _loadRecipes();
+                        }
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.add_shopping_cart_rounded, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Aggiungi ${recipe.missingIngredients.length} mancanti alla Spesa',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 15),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ] else ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(color: Colors.green, width: 1),
+                      ),
+                      child: const Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.check_circle_outline_rounded,
+                                color: Colors.green),
+                            SizedBox(width: 8),
+                            Text(
+                              'Hai tutti gli ingredienti in Dispensa!',
+                              style: TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  // Nuovo pulsante per aprire il sito della ricetta
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.surfaceLight,
+                      foregroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        side: BorderSide(color: AppColors.primary, width: 1.5),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      elevation: 0,
+                      minimumSize: const Size.fromHeight(45),
+                    ),
+                    onPressed: () async {
+                      String url = recipe.source;
+                      if (!url.startsWith('http')) {
+                        final sourceLower = url.toLowerCase();
+                        final encName = Uri.encodeComponent(recipe.name);
+                        if (sourceLower.contains('giallozafferano')) {
+                          url =
+                              'https://www.giallozafferano.it/ricerca-ricette/$encName';
+                        } else if (sourceLower.contains('cucchiaio')) {
+                          url = 'https://www.cucchiaio.it/ricerca/?q=$encName';
+                        } else if (sourceLower.contains('tavolartegusto')) {
+                          url = 'https://www.tavolartegusto.it/?s=$encName';
+                        } else if (sourceLower.contains('benedetta')) {
+                          url =
+                              'https://www.fattoincasadabenedetta.it/?s=$encName';
+                        } else if (sourceLower.contains('misya')) {
+                          url = 'https://www.misya.info/?s=$encName';
+                        } else if (sourceLower.contains('chiarapassion')) {
+                          url = 'https://www.chiarapassion.com/?s=$encName';
+                        } else if (sourceLower.contains('cuore in pentola')) {
+                          url = 'https://www.ilcuoreinpentola.it/?s=$encName';
+                        } else if (sourceLower.contains('brodo di coccole')) {
+                          url = 'https://www.brododicoccole.com/?s=$encName';
+                        } else if (sourceLower.contains('food.com')) {
+                          url = 'https://www.food.com/search/$encName';
+                        } else {
+                          url =
+                              'https://www.giallozafferano.it/ricerca-ricette/$encName'; // Link diretto di fallback
+                        }
+                      }
+                      final uri = Uri.parse(url);
+                      try {
+                        await launchUrl(uri,
+                            mode: LaunchMode.externalApplication);
+                      } catch (e) {
+                        Fluttertoast.showToast(
+                            msg: 'Impossibile aprire il link della ricetta.');
+                      }
+                    },
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.check_circle_outline_rounded, color: Colors.green),
+                        Icon(Icons.open_in_new_rounded, size: 20),
                         SizedBox(width: 8),
                         Text(
-                          'Hai tutti gli ingredienti in Dispensa! Pronto a cucinare!',
-                          style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 14),
+                          'Vai al sito della ricetta',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                       ],
                     ),
                   ),
-                ),
+                ],
               ),
+            ),
           ],
         ),
       ),
@@ -532,15 +828,18 @@ class _ChefHatPainter extends CustomPainter {
     // Base del cappello (fascia inferiore stilizzata)
     path.moveTo(size.width * 0.25, size.height * 0.85);
     path.lineTo(size.width * 0.75, size.height * 0.85);
-    
+
     path.moveTo(size.width * 0.25, size.height * 0.70);
     path.lineTo(size.width * 0.75, size.height * 0.70);
 
     // Contorno superiore a nuvola stilizzato (3 arcate morbide e continue)
     path.moveTo(size.width * 0.25, size.height * 0.70);
-    path.cubicTo(size.width * 0.05, size.height * 0.60, size.width * 0.15, size.height * 0.30, size.width * 0.35, size.height * 0.35);
-    path.cubicTo(size.width * 0.40, size.height * 0.10, size.width * 0.60, size.height * 0.10, size.width * 0.65, size.height * 0.35);
-    path.cubicTo(size.width * 0.85, size.height * 0.30, size.width * 0.95, size.height * 0.60, size.width * 0.75, size.height * 0.70);
+    path.cubicTo(size.width * 0.05, size.height * 0.60, size.width * 0.15,
+        size.height * 0.30, size.width * 0.35, size.height * 0.35);
+    path.cubicTo(size.width * 0.40, size.height * 0.10, size.width * 0.60,
+        size.height * 0.10, size.width * 0.65, size.height * 0.35);
+    path.cubicTo(size.width * 0.85, size.height * 0.30, size.width * 0.95,
+        size.height * 0.60, size.width * 0.75, size.height * 0.70);
 
     canvas.drawPath(path, paint);
   }

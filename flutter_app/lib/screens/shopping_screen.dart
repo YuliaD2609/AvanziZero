@@ -358,6 +358,18 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
               ),
             ),
           ),
+          if (item.ownerId != null) ...[
+            const SizedBox(width: 8),
+            Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: widget.state.getMemberColor(item.ownerId!),
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
 
           // Quantità e Controlli (+ / -) come da layout
           Row(
@@ -662,6 +674,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
     String selectedCat = widget.state.selectedShoppingCategory == "Tutti"
         ? widget.state.categories[1]
         : widget.state.selectedShoppingCategory;
+    String? selectedOwnerId = widget.state.currentUserAuth?.uid;
 
     showDialog(
       context: context,
@@ -697,6 +710,34 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                 onChanged: (val) => setDialogState(() => selectedCat = val!),
                 decoration: const InputDecoration(labelText: "Categoria"),
               ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String?>(
+                initialValue: selectedOwnerId,
+                items: [
+                  const DropdownMenuItem<String?>(
+                      value: null, child: Text("Tutti")),
+                  ...widget.state.groupMembers
+                      .map((member) => DropdownMenuItem<String?>(
+                            value: member.id,
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 12,
+                                  height: 12,
+                                  margin: const EdgeInsets.only(right: 8),
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: widget.state
+                                          .getMemberColor(member.id)),
+                                ),
+                                Text(member.name),
+                              ],
+                            ),
+                          ))
+                ],
+                onChanged: (val) => setDialogState(() => selectedOwnerId = val),
+                decoration: const InputDecoration(labelText: "Proprietà di"),
+              ),
             ],
           ),
           actions: [
@@ -711,6 +752,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                     name: nameController.text.trim(),
                     category: selectedCat,
                     isShopping: true,
+                    ownerId: selectedOwnerId,
                   ));
                   Navigator.pop(context);
                 } else {
@@ -847,6 +889,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
             quantity: scanned.quantity,
             category: checked.category,
             isPantry: true,
+            ownerId: checked.ownerId,
           ));
 
           matchedShoppingItemIds.add(checked.id);
@@ -871,6 +914,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
           quantity: checked.quantity,
           category: checked.category,
           isPantry: true,
+          ownerId: checked.ownerId,
         ));
       }
     }
@@ -1038,6 +1082,50 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                                               horizontal: 12, vertical: 8),
                                     ),
                                   ),
+                                  const SizedBox(height: 12),
+                                  DropdownButtonFormField<String?>(
+                                    initialValue: item.ownerId,
+                                    isExpanded: true,
+                                    icon: Icon(
+                                        Icons.keyboard_arrow_down_rounded,
+                                        color: AppColors.primary),
+                                    items: [
+                                      const DropdownMenuItem<String?>(
+                                          value: null, child: Text("Tutti")),
+                                      ...widget.state.groupMembers
+                                          .map((member) => DropdownMenuItem<String?>(
+                                                value: member.id,
+                                                child: Row(
+                                                  children: [
+                                                    Container(
+                                                      width: 12,
+                                                      height: 12,
+                                                      margin: const EdgeInsets.only(right: 8),
+                                                      decoration: BoxDecoration(
+                                                          shape: BoxShape.circle,
+                                                          color: widget.state
+                                                              .getMemberColor(member.id)),
+                                                    ),
+                                                    Text(member.name),
+                                                  ],
+                                                ),
+                                              ))
+                                    ],
+                                    onChanged: (val) => setDialogState(() => item.ownerId = val),
+                                    decoration: InputDecoration(
+                                      labelText: "Proprietà di",
+                                      filled: true,
+                                      fillColor: AppColors.primaryLight
+                                          .withValues(alpha: 0.3),
+                                      border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          borderSide: BorderSide.none),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 8),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -1059,6 +1147,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                             quantity: 1,
                             category: "Altro",
                             isPantry: true,
+                            ownerId: widget.state.currentUserAuth?.uid,
                           ));
                         });
                       },

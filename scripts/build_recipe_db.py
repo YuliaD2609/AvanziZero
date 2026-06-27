@@ -48,12 +48,13 @@ def create_db():
     cursor.execute('CREATE INDEX idx_recipe_ingredients_norm ON recipe_ingredients(normalized_name)')
 
     # Maxi-Dataset Curato (GialloZafferano, Cucchiaio d'Argento, Fatto in Casa da Benedetta, Tavolartegusto, Food.com)
+    # Maxi-Dataset Curato (GialloZafferano, Cucchiaio d'Argento, Fatto in Casa da Benedetta, Tavolartegusto, Food.com)
     recipes_data = [
         # --- PRIMI PIATTI ---
         {
             "name": "Spaghetti alla Carbonara",
             "description": "Il classico primo piatto romano cremoso e saporito, perfetto per una cena tra coinquilini.",
-            "source": "GialloZafferano",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/spaghetti-alla-carbonara/",
             "category": "Primi Piatti",
             "prep_time": "20 min",
             "prep_time_min": 20,
@@ -65,13 +66,14 @@ def create_db():
                 ("Guanciale (o Pancetta)", "150g", "pancetta"),
                 ("Tuorli d'uovo", "4", "uova"),
                 ("Pecorino Romano (o Grana)", "50g", "parmigiano"),
-                ("Pepe nero", "q.b.", "pepe")
+                ("Pepe nero", "q.b.", "pepe"),
+                ("Sale grosso", "q.b.", "sale")
             ]
         },
         {
             "name": "Pasta alla Gricia",
             "description": "L'antenata della carbonara, semplice, saporita e velocissima.",
-            "source": "Cucchiaio d'Argento",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/pasta-alla-gricia/",
             "category": "Primi Piatti",
             "prep_time": "15 min",
             "prep_time_min": 15,
@@ -81,13 +83,15 @@ def create_db():
             "ingredients": [
                 ("Rigatoni (o altra pasta)", "320g", "pasta"),
                 ("Guanciale (o Pancetta)", "200g", "pancetta"),
-                ("Pecorino Romano", "60g", "parmigiano")
+                ("Pecorino Romano", "60g", "parmigiano"),
+                ("Pepe nero macinato", "q.b.", "pepe"),
+                ("Sale grosso", "q.b.", "sale")
             ]
         },
         {
             "name": "Pasta alle Zucchine e Parmigiano",
             "description": "Un primo piatto vegetariano veloce, fresco ed economico per la pausa pranzo estiva.",
-            "source": "Fatto in Casa da Benedetta",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/pasta-con-crema-di-zucchine/",
             "category": "Primi Piatti",
             "prep_time": "15 min",
             "prep_time_min": 15,
@@ -98,13 +102,17 @@ def create_db():
                 ("Pasta", "300g", "pasta"),
                 ("Zucchine", "2", "zucchine"),
                 ("Parmigiano Reggiano", "50g", "parmigiano"),
-                ("Olio extravergine d'oliva", "2 cucchiai", "olio")
+                ("Olio extravergine d'oliva", "2 cucchiai", "olio"),
+                ("Aglio", "1 spicchio", "aglio"),
+                ("Pepe nero", "q.b.", "pepe"),
+                ("Sale", "q.b.", "sale"),
+                ("Basilico fresco", "qualche foglia", "basilico")
             ]
         },
         {
             "name": "Lasagne al Forno Veloci",
             "description": "La cena perfetta della domenica per studenti fuorisede, ricca e filante.",
-            "source": "GialloZafferano",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/lasagna-alla-bolognese/",
             "category": "Primi Piatti",
             "prep_time": "40 min",
             "prep_time_min": 40,
@@ -115,13 +123,17 @@ def create_db():
                 ("Sfoglie per lasagne (o pasta)", "250g", "pasta"),
                 ("Sugo di pomodoro", "400g", "sugo"),
                 ("Mozzarella", "200g", "mozzarella"),
-                ("Parmigiano", "50g", "parmigiano")
+                ("Parmigiano", "50g", "parmigiano"),
+                ("Carne macinata (per ragù)", "300g", "carne"),
+                ("Besciamella o panna", "200ml", "panna"),
+                ("Burro", "20g", "burro"),
+                ("Sale e pepe", "q.b.", "sale")
             ]
         },
         {
             "name": "Penne all'Arrabbiata",
             "description": "Un classico piccante, veloce ed economico, perfetto per spaghettate notturne.",
-            "source": "Tavolartegusto",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/penne-all-arrabbiata/",
             "category": "Primi Piatti",
             "prep_time": "15 min",
             "prep_time_min": 15,
@@ -132,13 +144,16 @@ def create_db():
                 ("Penne (o altra pasta)", "320g", "pasta"),
                 ("Passata di Pomodoro", "400g", "sugo"),
                 ("Peperoncino piccante", "1", "peperoncino"),
-                ("Olio d'oliva", "q.b.", "olio")
+                ("Olio d'oliva", "4 cucchiai", "olio"),
+                ("Aglio", "2 spicchi", "aglio"),
+                ("Prezzemolo tritato", "1 ciuffo", "prezzemolo"),
+                ("Sale", "q.b.", "sale")
             ]
         },
         {
             "name": "Spaghetti al Tonno e Limone",
             "description": "Primo salva-cena per eccellenza, aromatico e pronto nel tempo di cottura della pasta.",
-            "source": "GialloZafferano",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/spaghetti-al-tonno-e-limone/",
             "category": "Primi Piatti",
             "prep_time": "12 min",
             "prep_time_min": 12,
@@ -149,13 +164,17 @@ def create_db():
                 ("Spaghetti", "320g", "pasta"),
                 ("Tonno in scatola", "160g", "tonno"),
                 ("Limone (succo e scorza)", "1", "limone"),
-                ("Olio d'oliva", "q.b.", "olio")
+                ("Olio d'oliva", "3 cucchiai", "olio"),
+                ("Aglio", "1 spicchio", "aglio"),
+                ("Prezzemolo fresco", "1 ciuffo", "prezzemolo"),
+                ("Sale", "q.b.", "sale"),
+                ("Pepe nero", "q.b.", "pepe")
             ]
         },
         {
             "name": "Risotto allo Zafferano (Milanese)",
             "description": "Elegante, cremoso e saporito, ottimo per fare bella figura con gli ospiti.",
-            "source": "Cucchiaio d'Argento",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/risotto-allo-zafferano/",
             "category": "Primi Piatti",
             "prep_time": "25 min",
             "prep_time_min": 25,
@@ -166,13 +185,17 @@ def create_db():
                 ("Riso (Arborio o Carnaroli)", "300g", "riso"),
                 ("Zafferano in bustina", "1 bustina", "zafferano"),
                 ("Burro", "40g", "burro"),
-                ("Parmigiano Reggiano", "50g", "parmigiano")
+                ("Parmigiano Reggiano", "50g", "parmigiano"),
+                ("Cipolla", "mezzo trito", "cipolla"),
+                ("Brodo di carne o vegetale", "500ml", "brodo"),
+                ("Vino bianco", "mezzo bicchiere", "vino"),
+                ("Sale", "q.b.", "sale")
             ]
         },
         {
             "name": "Spaghetti Aglio, Olio e Peperoncino",
             "description": "La regina delle spaghettate di mezzanotte, velocissima e a costo quasi zero.",
-            "source": "Fatto in Casa da Benedetta",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/spaghetti-aglio-olio-e-peperoncino/",
             "category": "Primi Piatti",
             "prep_time": "10 min",
             "prep_time_min": 10,
@@ -183,13 +206,15 @@ def create_db():
                 ("Spaghetti", "320g", "pasta"),
                 ("Aglio", "2 spicchi", "aglio"),
                 ("Peperoncino", "q.b.", "peperoncino"),
-                ("Olio d'oliva", "q.b.", "olio")
+                ("Olio d'oliva", "5 cucchiai", "olio"),
+                ("Prezzemolo", "1 ciuffo", "prezzemolo"),
+                ("Sale grosso", "q.b.", "sale")
             ]
         },
         {
             "name": "Gnocchi alla Sorrentina",
             "description": "Gnocchi filanti passati al forno con pomodoro, mozzarella e basilico fresco.",
-            "source": "Tavolartegusto",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/gnocchi-alla-sorrentina/",
             "category": "Primi Piatti",
             "prep_time": "25 min",
             "prep_time_min": 25,
@@ -200,13 +225,17 @@ def create_db():
                 ("Gnocchi di patate", "500g", "gnocchi"),
                 ("Passata o Sugo di pomodoro", "400g", "sugo"),
                 ("Mozzarella", "200g", "mozzarella"),
-                ("Parmigiano Reggiano", "50g", "parmigiano")
+                ("Parmigiano Reggiano", "50g", "parmigiano"),
+                ("Basilico fresco", "1 ciuffo", "basilico"),
+                ("Olio d'oliva", "2 cucchiai", "olio"),
+                ("Aglio", "1 spicchio", "aglio"),
+                ("Sale", "q.b.", "sale")
             ]
         },
         {
             "name": "Pasta e Fagioli Cremosa",
             "description": "Primo piatto corposo, nutriente e confortante per le fredde giornate invernali.",
-            "source": "Cucchiaio d'Argento",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/pasta-e-fagioli/",
             "category": "Primi Piatti",
             "prep_time": "20 min",
             "prep_time_min": 20,
@@ -216,8 +245,12 @@ def create_db():
             "ingredients": [
                 ("Pasta mista (o tubetti)", "250g", "pasta"),
                 ("Fagioli precotti in scatola", "400g", "fagioli"),
-                ("Olio d'oliva", "q.b.", "olio"),
-                ("Sale e pepe", "q.b.", "pepe")
+                ("Olio d'oliva", "3 cucchiai", "olio"),
+                ("Sale e pepe", "q.b.", "pepe"),
+                ("Aglio", "1 spicchio", "aglio"),
+                ("Sedano", "1 costa", "sedano"),
+                ("Carota", "1", "carote"),
+                ("Rosmarino", "1 rametto", "rosmarino")
             ]
         },
 
@@ -225,7 +258,7 @@ def create_db():
         {
             "name": "Pollo al Forno con Patate",
             "description": "Un secondo piatto intramontabile, facile da preparare e amato da tutti.",
-            "source": "Tavolartegusto",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/pollo-al-forno-con-patate/",
             "category": "Secondi Piatti",
             "prep_time": "45 min",
             "prep_time_min": 45,
@@ -235,13 +268,17 @@ def create_db():
             "ingredients": [
                 ("Petto o Fusi di Pollo", "500g", "pollo"),
                 ("Patate", "4", "patate"),
-                ("Olio d'oliva", "q.b.", "olio")
+                ("Olio d'oliva", "4 cucchiai", "olio"),
+                ("Rosmarino fresco", "2 rametti", "rosmarino"),
+                ("Aglio", "2 spicchi", "aglio"),
+                ("Sale", "q.b.", "sale"),
+                ("Pepe nero", "q.b.", "pepe")
             ]
         },
         {
             "name": "Straccetti di Pollo alle Zucchine",
             "description": "Secondo leggero, proteico e cotto in padella in pochi minuti.",
-            "source": "Cucchiaio d'Argento",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/straccetti-di-pollo-con-zucchine-e-zafferano/",
             "category": "Secondi Piatti",
             "prep_time": "15 min",
             "prep_time_min": 15,
@@ -251,13 +288,18 @@ def create_db():
             "ingredients": [
                 ("Petto di Pollo", "400g", "pollo"),
                 ("Zucchine", "2", "zucchine"),
-                ("Olio d'oliva", "q.b.", "olio")
+                ("Olio d'oliva", "3 cucchiai", "olio"),
+                ("Aglio", "1 spicchio", "aglio"),
+                ("Farina", "q.b.", "farina"),
+                ("Vino bianco", "mezzo bicchiere", "vino"),
+                ("Sale", "q.b.", "sale"),
+                ("Pepe", "q.b.", "pepe")
             ]
         },
         {
             "name": "Frittata di Patate e Cipolle",
             "description": "Il salva-cena per eccellenza, economico, saziante e delizioso sia caldo che freddo.",
-            "source": "Fatto in Casa da Benedetta",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/frittata-di-patate-e-cipolle/",
             "category": "Secondi Piatti",
             "prep_time": "20 min",
             "prep_time_min": 20,
@@ -267,13 +309,17 @@ def create_db():
             "ingredients": [
                 ("Uova", "5", "uova"),
                 ("Patate", "3", "patate"),
-                ("Parmigiano", "30g", "parmigiano")
+                ("Parmigiano", "30g", "parmigiano"),
+                ("Cipolle", "1", "cipolla"),
+                ("Olio d'oliva", "2 cucchiai", "olio"),
+                ("Sale", "q.b.", "sale"),
+                ("Pepe nero", "q.b.", "pepe")
             ]
         },
         {
             "name": "Polpette al Sugo della Nonna",
             "description": "Morbide polpette cotte lentamente nel sugo di pomodoro, perfette per fare la scarpetta.",
-            "source": "GialloZafferano",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/polpette-al-sugo/",
             "category": "Secondi Piatti",
             "prep_time": "30 min",
             "prep_time_min": 30,
@@ -284,13 +330,18 @@ def create_db():
                 ("Carne Macinata (manzo/maiale)", "400g", "carne"),
                 ("Passata di Pomodoro", "400g", "sugo"),
                 ("Uova", "1", "uova"),
-                ("Parmigiano o Pecorino", "50g", "parmigiano")
+                ("Parmigiano o Pecorino", "50g", "parmigiano"),
+                ("Pangrattato o pane ammollato", "80g", "pane"),
+                ("Aglio", "1 spicchio", "aglio"),
+                ("Prezzemolo tritato", "1 ciuffo", "prezzemolo"),
+                ("Olio d'oliva", "2 cucchiai", "olio"),
+                ("Sale e pepe", "q.b.", "pepe")
             ]
         },
         {
             "name": "Scaloppine al Limone",
             "description": "Tenere fettine di carne con una cremina profumata al limone, pronte in padella in 10 minuti.",
-            "source": "Tavolartegusto",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/scaloppine-al-limone/",
             "category": "Secondi Piatti",
             "prep_time": "10 min",
             "prep_time_min": 10,
@@ -301,13 +352,16 @@ def create_db():
                 ("Fettine di Maiale o Vitello", "400g", "carne"),
                 ("Limone (succo)", "1", "limone"),
                 ("Farina", "q.b.", "farina"),
-                ("Burro (o olio)", "30g", "burro")
+                ("Burro", "30g", "burro"),
+                ("Olio d'oliva", "1 cucchiaio", "olio"),
+                ("Prezzemolo tritato", "q.b.", "prezzemolo"),
+                ("Sale", "q.b.", "sale")
             ]
         },
         {
             "name": "Tranci di Salmone Croccanti",
             "description": "Salmone gustoso cotto in padella con pelle croccante e un filo di olio d'oliva.",
-            "source": "Food.com",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/salmone-in-padella/",
             "category": "Secondi Piatti",
             "prep_time": "12 min",
             "prep_time_min": 12,
@@ -317,13 +371,15 @@ def create_db():
             "ingredients": [
                 ("Tranci di Salmone", "400g", "salmone"),
                 ("Olio d'oliva", "q.b.", "olio"),
-                ("Sale e pepe", "q.b.", "pepe")
+                ("Sale e pepe", "q.b.", "pepe"),
+                ("Limone", "1 a spicchi", "limone"),
+                ("Timo o rosmarino", "q.b.", "rosmarino")
             ]
         },
         {
             "name": "Omelette Prosciutto e Formaggio",
             "description": "Classica francese, morbida all'esterno e filante all'interno, facilissima e istantanea.",
-            "source": "Cucchiaio d'Argento",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/omelette-classica/",
             "category": "Secondi Piatti",
             "prep_time": "8 min",
             "prep_time_min": 8,
@@ -334,13 +390,16 @@ def create_db():
                 ("Uova", "3", "uova"),
                 ("Prosciutto Cotto", "50g", "prosciutto"),
                 ("Formaggio a Fette (Emmental/Fondente)", "50g", "formaggio"),
-                ("Burro (o olio)", "10g", "burro")
+                ("Burro (o olio)", "10g", "burro"),
+                ("Latte", "1 cucchiaio", "latte"),
+                ("Sale", "q.b.", "sale"),
+                ("Pepe", "q.b.", "pepe")
             ]
         },
         {
             "name": "Melanzane alla Parmigiana",
             "description": "Iconico piatto unico o secondo ricco, con strati di melanzane fritte o grigliate, pomodoro e formaggio.",
-            "source": "GialloZafferano",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/parmigiana-di-melanzane/",
             "category": "Secondi Piatti",
             "prep_time": "50 min",
             "prep_time_min": 50,
@@ -351,13 +410,17 @@ def create_db():
                 ("Melanzane", "2", "melanzane"),
                 ("Passata di Pomodoro", "500g", "sugo"),
                 ("Mozzarella", "250g", "mozzarella"),
-                ("Parmigiano", "80g", "parmigiano")
+                ("Parmigiano", "80g", "parmigiano"),
+                ("Cipolla", "mezza trita", "cipolla"),
+                ("Basilico fresco", "1 ciuffo", "basilico"),
+                ("Olio d'oliva", "q.b.", "olio"),
+                ("Sale", "q.b.", "sale")
             ]
         },
         {
             "name": "Cotoletta di Pollo Croccante",
             "description": "Petto di pollo panato e fritto o cotto in padella, dorato e amatissimo dagli studenti.",
-            "source": "Fatto in Casa da Benedetta",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/cotolette-di-pollo/",
             "category": "Secondi Piatti",
             "prep_time": "15 min",
             "prep_time_min": 15,
@@ -368,7 +431,10 @@ def create_db():
                 ("Petto di Pollo a fette", "400g", "pollo"),
                 ("Uova", "1", "uova"),
                 ("Pangrattato", "100g", "pane"),
-                ("Olio di semi per friggere (o d'oliva)", "q.b.", "olio")
+                ("Olio di semi per friggere (o d'oliva)", "q.b.", "olio"),
+                ("Farina", "q.b.", "farina"),
+                ("Parmigiano (da mischiare al pane)", "30g", "parmigiano"),
+                ("Sale", "q.b.", "sale")
             ]
         },
 
@@ -376,7 +442,7 @@ def create_db():
         {
             "name": "Caprese Ricca con Pomodoro e Basilico",
             "description": "Piatto unico fresco, istantaneo e mediterraneo, ideale quando non si ha voglia di accendere fornelli.",
-            "source": "GialloZafferano",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/caprese-di-mozzarella-e-pomodoro/",
             "category": "Piatti Unici",
             "prep_time": "5 min",
             "prep_time_min": 5,
@@ -386,13 +452,16 @@ def create_db():
             "ingredients": [
                 ("Mozzarella", "250g", "mozzarella"),
                 ("Pomodori", "3", "pomodori"),
-                ("Olio d'oliva", "q.b.", "olio")
+                ("Olio d'oliva", "3 cucchiai", "olio"),
+                ("Basilico fresco", "1 ciuffo", "basilico"),
+                ("Origano", "q.b.", "origano"),
+                ("Sale", "q.b.", "sale")
             ]
         },
         {
             "name": "Toast al Forno Filante",
             "description": "Piatto unico per spuntini notturni di studio, super filante e dorato.",
-            "source": "Food.com",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/rotolini-di-pancarre-farciti-al-forno/",
             "category": "Piatti Unici",
             "prep_time": "10 min",
             "prep_time_min": 10,
@@ -402,13 +471,15 @@ def create_db():
             "ingredients": [
                 ("Pane in cassetta (o altro)", "4 fette", "pane"),
                 ("Mozzarella", "100g", "mozzarella"),
-                ("Pancetta (o prosciutto)", "80g", "pancetta")
+                ("Pancetta (o prosciutto)", "80g", "pancetta"),
+                ("Burro", "10g", "burro"),
+                ("Origano", "q.b.", "origano")
             ]
         },
         {
             "name": "Insalata di Riso Ricca",
             "description": "L'emblema dell'estate e dei pranzi al sacco in università. Facile da conservare in frigo per giorni.",
-            "source": "Fatto in Casa da Benedetta",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/insalata-di-riso-classica/",
             "category": "Piatti Unici",
             "prep_time": "25 min",
             "prep_time_min": 25,
@@ -419,13 +490,18 @@ def create_db():
                 ("Riso per insalate", "300g", "riso"),
                 ("Tonno in scatola", "160g", "tonno"),
                 ("Uova (da fare sode)", "2", "uova"),
-                ("Verdure sott'olio / Giardiniera", "100g", "verdure")
+                ("Verdure sott'olio / Giardiniera", "100g", "verdure"),
+                ("Olive nere o verdi", "50g", "olive"),
+                ("Formaggio a cubetti (Emmental/Scamorza)", "100g", "formaggio"),
+                ("Pomodorini", "150g", "pomodorini"),
+                ("Olio d'oliva", "q.b.", "olio"),
+                ("Sale", "q.b.", "sale")
             ]
         },
         {
             "name": "Cous Cous Estivo Verdure e Tonno",
             "description": "Piatto unico espresso senza cottura ai fornelli (basta acqua bollente), profumato e sano.",
-            "source": "Tavolartegusto",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/cous-cous-con-tonno-e-verdure/",
             "category": "Piatti Unici",
             "prep_time": "15 min",
             "prep_time_min": 15,
@@ -436,13 +512,17 @@ def create_db():
                 ("Cous Cous", "200g", "cous cous"),
                 ("Tonno in scatola", "160g", "tonno"),
                 ("Pomodori", "2", "pomodori"),
-                ("Olio d'oliva e sale", "q.b.", "olio")
+                ("Olio d'oliva e sale", "q.b.", "olio"),
+                ("Zucchine", "1", "zucchine"),
+                ("Carote", "1", "carote"),
+                ("Basilico", "q.b.", "basilico"),
+                ("Acqua", "200ml", "acqua")
             ]
         },
         {
             "name": "Crostoni Salsiccia e Stracchino",
             "description": "Rusticissimo piatto unico o antipasto per serate in allegria, gratinato al forno.",
-            "source": "Cucchiaio d'Argento",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/crostoni-salsiccia-e-stracchino/",
             "category": "Piatti Unici",
             "prep_time": "15 min",
             "prep_time_min": 15,
@@ -452,13 +532,15 @@ def create_db():
             "ingredients": [
                 ("Pane a fette", "4 fette", "pane"),
                 ("Salsiccia", "200g", "salsiccia"),
-                ("Stracchino (o formaggio spalmabile)", "150g", "stracchino")
+                ("Stracchino (o formaggio spalmabile)", "150g", "stracchino"),
+                ("Pepe nero", "q.b.", "pepe"),
+                ("Olio d'oliva", "q.b.", "olio")
             ]
         },
         {
             "name": "Uova al Tegamino con Pancetta",
             "description": "Colazione salata o pranzo fulmineo, proteico e ultra-saporito.",
-            "source": "Food.com",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/uovo-fritto/",
             "category": "Piatti Unici",
             "prep_time": "6 min",
             "prep_time_min": 6,
@@ -468,13 +550,15 @@ def create_db():
             "ingredients": [
                 ("Uova", "2", "uova"),
                 ("Pancetta o guanciale", "80g", "pancetta"),
-                ("Olio o burro", "q.b.", "olio")
+                ("Olio o burro", "q.b.", "olio"),
+                ("Pane per scarpetta", "2 fette", "pane"),
+                ("Sale e pepe", "q.b.", "pepe")
             ]
         },
         {
             "name": "Piadina Romagnola Classica",
             "description": "Lo street food italiano per eccellenza, perfetto per un pranzo rapido in periodo di esami.",
-            "source": "GialloZafferano",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/piadina-romagnola/",
             "category": "Piatti Unici",
             "prep_time": "5 min",
             "prep_time_min": 5,
@@ -484,7 +568,9 @@ def create_db():
             "ingredients": [
                 ("Piadina romagnola", "1", "piadina"),
                 ("Prosciutto crudo (o cotto)", "70g", "prosciutto"),
-                ("Formaggio o Squacquerone", "50g", "formaggio")
+                ("Formaggio o Squacquerone", "50g", "formaggio"),
+                ("Insalata o rucola", "50g", "insalata"),
+                ("Olio d'oliva", "q.b.", "olio")
             ]
         },
 
@@ -492,7 +578,7 @@ def create_db():
         {
             "name": "Tiramisù per Studenti Veloce",
             "description": "Il dolce più famoso d'Italia, nella versione express senza cottura per darsi la carica agli esami.",
-            "source": "GialloZafferano",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/tiramisu-senza-uova/",
             "category": "Dolci",
             "prep_time": "20 min",
             "prep_time_min": 20,
@@ -502,13 +588,16 @@ def create_db():
             "ingredients": [
                 ("Biscotti / Savoiardi (o frollini)", "200g", "biscotti"),
                 ("Uova", "3", "uova"),
-                ("Zucchero", "50g", "zucchero")
+                ("Zucchero", "50g", "zucchero"),
+                ("Mascarpone (o ricotta)", "250g", "mascarpone"),
+                ("Caffè espresso", "1 tazza", "caffè"),
+                ("Cacao amaro in polvere", "30g", "cacao")
             ]
         },
         {
             "name": "Torta di Mele Facile della Nonna",
             "description": "Una torta al forno soffice e profumata, perfetta per la colazione di tutta la settimana.",
-            "source": "Fatto in Casa da Benedetta",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/torta-di-mele-soffice/",
             "category": "Dolci",
             "prep_time": "50 min",
             "prep_time_min": 50,
@@ -519,13 +608,18 @@ def create_db():
                 ("Mele", "3", "mele"),
                 ("Uova", "2", "uova"),
                 ("Zucchero", "150g", "zucchero"),
-                ("Olio", "100ml", "olio")
+                ("Olio", "100ml", "olio"),
+                ("Farina", "200g", "farina"),
+                ("Lievito in polvere per dolci", "1 bustina", "lievito"),
+                ("Latte", "50ml", "latte"),
+                ("Cannella in polvere", "q.b.", "cannella"),
+                ("Limone (scorza grattugiata)", "1", "limone")
             ]
         },
         {
             "name": "Mug Cake al Cioccolato (in Tazza)",
             "description": "Torta monoporzione pronta in 3 minuti di microonde. Perfetta per le voglie improvvise di dolce in notturna.",
-            "source": "Tavolartegusto",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/torta-in-tazza-al-cioccolato/",
             "category": "Dolci",
             "prep_time": "5 min",
             "prep_time_min": 5,
@@ -536,13 +630,15 @@ def create_db():
                 ("Cacao in polvere (o cioccolato)", "2 cucchiai", "cioccolato"),
                 ("Farina", "3 cucchiai", "farina"),
                 ("Zucchero", "2 cucchiai", "zucchero"),
-                ("Olio o latte", "q.b.", "olio")
+                ("Olio o latte", "q.b.", "olio"),
+                ("Lievito in polvere", "1 pizzico", "lievito"),
+                ("Cioccolato a pezzetti", "20g", "cioccolato")
             ]
         },
         {
             "name": "Crepes Dolci alla Nutella",
             "description": "Crespelle sottili ed eleganti farcite di morbida crema di nocciole. Amate in tutto il mondo.",
-            "source": "GialloZafferano",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/crepes-dolci-e-salate/",
             "category": "Dolci",
             "prep_time": "15 min",
             "prep_time_min": 15,
@@ -553,13 +649,15 @@ def create_db():
                 ("Latte", "250ml", "latte"),
                 ("Farina", "100g", "farina"),
                 ("Uova", "1", "uova"),
-                ("Crema alle nocciole / Nutella", "q.b.", "nutella")
+                ("Crema alle nocciole / Nutella", "q.b.", "nutella"),
+                ("Zucchero", "1 cucchiaio", "zucchero"),
+                ("Burro (per la padella)", "10g", "burro")
             ]
         },
         {
             "name": "Salame di Cioccolato Senza Cottura",
             "description": "Il dolce facilissimo da preparare in compagnia, senza accendere né forno né fornelli.",
-            "source": "Fatto in Casa da Benedetta",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/salame-di-cioccolato/",
             "category": "Dolci",
             "prep_time": "20 min",
             "prep_time_min": 20,
@@ -570,13 +668,15 @@ def create_db():
                 ("Biscotti secchi", "300g", "biscotti"),
                 ("Burro", "150g", "burro"),
                 ("Cacao amaro in polvere", "50g", "cacao"),
-                ("Zucchero", "100g", "zucchero")
+                ("Zucchero", "100g", "zucchero"),
+                ("Latte", "2 cucchiai", "latte"),
+                ("Nocciole tritate (opzionali)", "50g", "nocciole")
             ]
         },
         {
             "name": "Pancakes Americani Soffici",
             "description": "Frittelle alte e spumose ideali per i brunch del weekend o colazioni super energetiche.",
-            "source": "Cucchiaio d'Argento",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/pancake-classici/",
             "category": "Dolci",
             "prep_time": "15 min",
             "prep_time_min": 15,
@@ -587,13 +687,16 @@ def create_db():
                 ("Farina", "150g", "farina"),
                 ("Latte", "200ml", "latte"),
                 ("Uova", "1", "uova"),
-                ("Zucchero", "30g", "zucchero")
+                ("Zucchero", "30g", "zucchero"),
+                ("Lievito in bustina", "1 cucchiaino", "lievito"),
+                ("Burro (per la padella)", "10g", "burro"),
+                ("Miele o sciroppo d'acero", "q.b.", "miele")
             ]
         },
         {
             "name": "Biscotti al Burro Facilissimi",
             "description": "Frollini classici al burro, friabili e deliziosi da tuffare nel latte o nel the.",
-            "source": "Food.com",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/biscotti-al-burro/",
             "category": "Dolci",
             "prep_time": "25 min",
             "prep_time_min": 25,
@@ -603,13 +706,16 @@ def create_db():
             "ingredients": [
                 ("Burro", "100g", "burro"),
                 ("Farina", "200g", "farina"),
-                ("Zucchero", "100g", "zucchero")
+                ("Zucchero", "100g", "zucchero"),
+                ("Uova", "1", "uova"),
+                ("Vaniglia o scorza di limone", "1 pizzico", "vaniglia"),
+                ("Lievito per dolci", "mezzo cucchiaino", "lievito")
             ]
         },
         {
             "name": "Muffin alle Gocce di Cioccolato",
             "description": "Dolcetti monoporzione morbidissimi, con golose pepite di cioccolato fondente.",
-            "source": "Tavolartegusto",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/muffin-soffici-con-gocce-di-cioccolato/",
             "category": "Dolci",
             "prep_time": "30 min",
             "prep_time_min": 30,
@@ -620,13 +726,16 @@ def create_db():
                 ("Farina", "200g", "farina"),
                 ("Zucchero", "100g", "zucchero"),
                 ("Gocce di Cioccolato", "80g", "cioccolato"),
-                ("Latte / Olio / Uova", "q.b.", "uova")
+                ("Latte / Olio / Uova", "q.b.", "uova"),
+                ("Burro fuso", "50g", "burro"),
+                ("Lievito per dolci", "1 bustina", "lievito"),
+                ("Vaniglia", "1 cucchiaino", "vaniglia")
             ]
         },
         {
             "name": "Panna Cotta al Cacao Veloce",
             "description": "Dessert al cucchiaio delicato ed elegante, pronto in pochissimi passaggi.",
-            "source": "GialloZafferano",
+            "source": "https://www.fattoincasadabenedetta.it/ricetta/panna-cotta-al-cacao/",
             "category": "Dolci",
             "prep_time": "15 min",
             "prep_time_min": 15,
@@ -636,7 +745,10 @@ def create_db():
             "ingredients": [
                 ("Panna liquida per dolci", "500ml", "panna"),
                 ("Zucchero", "100g", "zucchero"),
-                ("Cacao o Cioccolato", "50g", "cioccolato")
+                ("Cacao o Cioccolato", "50g", "cioccolato"),
+                ("Latte", "100ml", "latte"),
+                ("Gelatina in fogli", "6g", "gelatina"),
+                ("Vaniglia", "1 baccello", "vaniglia")
             ]
         }
     ]
