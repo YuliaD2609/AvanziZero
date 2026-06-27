@@ -1,7 +1,7 @@
-# 🏠 FarFromHome (AvanziZero) 🍲
+# 🏠 AvanziZero (AvanziZero) 🍲
 
 <div align="center">
-  <img src="flutter_app/assets/images/logo.png" alt="FarFromHome Logo" width="180" height="180" onerror="this.style.display='none'"/>
+  <img src="flutter_app/assets/images/logo.png" alt="AvanziZero Logo" width="180" height="180" onerror="this.style.display='none'"/>
   <h3>La Prima Super-App per Studenti Fuorisede e Coinquilini: Spesa Condivisa, Dispensa Intelligente e Cucina a #AvanziZero</h3>
   <p><i>Gestisci la casa in armonia, risparmia tempo e denaro, azzera gli sprechi alimentari e scopri migliaia di ricette perfette per ciò che hai in frigo.</i></p>
 </div>
@@ -53,13 +53,13 @@ La gestione domestica condivisa si basa attualmente su strumenti frammentati e n
 * **Carta e penna / lavagna:** Massimo controllo fisico in cucina ma zero condivisione digitale, rendendo l'inventario inaccessibile da remoto quando ci si trova tra le corsie del supermercato.
 * **Memoria individuale:** Il metodo più diffuso ma il meno affidabile in assoluto. È la causa principale di acquisti doppi (*"Pensavo l'avessi preso tu!"*), dimenticanze e prodotti scaduti non rilevati.
 
-**La conclusione è chiara:** Nessuno strumento attuale integra inventario, alert scadenze, collaborazione real-time e predizione IA in un'unica piattaforma dedicata. **FarFromHome (AvanziZero)** nasce proprio per colmare questo vuoto tecnologico e sociale.
+**La conclusione è chiara:** Nessuno strumento attuale integra inventario, alert scadenze, collaborazione real-time e predizione IA in un'unica piattaforma dedicata. **AvanziZero** nasce proprio per colmare questo vuoto tecnologico e sociale.
 
 ---
 
 ## 🤖 Architettura di Intelligenza Artificiale (Edge Computing)
 
-FarFromHome adotta un'architettura **Edge Computing**, portando il computing neurale direttamente a bordo dello smartphone dell'utente, azzerando la latenza di rete e azzerando i costi di API esterne (100% Token-Less).
+AvanziZero adotta un'architettura **Edge Computing**, portando il computing neurale direttamente a bordo dello smartphone dell'utente, azzerando la latenza di rete e azzerando i costi di API esterne (100% Token-Less).
 
 ```mermaid
 flowchart TD
@@ -167,21 +167,11 @@ Hai bisogno di un ingrediente urgente per completare una ricetta?
 
 ---
 
-### 7. Esperienza Fluida: Animazione Iniziale & Premium Mode
-Il design di FarFromHome è stato ingegnerizzato per stupire dal primo secondo d'apertura.
-
-* **Animazione di Avvio "Pencil Checkbox":** All'avvio dell'applicazione, un'elegante animazione fluida mostra una matita che spunta in rapida successione le tre priorità del fuorisede: **Pane 🍞**, **Uova 🥚** e **AvanziZero 🌿** (quest'ultimo avvolto in un magnifico bagliore luminoso). L'animazione è velocissima (~1.9 secondi totali) e assicura un ingresso immersivo e memorabile nell'app.
-* **Personalizzazione del Profilo (Bypass Animazione):** Pensata per gli utenti più esigenti e abitudinari, all'interno della schermata Profilo/Impostazioni è disponibile l'opzione **"Rimuovi animazione di avvio"**. Attivandola, l'applicazione entra istantaneamente nella schermata operativa senza alcuna latenza.
-* **Temi Esclusivi e Dark Mode Elegante:** Personalizza l'interfaccia con accenti cromatici unici e gradienti premium in stile Glassmorphism.
-* **Badge Profilo e Statistiche Avanzate:** Ottieni report dettagliati su quanto cibo hai salvato dallo spreco, l'andamento del tuo risparmio mensile e le statistiche di consumo del gruppo.
-
----
-
 ## 🌿 L'Impatto Ambientale e Sociale (#AvanziZero)
 
 Lo spreco alimentare domestico rappresenta una delle più grandi sfide ecologiche ed economiche contemporanee. Per uno studente fuorisede o un lavoratore, gettare cibo significa perdere centinaia di euro ogni anno.
 
-**FarFromHome** affronta il problema alla radice con un approccio gamificato ed educativo:
+**AvanziZero** affronta il problema alla radice con un approccio gamificato ed educativo:
 1. **Consapevolezza Visiva:** La barra colorata delle scadenze trasforma la gestione del frigo in un obiettivo quotidiano.
 2. **Valorizzazione degli Avanzi:** Non esiste rimasuglio che non possa diventare un piatto delizioso grazie al motore di ricerca integrato.
 3. **Risparmio Effettivo:** Meno cibo sprecato equivale a una lista della spesa più efficiente e a un portafoglio più sereno.
@@ -190,7 +180,7 @@ Lo spreco alimentare domestico rappresenta una delle più grandi sfide ecologich
 
 ## 🛡️ L'Esperienza Utente: Offline-First e Privacy Totale
 
-Abbiamo ingegnerizzato FarFromHome per essere incredibilmente snello, etico e resiliente:
+Abbiamo ingegnerizzato AvanziZero per essere incredibilmente snello, etico e resiliente:
 
 * **⚡ Nessun Abbonamento Esterno (100% Token-Less):** A differenza di altre app che si appoggiano ad AI cloud costose (con API keys a pagamento), la nostra pipeline di intelligenza artificiale gira interamente sul processore del tuo smartphone.
 * **🔒 Massima Privacy:** I tuoi scontrini, le tue spese e le tue abitudini alimentari non vengono vendute a inserzionisti terzi o elaborate in server remoti sconosciuti.
@@ -210,8 +200,8 @@ Vuoi testare l'app o contribuire allo sviluppo? Ecco come configurare l'ambiente
 2. **Procedura di Build:**
    ```bash
    # 1. Clona il repository ufficiale
-   git clone https://github.com/YuliaD2609/FarFromHome.git
-   cd FarFromHome/flutter_app
+   git clone https://github.com/YuliaD2609/AvanziZero.git
+   cd AvanziZero/flutter_app
 
    # 2. Ottieni le dipendenze del progetto
    flutter pub get
@@ -222,15 +212,3 @@ Vuoi testare l'app o contribuire allo sviluppo? Ecco come configurare l'ambiente
    # 4. Compila ed esegui l'app sul tuo dispositivo
    flutter run
    ```
-
----
-
-<div align="center">
-  <p><i>Made with ❤️ by the FarFromHome Engineering Team. Insieme verso lo #AvanziZero!</i></p>
-</div>   ```
-
----
-
-<div align="center">
-  <p><i>Made with ❤️ by the FarFromHome Engineering Team. Insieme verso lo #AvanziZero!</i></p>
-</div>
