@@ -78,16 +78,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
           newCount++;
         }
 
-        if (mounted && newCount > 0) {
-          Fluttertoast.showToast(
-            msg: 'Trovate $newCount nuove ricette dal web!',
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: AppColors.primary,
-            textColor: Colors.white,
-            fontSize: 16.0,
-          );
-        }
+        // Toast informativi rimossi per migliorare l'esperienza utente
       } else {
         if (mounted) {
           setState(() {
@@ -160,14 +151,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
               toleratedIngredients: rec.toleratedIngredients,
             ));
           }
-          Fluttertoast.showToast(
-            msg: 'Mostrando fino a 200 ricette casuali',
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: AppColors.primary,
-            textColor: Colors.white,
-            fontSize: 16.0,
-          );
+          // Toast di avviso rimosso
         }
       } catch (e) {
         // Fallback silenzioso
