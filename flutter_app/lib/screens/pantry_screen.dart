@@ -38,9 +38,11 @@ class _PantryScreenState extends State<PantryScreen> {
     filteredItems
         .sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
-    return Scaffold(
-      backgroundColor: AppColors.background, // Colore sfondo
-      body: Column(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.background, // Colore sfondo
+        body: Column(
         children: [
           // Menu superiore
           HorizontalHeaderMenu(
@@ -220,7 +222,7 @@ class _PantryScreenState extends State<PantryScreen> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   // Costruisce card prodotto
