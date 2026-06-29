@@ -427,6 +427,44 @@ class AppState extends ChangeNotifier {
         } catch (e) {
                   }
       }
+
+      // Sincronizza con i gruppi salvati su Firestore (per reinstallazione app)
+      if (currentUserData != null && currentUserData!.groupIds.isNotEmpty) {
+        bool needsUpdate = false;
+        List<Future<void>> fetchFutures = [];
+
+        for (String gId in currentUserData!.groupIds) {
+          if (!savedGroups.contains(gId)) {
+            savedGroups.add(gId);
+            needsUpdate = true;
+          }
+          if (!savedGroupNames.containsKey(gId)) {
+            fetchFutures.add(
+              FirebaseFirestore.instance.collection('groups').doc(gId).get().then((groupDoc) {
+                if (groupDoc.exists) {
+                  final data = groupDoc.data() as Map<String, dynamic>? ?? {};
+                  if (data.containsKey('name') && data['name'] != null && data['name'].toString().isNotEmpty) {
+                    savedGroupNames[gId] = data['name'].toString();
+                  } else {
+                    savedGroupNames[gId] = gId;
+                  }
+                  needsUpdate = true;
+                }
+              }).catchError((_) {})
+            );
+          }
+        }
+
+        if (fetchFutures.isNotEmpty) {
+          await Future.wait(fetchFutures);
+        }
+        
+        if (needsUpdate) {
+          await prefs.setStringList(key, savedGroups);
+          await prefs.setString('savedGroupNames', jsonEncode(savedGroupNames));
+        }
+      }
+
       notifyListeners();
     } catch (e) {
           }
