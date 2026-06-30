@@ -382,6 +382,17 @@ class AppState extends ChangeNotifier {
 
             isInitializingUser = false;
             notifyListeners();
+          } else {
+            // Se il documento non esiste ancora (es. durante la registrazione)
+            // inizializziamo i dati base per sbloccare l'interfaccia
+            currentUserData = UserModel(
+              id: user.uid,
+              email: user.email ?? '',
+              name: user.displayName ?? '',
+              groupIds: [],
+            );
+            isInitializingUser = false;
+            notifyListeners();
           }
         });
       } else {
