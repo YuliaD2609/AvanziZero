@@ -1,3 +1,4 @@
+import '../utils/snackbar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -43,7 +44,7 @@ class _AdminScreenState extends State<AdminScreen> {
 
   void _saveProfile() async {
     // Profilo mockato
-    ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of(context).showSmartSnackBar(
       SnackBar(
         content: const Text("Profilo aggiornato con successo!"),
         backgroundColor: AppColors.primary,
@@ -107,7 +108,7 @@ class _AdminScreenState extends State<AdminScreen> {
         'groupIds': FieldValue.arrayRemove([groupId])
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context).showSmartSnackBar(
           SnackBar(
               content: const Text("Membro rimosso dal gruppo."),
               backgroundColor: AppColors.error),
@@ -128,7 +129,7 @@ class _AdminScreenState extends State<AdminScreen> {
         'adminIds': FieldValue.arrayUnion([uid]),
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context).showSmartSnackBar(
           SnackBar(
               content: const Text("Membro promosso ad Admin!"),
               backgroundColor: AppColors.primary),
@@ -160,7 +161,7 @@ class _AdminScreenState extends State<AdminScreen> {
         'pendingGroupIds': FieldValue.arrayRemove([groupId])
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context).showSmartSnackBar(
           SnackBar(
               content: const Text("Richiesta accettata!"),
               backgroundColor: AppColors.primary),
@@ -185,7 +186,7 @@ class _AdminScreenState extends State<AdminScreen> {
         'pendingGroupIds': FieldValue.arrayRemove([groupId])
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context).showSmartSnackBar(
           SnackBar(
               content: const Text("Richiesta rifiutata."),
               backgroundColor: AppColors.error),
@@ -427,7 +428,7 @@ class _AdminScreenState extends State<AdminScreen> {
                           );
                           if (picked != null) {
                             await widget.state.setNotificationTime(picked);
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            ScaffoldMessenger.of(context).showSmartSnackBar(
                               SnackBar(
                                 content: Text(
                                     "Orario notifiche aggiornato: ${picked.format(context)}"),
@@ -1042,7 +1043,7 @@ class _AdminScreenState extends State<AdminScreen> {
               Navigator.pop(ctx);
               await widget.state.updateGroupName(newName);
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(context).showSmartSnackBar(
                   SnackBar(
                       content: const Text("Nome del gruppo aggiornato!"),
                       backgroundColor: AppColors.primary),

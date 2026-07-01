@@ -1,3 +1,4 @@
+import '../utils/snackbar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
@@ -70,14 +71,14 @@ class _AuthScreenState extends State<AuthScreen> {
             }
             _formKey.currentState!.validate();
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
+            ScaffoldMessenger.of(context).showSmartSnackBar(
               SnackBar(content: Text(e.message ?? "Errore di autenticazione")),
             );
           }
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          ScaffoldMessenger.of(context).showSmartSnackBar(
             SnackBar(
                 content: Text(
                     e.toString().replaceAll(RegExp(r'\[.*?\]'), '').trim())),
@@ -304,7 +305,7 @@ class _AuthScreenState extends State<AuthScreen> {
             onPressed: () async {
               final email = emailCtrl.text.trim();
               if (email.isEmpty || !email.contains('@')) {
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(context).showSmartSnackBar(
                   const SnackBar(content: Text("Inserisci una email valida")),
                 );
                 return;
@@ -313,7 +314,7 @@ class _AuthScreenState extends State<AuthScreen> {
               try {
                 await _auth.sendPasswordResetEmail(email);
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(context).showSmartSnackBar(
                     SnackBar(
                       content: const Text(
                           "Abbiamo inviato un link alla tua email per recuperare la password!"),
@@ -323,7 +324,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(context).showSmartSnackBar(
                     const SnackBar(
                         content: Text(
                             "Errore: Impossibile inviare l'email di recupero.")),

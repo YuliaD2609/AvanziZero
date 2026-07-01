@@ -1,3 +1,4 @@
+import '../utils/snackbar_utils.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -63,7 +64,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
     );
 
     // Mostra codice generato
-    ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of(context).showSmartSnackBar(
       SnackBar(
         content: Text(
           "Gruppo creato! Codice di invito: $newCode",
@@ -104,7 +105,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
       // Controllo anti-spam
       if (userData.pendingGroupIds.contains(inputCode)) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context).showSmartSnackBar(
           SnackBar(
             content: Text(
                 "Hai già inviato una richiesta per $inputCode. Attendi l'approvazione."),
@@ -171,7 +172,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
           userData.pendingGroupIds.add(inputCode);
 
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
+          ScaffoldMessenger.of(context).showSmartSnackBar(
             SnackBar(
               content: Text(
                   "Richiesta inviata! L'admin di $inputCode dovrà approvarti."),
@@ -636,7 +637,7 @@ class _GroupSetupScreenState extends State<GroupSetupScreen> {
                                       onPressed: () {
                                         widget.state.removeSavedGroup(code);
                                         ScaffoldMessenger.of(context)
-                                            .showSnackBar(
+                                            .showSmartSnackBar(
                                           SnackBar(
                                               content: Text(
                                                   "Gruppo $code rimosso dalla cronologia.")),

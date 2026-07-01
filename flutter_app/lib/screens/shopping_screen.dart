@@ -1,3 +1,4 @@
+import '../utils/snackbar_utils.dart';
 import 'package:flutter/material.dart';
 import '../models/app_state.dart';
 import '../widgets/menus.dart';
@@ -465,7 +466,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                     );
                     widget.state.addItem(newItem);
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      ScaffoldMessenger.of(context).showSmartSnackBar(SnackBar(
                         content: Text("✨ ${pred.nomeProdotto} aggiunto automaticamente dall'IA!"),
                         backgroundColor: AppColors.primary,
                         duration: const Duration(seconds: 2),
@@ -487,7 +488,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                   setStateModal(() {
                     isAILoading = false;
                   });
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Errore IA: $e")));
+                  ScaffoldMessenger.of(context).showSmartSnackBar(SnackBar(content: Text("Errore IA: $e")));
                 }
               }
             });
@@ -775,7 +776,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
 
   void _handleSpesaFatta() {
     if (_checkedItems.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showSmartSnackBar(
         const SnackBar(
             content:
                 Text("Seleziona almeno un prodotto per completare la spesa!")),
@@ -799,7 +800,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                   setState(() {
                     _checkedItems.clear();
                   });
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(context).showSmartSnackBar(
                     SnackBar(
                       content: const Text(
                           "Spesa Fatta! Prodotti selezionati trasferiti in Dispensa con successo."),
@@ -1184,7 +1185,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                     });
 
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    ScaffoldMessenger.of(context).showSmartSnackBar(
                       SnackBar(
                         content: const Text(
                             "Spesa Fatta e fusa con lo scontrino! Elementi spostati in Dispensa."),

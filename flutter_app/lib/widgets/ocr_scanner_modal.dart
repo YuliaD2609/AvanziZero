@@ -1,3 +1,4 @@
+import '../utils/snackbar_utils.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -45,7 +46,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
       }
     } catch (e) {
             if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context).showSmartSnackBar(
           SnackBar(
             content: Text("Impossibile accedere alla sorgente: $e"),
             backgroundColor: AppColors.error,
@@ -320,7 +321,7 @@ class _OcrScannerModalState extends State<OcrScannerModal> {
                                           _isAnalyzing = false;
                                         });
                                         ScaffoldMessenger.of(context)
-                                            .showSnackBar(
+                                            .showSmartSnackBar(
                                           SnackBar(
                                             content: Text("Errore: $e"),
                                             backgroundColor: AppColors.error,

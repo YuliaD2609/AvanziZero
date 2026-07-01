@@ -1,3 +1,4 @@
+import '../utils/snackbar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
@@ -632,7 +633,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         await widget.state.addMissingIngredientsToShoppingList(missingNames);
                         
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          ScaffoldMessenger.of(context).showSmartSnackBar(
                             SnackBar(
                               content: Text(
                                 missingNames.length == 1
