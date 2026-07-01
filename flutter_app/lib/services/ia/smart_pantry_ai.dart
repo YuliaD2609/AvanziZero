@@ -179,7 +179,7 @@ class SmartPantryAI {
             quantitaSuggerita: qtySuggerita,
             motivoAggiunta: motivo,
             confidenzaPercentuale: confidenza,
-            autoAdd: acceptCount > 3, // Inserimento automatico
+            autoAdd: acceptCount >= 3, // Inserimento automatico
           ));
         }
       }

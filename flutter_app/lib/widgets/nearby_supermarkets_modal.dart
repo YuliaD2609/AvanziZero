@@ -1,3 +1,4 @@
+import '../utils/snackbar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/app_state.dart';
@@ -266,7 +267,7 @@ void showNearbySupermarketsModal(BuildContext context, AppState state) {
                         mode: LaunchMode.externalApplication);
                   } catch (e) {
                                         if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      ScaffoldMessenger.of(context).showSmartSnackBar(
                         const SnackBar(
                             content: Text(
                                 "Impossibile avviare Google Maps. Verifica la connessione o l'app installata.")),

@@ -1,3 +1,4 @@
+import '../utils/snackbar_utils.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -790,17 +791,10 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> _checkAndAutoAddShopping(ItemModel item) async {
-    final history = await _firebaseService?.getConsumptionHistory() ?? [];
-    int consumedCount = 0;
     String targetName = item.name.toLowerCase().trim();
+    int acceptCount = aiFeedback[targetName]?['acceptCount'] ?? 0;
 
-    for (var log in history) {
-      if ((log['name'] ?? '').toString().toLowerCase().trim() == targetName) {
-        consumedCount += (log['quantity'] ?? 1) as int;
-      }
-    }
-
-    if (consumedCount >= 3) {
+    if (acceptCount >= 3) {
       bool alreadyInShopping = allItems.any(
           (i) => i.isShopping && i.name.toLowerCase().trim() == targetName);
       if (!alreadyInShopping) {
@@ -817,7 +811,7 @@ class AppState extends ChangeNotifier {
         notifyListeners();
         await _firebaseService?.saveItem(newItem);
 
-        rootScaffoldMessengerKey.currentState?.showSnackBar(
+        rootScaffoldMessengerKey.currentState?.showSmartSnackBar(
           SnackBar(
             content: Text(
                 "IA: ${item.name} sta finendo ed è stato aggiunto alla Spesa automatica!"),

@@ -1,3 +1,4 @@
+import '../utils/snackbar_utils.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -192,7 +193,7 @@ class SupermarketsService {
 
   static void _showError(BuildContext context, String message) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showSmartSnackBar(
         SnackBar(content: Text(message), backgroundColor: Colors.red),
       );
     }

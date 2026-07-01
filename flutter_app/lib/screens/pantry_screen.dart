@@ -1,3 +1,4 @@
+import '../utils/snackbar_utils.dart';
 import 'package:flutter/material.dart';
 import '../models/app_state.dart';
 import '../widgets/menus.dart';
@@ -334,51 +335,56 @@ class _PantryScreenState extends State<PantryScreen> {
                           InkWell(
                             onTap: () {
                               if (item.quantity == 1) {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    backgroundColor: AppColors.surfaceLight,
-                                    // Titolo dell'avviso prodotto terminato
-                                    title: Text("Prodotto terminato",
-                                        style: TextStyle(
-                                            fontFamily: 'Outfit',
-                                            color: AppColors.textPrimary)),
-                                    content: Text(
-                                        "Vuoi aggiungere '${item.name}' alla lista della spesa?",
-                                        style: TextStyle(
-                                            color: AppColors.textSecondary)),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          widget.state
-                                              .updateQuantity(item.id, -1);
-                                        },
-                                        child: const Text("No, rimuovi"),
-                                      ),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          widget.state.moveToShoppingList(item);
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                  "${item.name} aggiunto alla spesa!"),
-                                              backgroundColor:
-                                                  AppColors.primary,
-                                            ),
-                                          );
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                            backgroundColor: AppColors.primary),
-                                        child: const Text("Sì, aggiungi",
-                                            style:
-                                                TextStyle(color: Colors.white)),
-                                      ),
-                                    ],
-                                  ),
-                                );
+                                String targetName = item.name.toLowerCase().trim();
+                                bool alreadyInShopping = widget.state.allItems.any(
+                                    (i) => i.isShopping && i.name.toLowerCase().trim() == targetName);
+                                int acceptCount = widget.state.aiFeedback[targetName]?['acceptCount'] ?? 0;
+
+                                if (alreadyInShopping || acceptCount >= 3) {
+                                  widget.state.updateQuantity(item.id, -1);
+                                } else {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      backgroundColor: AppColors.surfaceLight,
+                                      title: Text("Prodotto terminato",
+                                          style: TextStyle(
+                                              fontFamily: 'Outfit',
+                                              color: AppColors.textPrimary)),
+                                      content: Text(
+                                          "Vuoi aggiungere '${item.name}' alla lista della spesa?",
+                                          style: TextStyle(
+                                              color: AppColors.textSecondary)),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            widget.state.rejectAISuggestion(item.name);
+                                            widget.state.updateQuantity(item.id, -1);
+                                          },
+                                          child: const Text("No, rimuovi"),
+                                        ),
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            widget.state.acceptAISuggestion(item.name);
+                                            widget.state.moveToShoppingList(item);
+                                            ScaffoldMessenger.of(context).showSmartSnackBar(
+                                              SnackBar(
+                                                content: Text("${item.name} aggiunto alla spesa!"),
+                                                backgroundColor: AppColors.primary,
+                                              ),
+                                            );
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                              backgroundColor: AppColors.primary),
+                                          child: const Text("Sì, aggiungi",
+                                              style: TextStyle(color: Colors.white)),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
                               } else {
                                 widget.state.updateQuantity(item.id, -1);
                               }
@@ -510,7 +516,7 @@ class _PantryScreenState extends State<PantryScreen> {
                             selectedDates.add(null);
                           });
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          ScaffoldMessenger.of(context).showSmartSnackBar(
                             SnackBar(
                               content: Text("Puoi inserire al massimo $q scadenze (una per ogni unità). Aumenta la quantità per aggiungerne altre."),
                               backgroundColor: AppColors.error,
@@ -789,7 +795,7 @@ class _PantryScreenState extends State<PantryScreen> {
                             selectedDates.add(null);
                           });
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          ScaffoldMessenger.of(context).showSmartSnackBar(
                             SnackBar(
                               content: Text("Puoi inserire al massimo $q scadenze (una per ogni unità). Aumenta la quantità per aggiungerne altre."),
                               backgroundColor: AppColors.error,
@@ -1228,7 +1234,7 @@ class _PantryScreenState extends State<PantryScreen> {
                       }
                     }
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    ScaffoldMessenger.of(context).showSmartSnackBar(
                       SnackBar(
                         content: Text(
                             "Salvati ${items.where((i) => i.name.trim().isNotEmpty).length} prodotti in dispensa!"),
