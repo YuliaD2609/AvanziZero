@@ -365,7 +365,7 @@ class LiveRecipeHarvestingService {
 
         if (allIngredients.any((e) => e.normalizedName == itKey)) continue;
 
-        final regexIt = RegExp(r'\b' + itKey + r'\b', caseSensitive: false);
+        final regexIt = RegExp(r'\b' + RegExp.escape(itKey) + r'\b', caseSensitive: false);
         if (regexIt.hasMatch(fullText)) {
           allIngredients.add(RecipeIngredient(name: name, quantity: qty, normalizedName: itKey));
         }

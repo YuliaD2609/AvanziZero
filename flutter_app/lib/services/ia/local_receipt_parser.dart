@@ -1015,9 +1015,16 @@ class LocalReceiptParser {
     List<ItemModel> extractedItems = [];
     List<String> lines = rawText.split('\n');
 
-    for (String line in lines) {
+    for (int i = 0; i < lines.length; i++) {
+      String line = lines[i];
       String cleanLine = line.toLowerCase().trim();
       if (cleanLine.length < 3) continue;
+
+      // Verifichiamo se c'è un prezzo vicino (stessa riga, precedente o successiva)
+      bool currentHasPrice = RegExp(r'\d+[,\.]\d{2}').hasMatch(cleanLine);
+      bool nextHasPrice = (i + 1 < lines.length) && RegExp(r'\d+[,\.]\d{2}').hasMatch(lines[i + 1]);
+      bool prevHasPrice = (i - 1 >= 0) && RegExp(r'\d+[,\.]\d{2}').hasMatch(lines[i - 1]);
+      bool hasPriceNearby = currentHasPrice || nextHasPrice || prevHasPrice;
 
       // 1. Filtraggio Garbage Totale (Riga interamente da scartare)
       bool isGarbageLine = false;
@@ -1084,7 +1091,7 @@ class LocalReceiptParser {
       // Rimuove parole spazzatura
       for (String garbage in _garbageKeywords) {
         productNameRaw = productNameRaw
-            .replaceAll(RegExp(r'\b' + garbage + r'\b'), ' ')
+            .replaceAll(RegExp(r'\b' + RegExp.escape(garbage) + r'\b', caseSensitive: false), ' ')
             .trim();
       }
 
@@ -1120,6 +1127,11 @@ class LocalReceiptParser {
         finalName = _productDictionary[bestMatchKey]!['name']!;
         finalCategory = _productDictionary[bestMatchKey]!['category']!;
       } else {
+        // Se non assomiglia a nessun prodotto noto E non ha nessun prezzo vicino, è spazzatura
+        if (!hasPriceNearby) {
+          continue;
+        }
+
         // Fallback nome originale
         finalName = finalName
             .split(' ')
